@@ -1,0 +1,92 @@
+{
+  "jd_ref": "docx_extracts/job_description.txt",
+  "created": "2026-06-27",
+  "ranked_ids": [
+    "CAND_0071974",
+    "CAND_0006567",
+    "CAND_0005538",
+    "CAND_0002025",
+    "CAND_0000074",
+    "CAND_0000073",
+    "CAND_0000054",
+    "CAND_0000052",
+    "CAND_0000037",
+    "CAND_0000030",
+    "CAND_0000012",
+    "CAND_0000009",
+    "CAND_0000005",
+    "CAND_0000004"
+  ],
+  "notes": [
+    {
+      "candidate_id": "CAND_0071974",
+      "rank": 7,
+      "reason": "Strong Senior AI Engineer fit for product role."
+    },
+    {
+      "candidate_id": "CAND_0006567",
+      "rank": 8,
+      "reason": "Strong Senior AI Engineer fit for product role."
+    },
+    {
+      "candidate_id": "CAND_0005538",
+      "rank": 9,
+      "reason": "Strong Senior AI Engineer fit for product role."
+    },
+    {
+      "candidate_id": "CAND_0002025",
+      "rank": 10,
+      "reason": "Strong Senior AI Engineer fit for product role."
+    },
+    {
+      "candidate_id": "CAND_0000074",
+      "rank": 11,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000073",
+      "rank": 12,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000054",
+      "rank": 13,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000052",
+      "rank": 14,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000037",
+      "rank": 15,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000030",
+      "rank": 16,
+      "reason": "Marketing Manager honeypot trap, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000012",
+      "rank": 17,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000009",
+      "rank": 18,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000005",
+      "rank": 19,
+      "reason": "Fictional company, automatically disqualified."
+    },
+    {
+      "candidate_id": "CAND_0000004",
+      "rank": 20,
+      "reason": "Marketing Manager honeypot trap, automatically disqualified."
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+candidate_id,rank,score,reasoning
+CAND_0018499,1,0.8800,Strong fit: Senior Machine Learning Engineer at Zomato with 7.2 YOE. Demonstrates deep expertise in RAG and scikit-learn.
+CAND_0080766,2,0.8625,Strong fit: Staff Machine Learning Engineer at Salesforce with 8.8 YOE. Demonstrates deep expertise in TensorFlow and Search & Discovery.
+CAND_0061257,3,0.8475,Strong fit: Staff Machine Learning Engineer at LinkedIn with 8.0 YOE. Demonstrates deep expertise in Search Infrastructure and Model Adaptation.
+CAND_0081846,4,0.8475,Strong fit: Lead AI Engineer at Razorpay with 6.7 YOE. Demonstrates deep expertise in Embeddings and Information Retrieval.
+CAND_0068351,5,0.8450,Strong fit: Lead AI Engineer at Sarvam AI with 6.4 YOE. Demonstrates deep expertise in PEFT and Open-source ML libraries.
+CAND_0045250,6,0.8425,Strong fit: Applied ML Engineer at Rephrase.ai with 6.6 YOE. Demonstrates deep expertise in BM25 and LangChain.
+CAND_0006567,7,0.8375,Strong fit: Senior AI Engineer at Meta with 7.9 YOE. Demonstrates deep expertise in Prompt Engineering and Content Matching.
+CAND_0087630,8,0.8250,Strong fit: AI Engineer at Vedantu with 7.2 YOE. Demonstrates deep expertise in QLoRA and Hugging Face Transformers.
+CAND_0032216,9,0.8225,Strong fit: ML Engineer at upGrad with 6.1 YOE. Demonstrates deep expertise in PyTorch and Time Series.
+CAND_0037566,10,0.8100,Strong fit: Machine Learning Engineer at LinkedIn with 6.9 YOE. Demonstrates deep expertise in LangChain and TensorFlow.
+CAND_0038368,11,0.8100,Strong fit: ML Engineer at PhonePe with 5.4 YOE. Demonstrates deep expertise in Embeddings and QLoRA.
+CAND_0058688,12,0.8100,Strong fit: AI Engineer at Vedantu with 6.7 YOE. Demonstrates deep expertise in LlamaIndex and Machine Learning.
+CAND_0002025,13,0.8050,Strong fit: Senior AI Engineer at Apple with 5.9 YOE. Demonstrates deep expertise in FAISS and TensorFlow.
+CAND_0003841,14,0.8000,Strong fit: ML Engineer at Tech Mahindra with 5.0 YOE. Demonstrates deep expertise in Pinecone and Sentence Transformers.
+CAND_0095213,15,0.7950,Strong fit: ML Engineer at Genpact AI with 5.1 YOE. Demonstrates deep expertise in Pinecone and Forecasting.
+CAND_0050454,16,0.7925,Strong fit: AI Engineer at Rephrase.ai with 6.8 YOE. Demonstrates deep expertise in scikit-learn and QLoRA.
+CAND_0018094,17,0.7900,Strong fit: ML Engineer at Mad Street Den with 5.2 YOE. Demonstrates deep expertise in Fine-tuning LLMs and Forecasting.
+CAND_0071974,18,0.7850,Strong fit: Senior AI Engineer at Netflix with 7.8 YOE. Demonstrates deep expertise in Elasticsearch and Qdrant.
+CAND_0068932,19,0.7825,Strong fit: ML Engineer at Krutrim with 5.2 YOE. Demonstrates deep expertise in Diffusion Models and OpenSearch.
+CAND_0083879,20,0.7825,Strong fit: Machine Learning Engineer at Ola with 7.1 YOE. Demonstrates deep expertise in Fine-tuning LLMs and Sentence Transformers.
+CAND_0068811,21,0.7800,Strong fit: Applied ML Engineer at Freshworks with 8.0 YOE. Demonstrates deep expertise in Pinecone and Vector Search.
+CAND_0017093,22,0.7775,Strong fit: ML Engineer at Zoho with 5.9 YOE. Demonstrates deep expertise in TTS and BM25.
+CAND_0043228,23,0.7775,Strong fit: Applied ML Engineer at Zoho with 6.8 YOE. Demonstrates deep expertise in Hugging Face Transformers and Sentence Transformers.
+CAND_0093193,24,0.7775,Strong fit: Senior Machine Learning Engineer at Niramai with 7.9 YOE. Demonstrates deep expertise in Text Encoders and OpenSearch.
+CAND_0094759,25,0.7775,Strong fit: Lead AI Engineer at Meta with 8.6 YOE. Demonstrates deep expertise in Prompt Engineering and Hugging Face Transformers.
+CAND_0005477,26,0.7725,Strong fit: ML Engineer at Zomato with 6.2 YOE. Demonstrates deep expertise in OpenCV and OpenSearch.
+CAND_0020877,27,0.7725,Strong fit: Applied ML Engineer at CRED with 5.1 YOE. Demonstrates deep expertise in scikit-learn and LlamaIndex.
+CAND_0071939,28,0.7725,Strong fit: Data Scientist at Krutrim with 6.4 YOE. Demonstrates deep expertise in NLP and Data Science.
+CAND_0079284,29,0.7725,Strong fit: Machine Learning Engineer at Google with 4.9 YOE. Demonstrates deep expertise in Elasticsearch and Machine Learning.
+CAND_0020350,30,0.7675,Strong fit: AI Engineer at Zoho with 5.8 YOE. Demonstrates deep expertise in LLMs and BM25.
+CAND_0046525,31,0.7675,Strong fit: Senior Machine Learning Engineer at Genpact AI with 6.1 YOE. Demonstrates deep expertise in Sentence Transformers and Machine Learning.
+CAND_0079387,32,0.7675,Strong fit: AI Engineer at Microsoft with 6.9 YOE. Demonstrates deep expertise in OpenSearch and LoRA.
+CAND_0049538,33,0.7650,Strong fit: Applied ML Engineer at Saarthi.ai with 5.8 YOE. Demonstrates deep expertise in Elasticsearch and Milvus.
+CAND_0006418,34,0.7625,Strong fit: Machine Learning Engineer at Verloop.io with 5.7 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
+CAND_0060054,35,0.7625,Strong fit: AI Engineer at Mad Street Den with 6.4 YOE. Demonstrates deep expertise in Recommendation Systems and TensorFlow.
+CAND_0098217,36,0.7625,Strong fit: ML Engineer at Glance with 6.4 YOE. Demonstrates deep expertise in PEFT and MLflow.
+CAND_0076482,37,0.7600,Strong fit: ML Engineer at Flipkart with 6.6 YOE. Demonstrates deep expertise in CNN and TTS.
+CAND_0077337,38,0.7600,Strong fit: Staff Machine Learning Engineer at Paytm with 7.0 YOE. Demonstrates deep expertise in Recommendation Systems and Python.
+CAND_0099806,39,0.7600,Strong fit: AI Engineer at Mad Street Den with 4.6 YOE. Demonstrates deep expertise in Prompt Engineering and Embeddings.
+CAND_0091909,40,0.7575,Strong fit: Machine Learning Engineer at Rephrase.ai with 6.9 YOE. Demonstrates deep expertise in Hugging Face Transformers and LangChain.
+CAND_0015528,41,0.7550,Strong fit: Applied ML Engineer at Krutrim with 7.4 YOE. Demonstrates deep expertise in Deep Learning and FAISS.
+CAND_0017178,42,0.7550,Strong fit: ML Engineer at Swiggy with 4.2 YOE. Demonstrates deep expertise in PEFT and pgvector.
+CAND_0027691,43,0.7550,Strong fit: NLP Engineer at Haptik with 6.5 YOE. Demonstrates deep expertise in Recommendation Systems and TensorFlow.
+CAND_0030031,44,0.7525,Strong fit: AI Engineer at Microsoft with 5.7 YOE. Demonstrates deep expertise in LoRA and NLP.
+CAND_0055905,45,0.7525,Strong fit: Senior Machine Learning Engineer at Flipkart with 8.1 YOE. Demonstrates deep expertise in Vector Search and Elasticsearch.
+CAND_0088025,46,0.7525,Strong fit: Staff Machine Learning Engineer at Yellow.ai with 8.6 YOE. Demonstrates deep expertise in Learning to Rank and TensorFlow.
+CAND_0075439,47,0.7500,Strong fit: Machine Learning Engineer at Flipkart with 4.3 YOE. Demonstrates deep expertise in Elasticsearch and ASR.
+CAND_0069232,48,0.7475,Strong fit: ML Engineer at Yellow.ai with 6.3 YOE. Demonstrates deep expertise in Weaviate and Feature Engineering.
+CAND_0048166,49,0.7450,Strong fit: ML Engineer at Aganitha with 5.2 YOE. Demonstrates deep expertise in Pinecone and Recommendation Systems.
+CAND_0064888,50,0.7425,Strong fit: ML Engineer at Verloop.io with 5.8 YOE. Demonstrates deep expertise in Time Series and TensorFlow.
+CAND_0079468,51,0.7400,Strong fit: Software Engineer at Razorpay with 5.8 YOE. Demonstrates deep expertise in PEFT and LoRA.
+CAND_0007009,52,0.7375,Strong fit: Recommendation Systems Engineer at Wysa with 7.9 YOE. Demonstrates deep expertise in OpenSearch and Python.
+CAND_0052328,53,0.7375,Strong fit: Recommendation Systems Engineer at Amazon with 6.5 YOE. Demonstrates deep expertise in scikit-learn and Sentence Transformers.
+CAND_0024147,54,0.7350,Strong fit: ML Engineer at Ola with 5.9 YOE. Demonstrates deep expertise in Feature Engineering and Learning to Rank.
+CAND_0052360,55,0.7350,Strong fit: ML Engineer at Wysa with 3.0 YOE. Demonstrates deep expertise in Python and Haystack.
+CAND_0055993,56,0.7350,Strong fit: Software Engineer at HCL with 5.6 YOE. Demonstrates deep expertise in Hadoop and Scrum.
+CAND_0070202,57,0.7350,Strong fit: Machine Learning Engineer at BYJU'S with 5.1 YOE. Demonstrates deep expertise in Embeddings and NLP.
+CAND_0011263,58,0.7325,Strong fit: ML Engineer at Ola with 5.1 YOE. Demonstrates deep expertise in LangChain and Weights & Biases.
+CAND_0013665,59,0.7325,Strong fit: Senior Software Engineer (ML) at InMobi with 5.2 YOE. Demonstrates deep expertise in QLoRA and ASR.
+CAND_0040178,60,0.7300,Strong fit: ML Engineer at Meesho with 5.0 YOE. Demonstrates deep expertise in OpenSearch and YOLO.
+CAND_0052431,61,0.7300,Strong fit: ML Engineer at Swiggy with 5.3 YOE. Demonstrates deep expertise in Prompt Engineering and Time Series.
+CAND_0064270,62,0.7300,Strong fit: Applied ML Engineer at Verloop.io with 4.2 YOE. Demonstrates deep expertise in Hugging Face Transformers and Haystack.
+CAND_0000273,63,0.7275,Strong fit: ML Engineer at BYJU'S with 5.8 YOE. Demonstrates deep expertise in Forecasting and Time Series.
+CAND_0019159,64,0.7275,Strong fit: ML Engineer at Genpact AI with 6.1 YOE. Demonstrates deep expertise in PEFT and Qdrant.
+CAND_0049543,65,0.7275,Strong fit: ML Engineer at PolicyBazaar with 6.1 YOE. Demonstrates deep expertise in MLOps and Object Detection.
+CAND_0066690,66,0.7275,Strong fit: ML Engineer at Freshworks with 4.8 YOE. Demonstrates deep expertise in Object Detection and Speech Recognition.
+CAND_0070398,67,0.7275,Strong fit: Machine Learning Engineer at Genpact AI with 7.2 YOE. Demonstrates deep expertise in Embeddings and FAISS.
+CAND_0096142,68,0.7275,Strong fit: Applied ML Engineer at upGrad with 5.0 YOE. Demonstrates deep expertise in Python and BM25.
+CAND_0028888,69,0.7250,Strong fit: Senior Software Engineer at PhonePe with 7.4 YOE. Demonstrates deep expertise in Hugging Face Transformers and Weaviate.
+CAND_0069905,70,0.7250,Strong fit: Applied ML Engineer at Sarvam AI with 6.6 YOE. Demonstrates deep expertise in Weaviate and Recommendation Systems.
+CAND_0091534,71,0.7225,Strong fit: AI Engineer at Flipkart with 16.6 YOE. Demonstrates deep expertise in RAG and scikit-learn.
+CAND_0094197,72,0.7225,Strong fit: Software Engineer at InMobi with 6.6 YOE. Demonstrates deep expertise in LoRA and Object Detection.
+CAND_0043676,73,0.7200,Strong fit: Senior Software Engineer (ML) at Observe.AI with 6.1 YOE. Demonstrates deep expertise in ASR and Reinforcement Learning.
+CAND_0047542,74,0.7200,Strong fit: Senior Software Engineer (ML) at Meesho with 5.0 YOE. Demonstrates deep expertise in ASR and MongoDB.
+CAND_0030348,75,0.7175,Strong fit: Machine Learning Engineer at BYJU'S with 4.5 YOE. Demonstrates deep expertise in LlamaIndex and Haystack.
+CAND_0049615,76,0.7175,Strong fit: ML Engineer at Krutrim with 5.1 YOE. Demonstrates deep expertise in NLP and PEFT.
+CAND_0062561,77,0.7175,Strong fit: ML Engineer at Razorpay with 5.9 YOE. Demonstrates deep expertise in Statistical Modeling and Learning to Rank.
+CAND_0008049,78,0.7150,Strong fit: ML Engineer at Niramai with 6.3 YOE. Demonstrates deep expertise in BentoML and Time Series.
+CAND_0065514,79,0.7150,Strong fit: ML Engineer at Genpact AI with 6.6 YOE. Demonstrates deep expertise in Reinforcement Learning and LangChain.
+CAND_0082489,80,0.7150,Strong fit: ML Engineer at InMobi with 5.3 YOE. Demonstrates deep expertise in Weaviate and MLflow.
+CAND_0006757,81,0.7125,Strong fit: Senior Software Engineer at Unacademy with 5.4 YOE. Demonstrates deep expertise in Feature Engineering and Computer Vision.
+CAND_0007460,82,0.7125,Strong fit: AI Engineer at Salesforce with 4.7 YOE. Demonstrates deep expertise in RAG and Weaviate.
+CAND_0015057,83,0.7125,Strong fit: ML Engineer at Meesho with 4.6 YOE. Demonstrates deep expertise in Speech Recognition and Semantic Search.
+CAND_0020225,84,0.7125,Strong fit: Software Engineer at Zomato with 8.5 YOE. Demonstrates deep expertise in YOLO and MLOps.
+CAND_0027723,85,0.7125,Strong fit: ML Engineer at Wysa with 4.2 YOE. Demonstrates deep expertise in Feature Engineering and NLP.
+CAND_0015578,86,0.7100,Strong fit: AI Engineer at Zoho with 5.4 YOE. Demonstrates deep expertise in Embeddings and FAISS.
+CAND_0031515,87,0.7100,Strong fit: Software Engineer at Flipkart with 8.4 YOE. Demonstrates deep expertise in MLOps and Embeddings.
+CAND_0045475,88,0.7100,Strong fit: ML Engineer at Genpact AI with 4.9 YOE. Demonstrates deep expertise in QLoRA and FAISS.
+CAND_0052335,89,0.7100,Strong fit: Applied ML Engineer at Aganitha with 6.4 YOE. Demonstrates deep expertise in PyTorch and NLP.
+CAND_0062363,90,0.7100,Strong fit: Senior Software Engineer at Capgemini with 5.7 YOE. Demonstrates deep expertise in Pinecone and Forecasting.
+CAND_0067866,91,0.7100,Strong fit: Senior Software Engineer (ML) at Tech Mahindra with 6.4 YOE. Demonstrates deep expertise in pgvector and LoRA.
+CAND_0069718,92,0.7100,Strong fit: ML Engineer at Saarthi.ai with 5.7 YOE. Demonstrates deep expertise in OpenSearch and Prompt Engineering.
+CAND_0074339,93,0.7100,Strong fit: ML Engineer at Observe.AI with 5.3 YOE. Demonstrates deep expertise in Image Classification and Time Series.
+CAND_0086460,94,0.7100,Strong fit: ML Engineer at Meesho with 6.2 YOE. Demonstrates deep expertise in Image Classification and OpenSearch.
+CAND_0087228,95,0.7100,Strong fit: Software Engineer at Mindtree with 6.5 YOE. Demonstrates deep expertise in Azure and Time Series.
+CAND_0090155,96,0.7100,Strong fit: ML Engineer at Swiggy with 5.8 YOE. Demonstrates deep expertise in GANs and Pinecone.
+CAND_0097176,97,0.7100,Strong fit: ML Engineer at TCS with 5.9 YOE. Demonstrates deep expertise in LangChain and PyTorch.
+CAND_0098108,98,0.7100,Strong fit: Software Engineer at Swiggy with 5.0 YOE. Demonstrates deep expertise in Milvus and Forecasting.
+CAND_0009691,99,0.7075,Strong fit: Applied ML Engineer at LinkedIn with 6.2 YOE. Demonstrates deep expertise in LoRA and LangChain.
+CAND_0033987,100,0.7075,Strong fit: ML Engineer at Wysa with 6.8 YOE. Demonstrates deep expertise in Fine-tuning LLMs and Deep Learning.

@@ -8,9 +8,11 @@ from pathlib import Path
 
 from src.exceptions import ConfigError
 from src.logging_config import configure_logging, get_logger
-from src.parsers.candidate_parser import count_candidates
+from src.parsers.candidate_parser import count_candidates, stream_candidates
 from src.parsers.jd_parser import load_job_requirements
 from src.path_validation import validate_input_path, validate_output_path
+from src.ranker import Ranker
+from src.output_writer import write_submission
 
 logger = get_logger(__name__)
 
@@ -68,19 +70,25 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    n = count_candidates(candidates_path, limit=args.limit)
+    logger.info("ranking candidates", extra={"extra_fields": {"run_id": run_id, "event": "ranking_start"}})
+    
+    stream = stream_candidates(candidates_path, limit=args.limit)
+    ranker = Ranker()
+    top_k = ranker.rank(stream, top_k=100)
+    
     logger.info(
-        "parsed candidates",
-        extra={"extra_fields": {"run_id": run_id, "count": n, "event": "parse_done"}},
+        "ranked candidates",
+        extra={"extra_fields": {"run_id": run_id, "event": "ranking_done"}},
     )
+    
     if args.out:
-        # TODO: ranker + output_writer not wired yet; --out only validates paths for now
-        print(
-            "error: ranking pipeline not wired yet (foundation milestone)",
-            file=sys.stderr,
-        )
-        return 2
-    print(f"parsed {n} candidates")
+        write_submission(args.out, top_k)
+        print(f"Ranked {len(top_k)} candidates and wrote to {args.out}")
+    else:
+        print(f"Ranked {len(top_k)} candidates. Top 5:")
+        for i, (score, cand, reasoning) in enumerate(top_k[:5], start=1):
+            print(f"{i}. {cand.candidate_id} - Score: {score:.4f} ({cand.profile.current_title} at {cand.profile.current_company})")
+            
     return 0
 
 

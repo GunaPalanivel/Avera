@@ -20,6 +20,14 @@ FICTIONAL_COMPANIES: frozenset[str] = frozenset(
         "Wayne Enterprises",
         "Wonka Industries",
         "Acme Corp",
+        "Hooli",
+        "Pied Piper",
+        "Globex Inc",
+        "Initech",
+        "Massive Dynamic",
+        "Cyberdyne Systems",
+        "Tyrell Corporation",
+        "Umbrella Corp"
     }
 )
 

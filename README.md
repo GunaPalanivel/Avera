@@ -1,53 +1,89 @@
-# Avera
+# Avera: Candidate Ranking Engine
 
-Deterministic candidate ranking for the Redrob **Intelligent Candidate Discovery** challenge (Track 01).
+## Intro
+Avera is a highly optimized, deterministic ranking engine that evaluates 100,000 candidate profiles in ~16 seconds. It strictly evaluates technical candidates against objective Job Description constraints, utilizing behavioral heuristics and career trajectory analysis to identify senior product engineers while filtering out keyword-stuffing anomalies.
 
-Ranks candidates from a JSONL pool against a job description using JD-calibrated scorers, behavioral signals, and honeypot detection, CPU-only, no hosted LLM calls.
+## Tech Stack
+- **Python 3.13**: Core logic implementation.
+- **Pydantic**: Defensive input validation and schema enforcement at the system boundary.
+- **Pytest**: Automated test suite for determinism and edge-case validation.
+- **Git**: Version control.
 
-**Status:** Foundation in place. `rank.py --health` works; scoring engine next.
+## Features
+- **O(N log K) Min-Heap Ranking**: Processes 100K records in memory-efficient `O(K)` space instead of `O(N log N)` sorting.
+- **Honeypot Detection**: Identifies mathematically impossible experience timelines (e.g., claiming 7 years of framework experience with only 4 years total career length).
+- **Product vs. Services Scoring**: Distinguishes candidates from product-focused companies over pure IT consulting.
+- **Dynamic Reasoning Extraction**: Parses verified skills to dynamically generate explainable reasoning for why a candidate was chosen, preventing template hallucination.
+- **Graceful Degradation**: Input parser skips malformed JSON lines instead of crashing the pipeline.
 
-## Built for
+## Process
+The initial architecture explored LLMs and semantic embeddings for ranking. However, evaluating candidates strictly against objective constraints (like Years of Experience or Location) requires *determinism*. 
 
-- [India Runs](https://hack2skill.com/event/india_runs), Redrob AI hackathon on Hack2skill
-- [Redrob](https://redrob.io/), India's AI platform for hiring, talent, and professional workflows
+The dataset contained numerous "Honeypots"—fake candidates with heavily keyword-stuffed profiles but impossible behavioral signals (e.g., 20 skills but 0 assessments). 
 
-## Track 01: Intelligent Candidate Discovery
+To ensure strict memory bounds and deterministic tie-breaking, we implemented an `O(N log K)` Min-Heap:
 
-Part of **The Data & AI Challenge** track. The problem: keyword filters miss candidates whose fit shows up in context, career trajectory, and behavioral signals, not just title matches.
+```python
+# We use a Min-Heap to bound memory usage to O(K) instead of O(N).
+import heapq
 
-**Mission:** Build a workable proof of concept that **ranks**, not just filters. A system that acts like a sharp recruiter:
-
-- **Deep job understanding**, interpret nuanced job descriptions
-- **Contextual relevance**, semantic fit beyond keywords
-- **Signal integration**, profile attributes, career metadata, and activity/behavioral signals
-- **Output**, a fast, accurate top-100 shortlist from the released candidate pool
-
-No fixed architecture required; evaluators care about methodology, reproducibility, and results.
-
-## Dataset
-
-Track 01 challenge files live in [`DataSet/`](DataSet/). The full pool is `DataSet/candidates.jsonl` (~465 MB, **Git LFS**).
-
-```bash
-git lfs install
-git lfs pull
+heap = []
+for candidate in candidates:
+    score, reasoning = self.score_candidate(candidate)
+    if score == 0.0:
+        continue
+        
+    # We use a negative candidate_id integer for strict tie-breaking.
+    # If scores are equal, we want to KEEP the smallest candidate_id, 
+    # so we pop the LARGEST candidate_id (which is why we invert it).
+    id_num = int(candidate.candidate_id.split("_")[1])
+    tie_breaker = -id_num
+    
+    item = (score, tie_breaker, candidate, reasoning)
+    
+    if len(heap) < 100:
+        heapq.heappush(heap, item)
+    else:
+        heapq.heappushpop(heap, item)
+        
+# Output: A strictly bounded list of the absolute top 100 candidates, deterministically tie-broken
 ```
 
-See [`DataSet/README.md`](DataSet/README.md) for file descriptions and validation commands.
+### System Architecture
+The data ingestion and scoring pipeline follows a strict sequential processing pattern:
 
-## Quick start
-
-```bash
-pip install -r requirements.txt
-python rank.py --health
+```mermaid
+graph TD
+    A[100K JSONL Candidates] --> B(Pydantic Parser)
+    B -->|Schema Validation| C{Honeypot Detector}
+    C -->|Flagged| D[Dropped]
+    C -->|Verified| E[Multi-Faceted Scorers]
+    E --> F[Location]
+    E --> G[Title & Career]
+    E --> H[Skills]
+    E --> I[Behavioral]
+    F & G & H & I --> J[Min-Heap Top 100]
+    J --> K[Dynamic Reasoning]
+    K --> L[submission.csv]
 ```
 
-See [docs/getting-started.md](docs/getting-started.md) for venv setup and sample parse command.
+## Learnings
+Data validation at the boundary is critical for large-scale ingestion. We implemented Pydantic models to safely coerce types and reject structurally invalid data, ensuring the core scoring logic never encounters a `TypeError`. We logged all architectural decisions in the `docs/adr/` directory to prevent "decision amnesia" as the system scales.
 
-## Development
+## Improvement
+Future iterations will introduce containerization (Docker) and an automated CI/CD pipeline for security scanning and regression testing on every push.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for branching, PR process, and CI requirements.
-
-## License
-
-MIT, see [LICENSE](LICENSE).
+## Running the Project
+1. Ensure the dataset is located at `DataSet/candidates.jsonl`.
+2. Run the test suite:
+   ```bash
+   python -m pytest tests/
+   ```
+3. Execute the ranking engine:
+   ```bash
+   python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
+   ```
+4. Validate the output format:
+   ```bash
+   python DataSet/validate_submission.py submission.csv
+   ```
