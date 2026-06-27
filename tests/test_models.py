@@ -81,9 +81,7 @@ def test_missing_sentinel_coerces_to_none():
 
 
 def test_valid_behavioral_scores_unchanged():
-    model = CandidateModel.model_validate(
-        _minimal_candidate_raw(github_activity_score=42.5, offer_acceptance_rate=0.75)
-    )
+    model = CandidateModel.model_validate(_minimal_candidate_raw(github_activity_score=42.5, offer_acceptance_rate=0.75))
     assert model.redrob_signals.github_activity_score == 42.5
     assert model.redrob_signals.offer_acceptance_rate == 0.75
 

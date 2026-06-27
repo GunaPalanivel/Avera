@@ -27,7 +27,7 @@ class SkillsScorer(BaseScorer):
 
         # Extract assessed skills
         assessed_skills = {k.lower(): v for k, v in candidate.redrob_signals.skill_assessment_scores.items()}
-        
+
         # Check MUST_HAVE (max 0.7)
         must_have_count = 0
         for _category, keywords in self.MUST_HAVE.items():

@@ -82,9 +82,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         print(f"Ranked {len(top_k)} candidates. Top 5:")
         for i, (score, cand, _reasoning) in enumerate(top_k[:5], start=1):
-            print(
-                f"{i}. {cand.candidate_id} - Score: {score:.4f} ({cand.profile.current_title} at {cand.profile.current_company})"
-            )
+            print(f"{i}. {cand.candidate_id} - Score: {score:.4f} ({cand.profile.current_title} at {cand.profile.current_company})")
 
     return 0
 

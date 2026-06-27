@@ -30,9 +30,7 @@ def test_submission_regression():
     # 4. Assert positive calibration targets are in the top 100
     # Apple candidate
     if "CAND_0002025" in target_ids:
-        assert "CAND_0002025" in top_100_ids, (
-            "Apple candidate CAND_0002025 should NOT be a honeypot and must be in top 100"
-        )
+        assert "CAND_0002025" in top_100_ids, "Apple candidate CAND_0002025 should NOT be a honeypot and must be in top 100"
 
     # Netflix candidate
     if "CAND_0071974" in target_ids:
@@ -40,9 +38,7 @@ def test_submission_regression():
 
     # Adobe candidate
     if "CAND_0005538" in target_ids:
-        assert "CAND_0005538" in top_100_ids, (
-            "Adobe candidate CAND_0005538 must be in top 100 (job hopping threshold fix)"
-        )
+        assert "CAND_0005538" in top_100_ids, "Adobe candidate CAND_0005538 must be in top 100 (job hopping threshold fix)"
 
     # Meta candidate
     if "CAND_0006567" in target_ids:
