@@ -7,7 +7,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from src.config import MAX_JSONL_BYTES, MAX_JSONL_LINE_BYTES
-from src.exceptions import ConfigError
+from src.exceptions import ConfigError, DataError
 from src.logging_config import get_logger
 from src.models import CandidateModel
 
@@ -39,7 +39,8 @@ def stream_candidates(path: Path, limit: int | None = None) -> Iterator[Candidat
                 candidate = CandidateModel.model_validate(data)
             except (json.JSONDecodeError, ValidationError, ValueError) as exc:
                 logger.warning(
-                    "Skipping malformed candidate line: %s",
+                    "Skipping malformed candidate line (%s): %s",
+                    DataError.__name__,
                     type(exc).__name__,
                     extra={"extra_fields": {"line_no": line_no, "event": "parse_skip"}},
                 )
