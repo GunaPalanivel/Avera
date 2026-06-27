@@ -8,6 +8,17 @@ Ranks candidates from a JSONL pool against a job description using JD-calibrated
 
 **Repository:** https://github.com/GunaPalanivel/Avera
 
+## Dataset
+
+Track 01 challenge files live in [`DataSet/`](DataSet/). The full pool is `DataSet/candidates.jsonl` (~465 MB, **Git LFS**).
+
+```bash
+git lfs install
+git lfs pull
+```
+
+See [`DataSet/README.md`](DataSet/README.md) for file descriptions and validation commands.
+
 ## Quick start
 
 Not yet available. After **foundation & CI** lands:
