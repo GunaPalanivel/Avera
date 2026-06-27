@@ -13,10 +13,10 @@ Two-person team project. All changes to `main` go through pull requests.
 ## Branch workflow
 
 1. Pull latest `main`
-2. Create a branch: `feat/short-description` — see internal `poc_process.md` (not in repo)
+2. Create a branch: `feat/short-description`, see internal `poc_process.md` (not in repo)
 3. One milestone of work per PR when possible
 4. Push and open a PR to `main`
-5. CI green + maintainer approval → merge
+5. CI green + maintainer approval, then merge
 
 Examples: `feat/candidate-parser`, `fix/path-validation`, `spike/calibration-weights`
 
@@ -50,7 +50,7 @@ No `(scope)`. No DCO/Signed-off-by.
 
 - Comment **why**, not what
 - No step-number scaffolding or boilerplate docstrings
-- `# TODO: … fine for POC scale` is fine — name the corner you cut
+- `# TODO: … fine for POC scale` is fine, name the corner you cut
 
 ## CI
 
@@ -63,7 +63,7 @@ After **foundation & CI**: lint, test, and integration jobs expand.
 
 - Python 3.11+ type hints where practical
 - `ruff` for lint and format (added with foundation & CI)
-- Structured JSON logging in application code — no bare `print()` in `src/`
+- Structured JSON logging in application code, no bare `print()` in `src/`
 
 ## Questions
 
