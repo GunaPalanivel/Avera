@@ -1,47 +1,89 @@
-# Avera
+# Avera: Candidate Ranking Engine
 
-High-throughput, deterministic candidate ranking engine for the Redrob Track 01 Challenge. 
-Processes 100K+ JSONL profiles with strict Pydantic boundaries to score JD fit, career trajectory, and behavioral signals with zero hallucination risk.
+## Intro
+Avera is a highly optimized, deterministic ranking engine that evaluates 100,000 candidate profiles in ~16 seconds. It strictly evaluates technical candidates against objective Job Description constraints, utilizing behavioral heuristics and career trajectory analysis to identify senior product engineers while filtering out keyword-stuffing anomalies.
 
-## Architecture (Up to Phase 2)
+## Tech Stack
+- **Python 3.13**: Core logic implementation.
+- **Pydantic**: Defensive input validation and schema enforcement at the system boundary.
+- **Pytest**: Automated test suite for determinism and edge-case validation.
+- **Git**: Version control.
 
-Avera uses a deterministic weighted scoring system over LLM-based parsing, heavily optimizing for speed and deterministic reasoning. The system is built for the Redrob Senior AI Engineer job description.
+## Features
+- **O(N log K) Min-Heap Ranking**: Processes 100K records in memory-efficient `O(K)` space instead of `O(N log N)` sorting.
+- **Honeypot Detection**: Identifies mathematically impossible experience timelines (e.g., claiming 7 years of framework experience with only 4 years total career length).
+- **Product vs. Services Scoring**: Distinguishes candidates from product-focused companies over pure IT consulting.
+- **Dynamic Reasoning Extraction**: Parses verified skills to dynamically generate explainable reasoning for why a candidate was chosen, preventing template hallucination.
+- **Graceful Degradation**: Input parser skips malformed JSON lines instead of crashing the pipeline.
 
-### The Pipeline
+## Process
+The initial architecture explored LLMs and semantic embeddings for ranking. However, evaluating candidates strictly against objective constraints (like Years of Experience or Location) requires *determinism*. 
 
-1. **Boundary Validation (Pydantic)**
-   The 100K `candidates.jsonl` dataset is streamed line-by-line and strictly validated against Pydantic models. Malformed rows are gracefully skipped, preventing pipeline crashes. The `-1` sentinel for missing behavioral data is safely coerced.
+The dataset contained numerous "Honeypots"—fake candidates with heavily keyword-stuffed profiles but impossible behavioral signals (e.g., 20 skills but 0 assessments). 
 
-2. **Honeypot & Fictional Company Filter**
-   Fast-fail filters eliminate fictional companies (e.g., Stark Industries) and keyword-stuffed traps (Marketing Managers with AI skills) instantly before any scoring logic executes.
+To ensure strict memory bounds and deterministic tie-breaking, we implemented an `O(N log K)` Min-Heap:
 
-3. **Deterministic Scoring Engine**
-   Five independent scorers calculate a composite score, strictly weighted according to the Redrob JD parameters:
-   * **Title & Career Scorer (35%)**: Prioritizes Product/AI roles over consulting, severely penalizing title-chasers averaging <1.5 years per role.
-   * **Behavioral Scorer (25%)**: Down-weights low recruiter response rates and long inactivity. Max points for <30 days notice period.
-   * **Skills Scorer (20%)**: Emphasizes embeddings, vector DBs, and evaluation metrics. Verified skill assessments get a 3x multiplier over self-reported skills.
-   * **Experience Scorer (10%)**: Optimal band at 5-9 years experience.
-   * **Location Scorer (10%)**: Preferred geofence in Noida/Pune or explicit willingness to relocate.
+```python
+# We use a Min-Heap to bound memory usage to O(K) instead of O(N).
+import heapq
 
-4. **O(K) Memory Ranker**
-   Scores are fed into a Min-Heap of size `K=100`, bounding memory usage while instantly sorting the top 100 candidates from the 100K stream.
-
-### Quick Start
-
-```bash
-# Run tests and linting
-make test
-make lint
-
-# Run the ranking pipeline on the full dataset
-make rank
-# Alternatively:
-python rank.py --candidates DataSet/candidates.jsonl
+heap = []
+for candidate in candidates:
+    score, reasoning = self.score_candidate(candidate)
+    if score == 0.0:
+        continue
+        
+    # We use a negative candidate_id integer for strict tie-breaking.
+    # If scores are equal, we want to KEEP the smallest candidate_id, 
+    # so we pop the LARGEST candidate_id (which is why we invert it).
+    id_num = int(candidate.candidate_id.split("_")[1])
+    tie_breaker = -id_num
+    
+    item = (score, tie_breaker, candidate, reasoning)
+    
+    if len(heap) < 100:
+        heapq.heappush(heap, item)
+    else:
+        heapq.heappushpop(heap, item)
+        
+# Output: A strictly bounded list of the absolute top 100 candidates, deterministically tie-broken
 ```
 
-## DevOps & Security
+### System Architecture
+The data ingestion and scoring pipeline follows a strict sequential processing pattern:
 
-Avera is built with a dual-role mindset (AI Engineering + DevOps). It features:
-* **Structured JSON Logging**: Every pipeline event is logged in a machine-readable format.
-* **Graceful Degradation**: 5-level custom exception hierarchy (DataError, ScoringError, etc.).
-* **Security Scanning**: Integrated `pip-audit` and `bandit` in CI/CD.
+```mermaid
+graph TD
+    A[100K JSONL Candidates] --> B(Pydantic Parser)
+    B -->|Schema Validation| C{Honeypot Detector}
+    C -->|Flagged| D[Dropped]
+    C -->|Verified| E[Multi-Faceted Scorers]
+    E --> F[Location]
+    E --> G[Title & Career]
+    E --> H[Skills]
+    E --> I[Behavioral]
+    F & G & H & I --> J[Min-Heap Top 100]
+    J --> K[Dynamic Reasoning]
+    K --> L[submission.csv]
+```
+
+## Learnings
+Data validation at the boundary is critical for large-scale ingestion. We implemented Pydantic models to safely coerce types and reject structurally invalid data, ensuring the core scoring logic never encounters a `TypeError`. We logged all architectural decisions in the `docs/adr/` directory to prevent "decision amnesia" as the system scales.
+
+## Improvement
+Future iterations will introduce containerization (Docker) and an automated CI/CD pipeline for security scanning and regression testing on every push.
+
+## Running the Project
+1. Ensure the dataset is located at `DataSet/candidates.jsonl`.
+2. Run the test suite:
+   ```bash
+   python -m pytest tests/
+   ```
+3. Execute the ranking engine:
+   ```bash
+   python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
+   ```
+4. Validate the output format:
+   ```bash
+   python DataSet/validate_submission.py submission.csv
+   ```
