@@ -4,7 +4,7 @@ Deterministic candidate ranking for the Redrob **Intelligent Candidate Discovery
 
 Ranks candidates from a JSONL pool against a job description using JD-calibrated scorers, behavioral signals, and honeypot detection, CPU-only, no hosted LLM calls.
 
-**Status:** Early development, repository and contributor workflow only. Ranking CLI not yet available.
+**Status:** Foundation in place. `rank.py --health` works; scoring engine next.
 
 ## Built for
 
@@ -37,12 +37,12 @@ See [`DataSet/README.md`](DataSet/README.md) for file descriptions and validatio
 
 ## Quick start
 
-Not yet available. After **foundation & CI** lands:
-
 ```bash
 pip install -r requirements.txt
 python rank.py --health
 ```
+
+See [docs/getting-started.md](docs/getting-started.md) for venv setup and sample parse command.
 
 ## Development
 
