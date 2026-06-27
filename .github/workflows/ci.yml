@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  governance:
+    name: Repository structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify required governance files
+        run: |
+          test -f README.md
+          test -f CONTRIBUTING.md
+          test -f CHANGELOG.md
+          test -f LICENSE
+          test -f .github/CODEOWNERS
+          test -f .github/pull_request_template.md
+
+      - name: Verify internal planning is not committed
+        run: |
+          if git ls-files idea/ | grep -q .; then
+            echo "error: idea/ must not be tracked in git"
+            git ls-files idea/
+            exit 1
+          fi
+
+      - name: Verify repository layout
+        run: |
+          test ! -d src || (echo "error: src/ belongs in foundation milestone" && exit 1)
+          test ! -f rank.py || (echo "error: rank.py belongs in foundation milestone" && exit 1)
