@@ -75,6 +75,6 @@ jobs:
         with:
           python-version: "3.11"
           cache: pip
-      - run: pip install bandit pip-audit
+      - run: pip install -r requirements.txt
       - run: bandit -r src/ -ll
       - run: pip-audit -r requirements.txt
