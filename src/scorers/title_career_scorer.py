@@ -36,11 +36,12 @@ class TitleCareerScorer(BaseScorer):
             
         # Job Hopping (max 0.2)
         hopping_score = 0.2
-        if len(career) > 1:
+        # Exempt senior titles from strict job-hopping penalty (title chasers vs top talent)
+        if len(career) > 1 and title_score < 0.5:
             total_months = sum(c.duration_months for c in career)
             avg_months = total_months / len(career)
-            if avg_months < 18:
-                hopping_score = 0.0  # Penalty for <1.5 years
+            if avg_months < 15:
+                hopping_score = 0.0  # Penalty for <1.25 years
             elif avg_months < 24:
                 hopping_score = 0.1
                 
