@@ -7,6 +7,7 @@ from src.scorers.skills_scorer import SkillsScorer
 from src.scorers.behavioral_scorer import BehavioralScorer
 from src.scorers.experience_scorer import ExperienceScorer
 from src.scorers.location_scorer import LocationScorer
+from src.config import FICTIONAL_COMPANIES
 
 class Ranker:
     def __init__(self):
@@ -18,17 +19,25 @@ class Ranker:
             LocationScorer(weight=0.10),
         ]
 
-    def score_candidate(self, candidate: CandidateModel) -> float:
+    def score_candidate(self, candidate: CandidateModel) -> tuple[float, str]:
+        # Stage 1: Drop if current company is fictional
+        if candidate.profile.current_company in FICTIONAL_COMPANIES:
+            return 0.0, ""
+            
+        # Stage 1.5: Subtle honeypot methods
         if is_honeypot(candidate):
-            return 0.0
+            return 0.0, ""
             
         total_score = 0.0
         for scorer in self.scorers:
             total_score += scorer(candidate)
             
-        return total_score
+        # Basic reasoning avoiding hallucination
+        reasoning = f"{candidate.profile.current_title} at {candidate.profile.current_company} with {candidate.profile.years_of_experience} YOE. Selected based on JD alignment."
+        
+        return round(total_score, 4), reasoning
 
-    def rank(self, candidates: Iterable[CandidateModel], top_k: int = 100) -> list[tuple[float, CandidateModel]]:
+    def rank(self, candidates: Iterable[CandidateModel], top_k: int = 100) -> list[tuple[float, CandidateModel, str]]:
         """
         Consumes the candidate stream, scores them, and returns the top_k.
         Uses a min-heap to bound memory usage to O(K) instead of O(N).
@@ -36,7 +45,7 @@ class Ranker:
         heap = []
         
         for candidate in candidates:
-            score = self.score_candidate(candidate)
+            score, reasoning = self.score_candidate(candidate)
             if score == 0.0:
                 continue
                 
@@ -65,7 +74,7 @@ class Ranker:
             except Exception:
                 tie_breaker = 0
                 
-            item = (score, tie_breaker, candidate)
+            item = (score, tie_breaker, candidate, reasoning)
             
             if len(heap) < top_k:
                 heapq.heappush(heap, item)
@@ -77,5 +86,5 @@ class Ranker:
         # We need to sort them in descending order.
         heap.sort(key=lambda x: (x[0], x[1]), reverse=True)
         
-        # Return only score and candidate
-        return [(score, candidate) for score, tie, candidate in heap]
+        # Return score, candidate, and reasoning
+        return [(score, candidate, reasoning) for score, tie, candidate, reasoning in heap]

@@ -12,7 +12,7 @@ from src.parsers.candidate_parser import count_candidates, stream_candidates
 from src.parsers.jd_parser import load_job_requirements
 from src.path_validation import validate_input_path, validate_output_path
 from src.ranker import Ranker
-import csv
+from src.output_writer import write_submission
 
 logger = get_logger(__name__)
 
@@ -82,22 +82,12 @@ def main(argv: list[str] | None = None) -> int:
     )
     
     if args.out:
-        with open(args.out, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(['rank', 'candidate_id', 'score', 'title', 'company'])
-            for i, (score, cand) in enumerate(top_k, start=1):
-                writer.writerow([
-                    i, 
-                    cand.candidate_id, 
-                    f"{score:.3f}", 
-                    cand.profile.current_title, 
-                    cand.profile.current_company
-                ])
+        write_submission(args.out, top_k)
         print(f"Ranked {len(top_k)} candidates and wrote to {args.out}")
     else:
         print(f"Ranked {len(top_k)} candidates. Top 5:")
-        for i, (score, cand) in enumerate(top_k[:5], start=1):
-            print(f"{i}. {cand.candidate_id} - Score: {score:.3f} ({cand.profile.current_title} at {cand.profile.current_company})")
+        for i, (score, cand, reasoning) in enumerate(top_k[:5], start=1):
+            print(f"{i}. {cand.candidate_id} - Score: {score:.4f} ({cand.profile.current_title} at {cand.profile.current_company})")
             
     return 0
 

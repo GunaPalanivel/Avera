@@ -11,7 +11,7 @@ class JobRequirements:
     red_flags: tuple[str, ...]
 
 
-# Calibrated to Senior AI Engineer JD (see DataSet/job_description.docx)
+# Calibrated to Senior AI Engineer JD (see idea/ProcessedData/docx_extracts/job_description.txt)
 DEFAULT_JD = JobRequirements(
     must_have_skills=(
         "python",
@@ -41,6 +41,6 @@ DEFAULT_JD = JobRequirements(
 )
 
 
-# TODO: parse DataSet/job_description.docx; static tuple fine for foundation milestone
+# TODO: parse idea/ProcessedData/docx_extracts/job_description.txt; static tuple fine for foundation milestone
 def load_job_requirements() -> JobRequirements:
     return DEFAULT_JD

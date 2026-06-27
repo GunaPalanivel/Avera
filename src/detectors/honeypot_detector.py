@@ -1,51 +1,52 @@
 from src.models import CandidateModel
-
-FICTIONAL_COMPANIES = {
-    "stark industries",
-    "pied piper",
-    "acme corp",
-    "dunder mifflin",
-    "wayne enterprises",
-    "initech",
-    "umbrella corp",
-    "hooli",
-    "massive dynamic",
-    "cyberdyne systems",
-    "tyrell corporation"
-}
+from src.config import FICTIONAL_COMPANIES
 
 AI_KEYWORDS = {
-    "rag",
-    "llm",
-    "machine learning",
-    "artificial intelligence",
-    "deep learning",
-    "embeddings",
-    "vector database",
-    "pinecone",
-    "langchain"
+    "rag", "llm", "machine learning", "artificial intelligence", 
+    "deep learning", "embeddings", "vector database", "pinecone", "langchain"
+}
+
+NON_TECH_TITLES = {
+    "hr manager", "accountant", "sales executive", "content writer", 
+    "customer support", "marketing manager", "civil engineer", 
+    "mechanical engineer", "graphic designer", "operations manager"
 }
 
 def is_honeypot(candidate: CandidateModel) -> bool:
     """
-    Returns True if the candidate is identified as a honeypot (fake data).
+    Returns True if the candidate is identified as a honeypot via subtle rules.
+    (Note: current_company fictional drop is done upstream in Stage 1).
     """
-    # Rule 1: Fictional company in career history
-    for entry in candidate.career_history:
-        company_lower = entry.company.lower()
-        if any(fictional in company_lower for fictional in FICTIONAL_COMPANIES):
+    title = candidate.profile.current_title.lower()
+    yoe = candidate.profile.years_of_experience
+    skills = candidate.skills
+    career = candidate.career_history
+    
+    # Method 1: Title/skill mismatch (non-tech title with many AI skills)
+    if any(non_tech in title for non_tech in NON_TECH_TITLES):
+        ai_skill_count = sum(1 for s in skills if any(ai_kw in s.name.lower() for ai_kw in AI_KEYWORDS))
+        if ai_skill_count >= 5:
             return True
             
-    # Rule 2: Marketing Manager with AI keywords (JD L74 trap)
-    title_lower = candidate.profile.current_title.lower()
-    if "marketing" in title_lower:
-        skill_names = {s.name.lower() for s in candidate.skills}
-        if any(ai_skill in skill for skill in skill_names for ai_skill in AI_KEYWORDS):
+    # Method 2: Expert proficiency with 0 months duration
+    expert_zero_count = sum(1 for s in skills if s.proficiency == "expert" and s.duration_months == 0)
+    if expert_zero_count >= 3:
+        return True
+        
+    # Method 3: Impossible seniority
+    if "senior" in title and yoe < 2:
+        return True
+    if "junior" in title and yoe > 10:
+        return True
+        
+    # Method 4: Impossible career tenure at fictional companies (since they might have past fictional jobs)
+    for job in career:
+        if job.duration_months > 120 and any(fic.lower() in job.company.lower() for fic in FICTIONAL_COMPANIES):
             return True
-
-    # Rule 3: Expert proficiency with 0 months duration
-    for skill in candidate.skills:
-        if skill.proficiency == "expert" and skill.duration_months == 0:
-            return True
+            
+    # Method 5: Extremely high skill count with no assessments
+    assessment_scores = candidate.redrob_signals.skill_assessment_scores
+    if len(skills) > 15 and len(assessment_scores) == 0:
+        return True
 
     return False

@@ -10,10 +10,10 @@ Redrob **Intelligent Candidate Discovery** release files for local ranking and v
 | `sample_submission.csv` | Example output shape |
 | `validate_submission.py` | Organizer validation script for your CSV |
 | `submission_metadata_template.yaml` | Portal metadata template |
-| `job_description.docx` | Target role for scoring |
-| `submission_spec.docx` | CSV format and rules |
-| `redrob_signals_doc.docx` | Behavioral / honeypot signal definitions |
-| `README.docx` | Organizer readme |
+| `job_description.docx` | Target role for scoring (Note: specifications have been extracted and live in `idea/ProcessedData/docx_extracts/`) |
+| `submission_spec.docx` | CSV format and rules (Note: specifications have been extracted and live in `idea/ProcessedData/docx_extracts/`) |
+| `redrob_signals_doc.docx` | Behavioral / honeypot signal definitions (Note: specifications have been extracted and live in `idea/ProcessedData/docx_extracts/`) |
+| `README.docx` | Organizer readme (Note: specifications have been extracted and live in `idea/ProcessedData/docx_extracts/`) |
 
 ## Clone note
 
