@@ -18,13 +18,14 @@ The dataset contains numerous "honeypot" candidates designed to trick keyword-ba
 
 | Method | Detection Logic | Result |
 |--------|-----------------|--------|
-| **Fictional Companies** | Identifies companies like 'Dunder Mifflin' and 'Acme Corp' | Pre-filter (Dropped) |
-| **Method 1: Timeline Impossible** | Flags candidates claiming 7 years of framework experience when their total career spans only 4 years. | Flagged (Dropped) |
-| **Method 2: Expert Anomaly** | Flags 'Expert' proficiency tags on candidates with < 6 months total experience. | Flagged (Dropped) |
-| **Method 3: Unverified Generalist** | Flags candidates claiming > 15 disparate skills without a single assessment score (keyword stuffing). | Flagged (Dropped) |
-| **Method 4: Behavioral Ghost** | Flags perfect technical profiles that have a 0% recruiter response rate and haven't logged in for > 12 months. | Flagged (Dropped) |
+| **Fictional Companies** | Identifies companies like 'Dunder Mifflin' and 'Acme Corp' directly at ingestion layer. | Pre-filter (Dropped) |
+| **Method 1: Title/Skill Mismatch** | Flags non-technical titles (e.g., 'HR Manager') claiming 5+ core AI skills like embeddings and LLMs. | Flagged (Dropped) |
+| **Method 2: Expert Anomaly** | Flags candidates claiming 'Expert' proficiency on 3+ skills with exactly 0 months of duration. | Flagged (Dropped) |
+| **Method 3: Impossible Seniority** | Flags 'Senior' titles with < 2 YOE, or 'Junior' titles with > 10 YOE. | Flagged (Dropped) |
+| **Method 4: Fictional Tenure** | Flags candidates claiming past experience of > 10 years at known fictional companies. | Flagged (Dropped) |
+| **Method 5: Unverified Generalist** | Flags candidates with > 15 skills but 0 assessment scores. | Flagged (Dropped) |
 
-*Note: Senior Engineers (Staff/Principal) with > 5 YOE are explicitly exempted from the Unverified Generalist (Method 3) filter, as true Staff engineers often possess wide skill variance legitimately.*
+*Note: Senior Engineers (Lead/Principal/Staff/Senior) with ≥ 5 YOE are explicitly exempted from the Unverified Generalist (Method 5) filter, as true Staff engineers often possess wide skill variance legitimately.*
 
 ## 3. Dynamic Reasoning Generation
 
