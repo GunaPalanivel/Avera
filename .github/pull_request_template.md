@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- 2–3 sentences: what changed and why -->
+<!-- 2-3 sentences: what changed and why -->
 
 ## Changes
 
