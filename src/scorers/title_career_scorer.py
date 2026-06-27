@@ -1,31 +1,37 @@
 from src.models import CandidateModel
 from src.scorers.base import BaseScorer
 
+
 class TitleCareerScorer(BaseScorer):
     def score(self, candidate: CandidateModel) -> float:
         # Title Tiering (max 0.5)
         title_score = 0.0
         current_title = candidate.profile.current_title.lower()
-        
-        if 'junior' in current_title:
+
+        if "junior" in current_title:
             title_score = 0.0
-        elif 'ai engineer' in current_title or 'machine learning' in current_title or 'ml engineer' in current_title:
-            if 'senior' in current_title or 'lead' in current_title or 'principal' in current_title or 'staff' in current_title:
+        elif "ai engineer" in current_title or "machine learning" in current_title or "ml engineer" in current_title:
+            if (
+                "senior" in current_title
+                or "lead" in current_title
+                or "principal" in current_title
+                or "staff" in current_title
+            ):
                 title_score = 0.5
             else:
                 title_score = 0.4
-        elif 'data scientist' in current_title:
+        elif "data scientist" in current_title:
             title_score = 0.1
-        elif 'software engineer' in current_title:
+        elif "software engineer" in current_title:
             title_score = 0.2
-            
+
         # Company Quality (max 0.3)
         company_score = 0.3
-        consulting_firms = {'tcs', 'infosys', 'wipro', 'accenture', 'cognizant', 'capgemini', 'ibm'}
-        
+        consulting_firms = {"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini", "ibm"}
+
         career = candidate.career_history
         all_companies = [c.company.lower() for c in career]
-        
+
         consulting_count = sum(1 for c in all_companies if any(f in c for f in consulting_firms))
         if consulting_count == len(all_companies) and len(all_companies) > 0:
             # Consulting only
@@ -33,7 +39,7 @@ class TitleCareerScorer(BaseScorer):
         elif consulting_count > 0:
             # Mixed
             company_score = 0.25
-            
+
         # Job Hopping (max 0.2)
         hopping_score = 0.2
         # Exempt senior titles from strict job-hopping penalty (title chasers vs top talent)
@@ -44,5 +50,5 @@ class TitleCareerScorer(BaseScorer):
                 hopping_score = 0.0  # Penalty for <1.25 years
             elif avg_months < 24:
                 hopping_score = 0.1
-                
+
         return title_score + company_score + hopping_score

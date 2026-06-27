@@ -1,7 +1,7 @@
-import pytest
-from src.models import CandidateModel
 from src.detectors.honeypot_detector import is_honeypot
+from src.models import CandidateModel
 from tests.test_scorers import get_base_candidate
+
 
 def test_honeypot_marketing_trap():
     c_dict = get_base_candidate()
@@ -18,6 +18,7 @@ def test_honeypot_marketing_trap():
     c = CandidateModel.model_validate(c_dict)
     assert is_honeypot(c) is True
 
+
 def test_honeypot_expert_zero():
     c_dict = get_base_candidate()
     c_dict["skills"] = [
@@ -27,6 +28,7 @@ def test_honeypot_expert_zero():
     ]
     c = CandidateModel.model_validate(c_dict)
     assert is_honeypot(c) is True
+
 
 def test_not_honeypot():
     c_dict = get_base_candidate()

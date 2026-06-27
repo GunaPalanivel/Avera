@@ -25,7 +25,7 @@ def validate_submission(csv_path):
         errors.append("Filename must be your registered participant ID (e.g. team_xxx.csv).")
 
     try:
-        with open(path, "r", encoding="utf-8", newline="") as f:
+        with open(path, encoding="utf-8", newline="") as f:
             reader = csv.reader(f)
 
             try:
@@ -37,10 +37,7 @@ def validate_submission(csv_path):
             # Row 1: column names and their order come from this line only
             if header != REQUIRED_HEADER:
                 errors.append(
-                    "Row 1 (header) must be exactly:\n"
-                    f"  {','.join(REQUIRED_HEADER)}\n"
-                    f"Found:\n"
-                    f"  {','.join(header)}"
+                    f"Row 1 (header) must be exactly:\n  {','.join(REQUIRED_HEADER)}\nFound:\n  {','.join(header)}"
                 )
 
             data_rows = []
@@ -77,7 +74,7 @@ def validate_submission(csv_path):
             )
             continue
 
-        row = dict(zip(REQUIRED_HEADER, cells))
+        row = dict(zip(REQUIRED_HEADER, cells, strict=False))
         cid = row["candidate_id"].strip()
         rank_s = row["rank"].strip()
         score_s = row["score"].strip()
@@ -85,9 +82,7 @@ def validate_submission(csv_path):
         if not cid:
             errors.append(f"Row {row_num}: candidate_id is required.")
         elif not CANDIDATE_ID_PATTERN.match(cid):
-            errors.append(
-                f"Row {row_num}: candidate_id must be CAND_XXXXXXX (7 digits)."
-            )
+            errors.append(f"Row {row_num}: candidate_id must be CAND_XXXXXXX (7 digits).")
         elif cid in seen_ids:
             errors.append(f"Row {row_num}: duplicate candidate_id '{cid}'.")
         else:
@@ -118,9 +113,7 @@ def validate_submission(csv_path):
 
     missing = set(range(1, 101)) - seen_ranks
     if missing:
-        errors.append(
-            f"Each rank 1-100 must appear exactly once; missing: {sorted(missing)}"
-        )
+        errors.append(f"Each rank 1-100 must appear exactly once; missing: {sorted(missing)}")
 
     by_rank.sort(key=lambda x: x[0])
 
@@ -128,19 +121,14 @@ def validate_submission(csv_path):
         r1, s1, _ = by_rank[i]
         r2, s2, _ = by_rank[i + 1]
         if s1 < s2:
-            errors.append(
-                f"score must be non-increasing by rank: "
-                f"rank {r1} ({s1}) < rank {r2} ({s2})."
-            )
+            errors.append(f"score must be non-increasing by rank: rank {r1} ({s1}) < rank {r2} ({s2}).")
 
     for i in range(len(by_rank) - 1):
         r1, s1, c1 = by_rank[i]
         r2, s2, c2 = by_rank[i + 1]
         if s1 == s2 and c1 > c2:
             errors.append(
-                f"Equal scores at ranks {r1} and {r2}: "
-                f"tie-break requires candidate_id ascending "
-                f"({c1!r} > {c2!r})."
+                f"Equal scores at ranks {r1} and {r2}: tie-break requires candidate_id ascending ({c1!r} > {c2!r})."
             )
 
     return errors

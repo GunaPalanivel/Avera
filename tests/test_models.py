@@ -75,9 +75,7 @@ def test_candidate_model_accepts_fixture_sample():
 
 
 def test_missing_sentinel_coerces_to_none():
-    model = CandidateModel.model_validate(
-        _minimal_candidate_raw(github_activity_score=-1, offer_acceptance_rate=-1)
-    )
+    model = CandidateModel.model_validate(_minimal_candidate_raw(github_activity_score=-1, offer_acceptance_rate=-1))
     assert model.redrob_signals.github_activity_score is None
     assert model.redrob_signals.offer_acceptance_rate is None
 
