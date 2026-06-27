@@ -1,6 +1,3 @@
-# Challenge dataset (local only)
-DataSet/
-
 # Python
 __pycache__/
 *.py[cod]
@@ -25,3 +22,10 @@ idea/
 # OS
 .DS_Store
 Thumbs.db
+**/__MACOSX/
+
+# Raw zip extraction tree (canonical files live in DataSet/ root)
+DataSet/\[PUB\]*/
+
+# Local tooling (not for repo)
+.branch-protection.json

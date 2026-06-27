@@ -10,6 +10,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Repository governance: CONTRIBUTING, CODEOWNERS, PR template, CI stub
 
+### Added
+
+- Challenge dataset under `DataSet/` (Git LFS for `candidates.jsonl`)
+- Dataset README with clone and validation instructions
+
 ## [0.0.0] - 2026-06-27
 
 ### Added
