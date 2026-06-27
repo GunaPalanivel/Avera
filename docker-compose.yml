@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  avera-sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./DataSet:/app/DataSet:ro
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["python", "app.py"]
+
+  avera-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./DataSet:/app/DataSet:ro
+      - ./:/app/output
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["python", "rank.py", "--candidates", "DataSet/candidates.jsonl", "--out", "output/submission.csv"]

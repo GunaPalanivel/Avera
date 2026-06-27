@@ -95,4 +95,5 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python rank.py --candidates tests/fixtures/sample.jsonl --limit 5
+      - run: python rank.py --candidates tests/fixtures/sample.jsonl --limit 5 --out submission.csv
+      - run: python validate_submission.py submission.csv
