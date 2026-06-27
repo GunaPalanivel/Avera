@@ -22,9 +22,7 @@ LOG_SAFE_FIELDS = frozenset(
 class SafeExtraFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         if hasattr(record, "extra_fields") and isinstance(record.extra_fields, dict):
-            record.extra_fields = {
-                k: v for k, v in record.extra_fields.items() if k in LOG_SAFE_FIELDS
-            }
+            record.extra_fields = {k: v for k, v in record.extra_fields.items() if k in LOG_SAFE_FIELDS}
         return True
 
 

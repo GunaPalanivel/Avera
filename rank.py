@@ -8,11 +8,11 @@ from pathlib import Path
 
 from src.exceptions import ConfigError
 from src.logging_config import configure_logging, get_logger
-from src.parsers.candidate_parser import count_candidates, stream_candidates
+from src.output_writer import write_submission
+from src.parsers.candidate_parser import stream_candidates
 from src.parsers.jd_parser import load_job_requirements
 from src.path_validation import validate_input_path, validate_output_path
 from src.ranker import Ranker
-from src.output_writer import write_submission
 
 logger = get_logger(__name__)
 
@@ -26,9 +26,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--candidates", help="Path to candidates.jsonl")
     parser.add_argument("--out", help="Output submission.csv path")
-    parser.add_argument(
-        "--limit", type=int, default=None, help="Max candidates to read (smoke tests)"
-    )
+    parser.add_argument("--limit", type=int, default=None, help="Max candidates to read (smoke tests)")
     return parser
 
 
@@ -40,10 +38,7 @@ def run_health() -> int:
         print("error: job requirements must-have list is empty", file=sys.stderr)
         return 2
 
-    print(
-        f"[OK] avera foundation ready "
-        f"({len(requirements.must_have_skills)} must-have skills loaded)"
-    )
+    print(f"[OK] avera foundation ready ({len(requirements.must_have_skills)} must-have skills loaded)")
     return 0
 
 
@@ -71,24 +66,26 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     logger.info("ranking candidates", extra={"extra_fields": {"run_id": run_id, "event": "ranking_start"}})
-    
+
     stream = stream_candidates(candidates_path, limit=args.limit)
     ranker = Ranker()
     top_k = ranker.rank(stream, top_k=100)
-    
+
     logger.info(
         "ranked candidates",
         extra={"extra_fields": {"run_id": run_id, "event": "ranking_done"}},
     )
-    
+
     if args.out:
         write_submission(args.out, top_k)
         print(f"Ranked {len(top_k)} candidates and wrote to {args.out}")
     else:
         print(f"Ranked {len(top_k)} candidates. Top 5:")
-        for i, (score, cand, reasoning) in enumerate(top_k[:5], start=1):
-            print(f"{i}. {cand.candidate_id} - Score: {score:.4f} ({cand.profile.current_title} at {cand.profile.current_company})")
-            
+        for i, (score, cand, _reasoning) in enumerate(top_k[:5], start=1):
+            print(
+                f"{i}. {cand.candidate_id} - Score: {score:.4f} ({cand.profile.current_title} at {cand.profile.current_company})"
+            )
+
     return 0
 
 

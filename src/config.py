@@ -27,7 +27,7 @@ FICTIONAL_COMPANIES: frozenset[str] = frozenset(
         "Massive Dynamic",
         "Cyberdyne Systems",
         "Tyrell Corporation",
-        "Umbrella Corp"
+        "Umbrella Corp",
     }
 )
 
