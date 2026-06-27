@@ -21,6 +21,10 @@ jobs:
           test -f LICENSE
           test -f .github/CODEOWNERS
           test -f .github/pull_request_template.md
+          test -d .github/ISSUE_TEMPLATE
+          test -f .github/ISSUE_TEMPLATE/bug.md
+          test -f .github/ISSUE_TEMPLATE/phase_work.md
+          test -f .github/ISSUE_TEMPLATE/chore.md
 
       - name: Verify internal planning is not committed
         run: |
@@ -64,6 +68,7 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: pytest tests/ -v
+      - run: python rank.py --health
 
   security:
     name: security

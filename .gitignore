@@ -27,5 +27,5 @@ Thumbs.db
 # Raw zip extraction tree (canonical files live in DataSet/ root)
 DataSet/\[PUB\]*/
 
-# Local tooling (not for repo)
-.branch-protection.json
+# Local GitHub branch-protection payloads (gh api), not for repo
+.branch-protection*.json

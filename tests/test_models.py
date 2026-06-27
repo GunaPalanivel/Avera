@@ -1,8 +1,34 @@
 from src.models import CandidateModel
 
 
-def test_candidate_model_accepts_fixture_sample():
-    raw = {
+def _minimal_candidate_raw(**signal_overrides):
+    signals = {
+        "profile_completeness_score": 90.0,
+        "signup_date": "2023-01-01",
+        "last_active_date": "2024-06-01",
+        "open_to_work_flag": True,
+        "profile_views_received_30d": 10,
+        "applications_submitted_30d": 2,
+        "recruiter_response_rate": 0.8,
+        "avg_response_time_hours": 4.0,
+        "skill_assessment_scores": {"python": 85.0},
+        "connection_count": 100,
+        "endorsements_received": 20,
+        "notice_period_days": 30,
+        "expected_salary_range_inr_lpa": {"min": 20.0, "max": 35.0},
+        "preferred_work_mode": "hybrid",
+        "willing_to_relocate": True,
+        "github_activity_score": 50.0,
+        "search_appearance_30d": 5,
+        "saved_by_recruiters_30d": 1,
+        "interview_completion_rate": 0.9,
+        "offer_acceptance_rate": 0.8,
+        "verified_email": True,
+        "verified_phone": True,
+        "linkedin_connected": True,
+    }
+    signals.update(signal_overrides)
+    return {
         "candidate_id": "CAND_0000001",
         "profile": {
             "anonymized_name": "Test User",
@@ -38,34 +64,30 @@ def test_candidate_model_accepts_fixture_sample():
                 "duration_months": 48,
             }
         ],
-        "redrob_signals": {
-            "profile_completeness_score": 90.0,
-            "signup_date": "2023-01-01",
-            "last_active_date": "2024-06-01",
-            "open_to_work_flag": True,
-            "profile_views_received_30d": 10,
-            "applications_submitted_30d": 2,
-            "recruiter_response_rate": 0.8,
-            "avg_response_time_hours": 4.0,
-            "skill_assessment_scores": {"python": 85.0},
-            "connection_count": 100,
-            "endorsements_received": 20,
-            "notice_period_days": 30,
-            "expected_salary_range_inr_lpa": {"min": 20.0, "max": 35.0},
-            "preferred_work_mode": "hybrid",
-            "willing_to_relocate": True,
-            "github_activity_score": 50.0,
-            "search_appearance_30d": 5,
-            "saved_by_recruiters_30d": 1,
-            "interview_completion_rate": 0.9,
-            "offer_acceptance_rate": 0.8,
-            "verified_email": True,
-            "verified_phone": True,
-            "linkedin_connected": True,
-        },
+        "redrob_signals": signals,
     }
+
+
+def test_candidate_model_accepts_fixture_sample():
+    raw = _minimal_candidate_raw()
     model = CandidateModel.model_validate(raw)
     assert model.candidate_id == "CAND_0000001"
+
+
+def test_missing_sentinel_coerces_to_none():
+    model = CandidateModel.model_validate(
+        _minimal_candidate_raw(github_activity_score=-1, offer_acceptance_rate=-1)
+    )
+    assert model.redrob_signals.github_activity_score is None
+    assert model.redrob_signals.offer_acceptance_rate is None
+
+
+def test_valid_behavioral_scores_unchanged():
+    model = CandidateModel.model_validate(
+        _minimal_candidate_raw(github_activity_score=42.5, offer_acceptance_rate=0.75)
+    )
+    assert model.redrob_signals.github_activity_score == 42.5
+    assert model.redrob_signals.offer_acceptance_rate == 0.75
 
 
 def test_invalid_proficiency_rejected():

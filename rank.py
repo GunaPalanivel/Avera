@@ -9,6 +9,7 @@ from pathlib import Path
 from src.exceptions import ConfigError
 from src.logging_config import configure_logging, get_logger
 from src.parsers.candidate_parser import count_candidates
+from src.parsers.jd_parser import load_job_requirements
 from src.path_validation import validate_input_path, validate_output_path
 
 logger = get_logger(__name__)
@@ -30,9 +31,17 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run_health() -> int:
-    import src.config  # noqa: F401
+    import src.config  # noqa: F401  # side effect: ConfigError if weights/lists invalid at import
 
-    print("[OK] avera foundation ready")
+    requirements = load_job_requirements()
+    if not requirements.must_have_skills:
+        print("error: job requirements must-have list is empty", file=sys.stderr)
+        return 2
+
+    print(
+        f"[OK] avera foundation ready "
+        f"({len(requirements.must_have_skills)} must-have skills loaded)"
+    )
     return 0
 
 
@@ -55,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.out:
             validate_output_path(args.out, allowed_root=repo_root)
     except ConfigError as exc:
+        # User-facing errors stay generic; run_id in logs links to the full trace
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
@@ -64,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
         extra={"extra_fields": {"run_id": run_id, "count": n, "event": "parse_done"}},
     )
     if args.out:
+        # TODO: ranker + output_writer not wired yet; --out only validates paths for now
         print(
             "error: ranking pipeline not wired yet (foundation milestone)",
             file=sys.stderr,

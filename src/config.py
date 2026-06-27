@@ -2,6 +2,7 @@
 
 from src.exceptions import ConfigError
 
+# Rule-based weights, no labels to train on; behavioral 25% for JD hireability emphasis
 SCORER_WEIGHTS: dict[str, float] = {
     "title_career": 0.35,
     "behavioral": 0.25,
@@ -10,6 +11,7 @@ SCORER_WEIGHTS: dict[str, float] = {
     "location": 0.10,
 }
 
+# ~60% of the pool is fictional companies; honeypot filter uses this in scoring milestone
 FICTIONAL_COMPANIES: frozenset[str] = frozenset(
     {
         "Dunder Mifflin",
@@ -29,9 +31,10 @@ AI_TITLE_TIERS: dict[str, float] = {
     "backend engineer": 0.5,
 }
 
-MAX_JSONL_BYTES = 2 * 1024 * 1024 * 1024
-MAX_JSONL_LINE_BYTES = 10 * 1024 * 1024
+MAX_JSONL_BYTES = 2 * 1024 * 1024 * 1024  # challenge file cap
+MAX_JSONL_LINE_BYTES = 10 * 1024 * 1024  # single-line bomb guard
 
+# Fail fast at import so bad weights never reach a 100K run
 _weight_sum = sum(SCORER_WEIGHTS.values())
 if abs(_weight_sum - 1.0) > 1e-6:
     raise ConfigError(f"Scorer weights must sum to 1.0, got {_weight_sum}")

@@ -7,6 +7,7 @@ from src.exceptions import ConfigError
 ALLOWED_INPUT_SUFFIXES = (".jsonl", ".json")
 MAX_UPLOAD_FILENAME_LEN = 255
 
+# Excel treats leading = as formula; quote now, defusedcsv on CSV write later
 _FORMULA_PREFIXES = frozenset(("=", "+", "-", "@", "|", "%", "\t", "\r"))
 
 

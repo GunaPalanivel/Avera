@@ -54,10 +54,12 @@ No `(scope)`. No DCO/Signed-off-by.
 
 ## CI
 
-Every PR runs GitHub Actions (see [.github/workflows/ci.yml](.github/workflows/ci.yml)).
+Every PR runs GitHub Actions (see [.github/workflows/ci.yml](.github/workflows/ci.yml)):
 
-Until application code lands: CI verifies repository layout only.  
-After **foundation & CI**: lint, test, and integration jobs expand.
+- **governance** — required files, issue templates, `idea/` not tracked, application layout
+- **lint** — `ruff check` and `ruff format --check`
+- **test** — `pytest` and `python rank.py --health`
+- **security** — `bandit` on `src/` and `pip-audit` on dependencies
 
 ## Code style
 

@@ -41,5 +41,6 @@ DEFAULT_JD = JobRequirements(
 )
 
 
+# TODO: parse DataSet/job_description.docx; static tuple fine for foundation milestone
 def load_job_requirements() -> JobRequirements:
     return DEFAULT_JD

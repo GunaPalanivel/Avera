@@ -3,6 +3,7 @@
 import json
 import logging
 import sys
+from datetime import UTC, datetime
 from typing import Any
 
 LOG_SAFE_FIELDS = frozenset(
@@ -30,7 +31,9 @@ class SafeExtraFilter(logging.Filter):
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
+            "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
+            "module": record.module,
             "logger": record.name,
             "message": record.getMessage(),
         }
