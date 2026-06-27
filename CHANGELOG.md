@@ -17,7 +17,9 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Structured JSON logging with PII-safe extra fields (ADR-10)
 - `rank.py` CLI with `--health`, path validation, and parse smoke mode
 - Makefile targets: `help`, `install`, `lint`, `test`, `security`, `validate`
-- CI pipeline: governance, lint, test, security (bandit + pip-audit)
+- CI pipeline: governance, lint, test, security, integration (bandit + pip-audit)
+- CI `integration` job: parse smoke after test and security
+- Determinism and perturbation tests; expanded `make validate`
 - GitHub issue templates: bug, phase work, chore
 - `docs/getting-started.md` install and health check guide
 - Test coverage: path validation, models, parser guards, JD parser, logging, CLI
