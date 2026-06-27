@@ -1,10 +1,11 @@
 from src.models import CandidateModel
 from src.scorers.base import BaseScorer
 
+
 class ExperienceScorer(BaseScorer):
     def score(self, candidate: CandidateModel) -> float:
         yoe = candidate.profile.years_of_experience
-        
+
         # 5-9 years is the optimal band (JD L24-25)
         if 5 <= yoe <= 9:
             return 1.0
