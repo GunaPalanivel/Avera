@@ -56,9 +56,7 @@ class Ranker:
             "a/b test",
         ]
         matched_skills = [s for s in candidate.skills if any(kw in s.name.lower() for kw in must_have_kws)]
-        top_skills = sorted(
-            matched_skills if matched_skills else candidate.skills, key=lambda s: s.duration_months, reverse=True
-        )
+        top_skills = sorted(matched_skills if matched_skills else candidate.skills, key=lambda s: s.duration_months, reverse=True)
         skill_str = " and ".join(s.name for s in top_skills[:2]) if top_skills else "AI technologies"
         reasoning = f"Strong fit: {candidate.profile.current_title} at {candidate.profile.current_company} with {candidate.profile.years_of_experience} YOE. Demonstrates deep expertise in {skill_str}."
 

@@ -33,17 +33,11 @@ def generate():
                     )
                 )
             elif company in ["dunder mifflin", "stark industries"] and len(selected) < 10:
-                selected.append(
-                    (c["candidate_id"], 20 - len(selected), "Fictional company, automatically disqualified.")
-                )
+                selected.append((c["candidate_id"], 20 - len(selected), "Fictional company, automatically disqualified."))
             elif "ai engineer" in title and company == "tcs" and len(selected) < 15:
-                selected.append(
-                    (c["candidate_id"], 15 - len(selected), "Consulting-only AI Engineer, lower priority fit.")
-                )
+                selected.append((c["candidate_id"], 15 - len(selected), "Consulting-only AI Engineer, lower priority fit."))
             elif "senior ai engineer" in title and len(selected) < 20:
-                selected.append(
-                    (c["candidate_id"], 20 - len(selected), "Strong Senior AI Engineer fit for product role.")
-                )
+                selected.append((c["candidate_id"], 20 - len(selected), "Strong Senior AI Engineer fit for product role."))
 
             if len(selected) == 20:
                 break

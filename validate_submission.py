@@ -36,9 +36,7 @@ def validate_submission(csv_path):
 
             # Row 1: column names and their order come from this line only
             if header != REQUIRED_HEADER:
-                errors.append(
-                    f"Row 1 (header) must be exactly:\n  {','.join(REQUIRED_HEADER)}\nFound:\n  {','.join(header)}"
-                )
+                errors.append(f"Row 1 (header) must be exactly:\n  {','.join(REQUIRED_HEADER)}\nFound:\n  {','.join(header)}")
 
             data_rows = []
             for row in reader:
@@ -54,11 +52,7 @@ def validate_submission(csv_path):
 
     n = len(data_rows)
     if n != EXPECTED_DATA_ROWS:
-        errors.append(
-            f"After the header (row 1), there must be exactly {EXPECTED_DATA_ROWS} "
-            f"data rows (rows {DATA_ROW_START}-{DATA_ROW_START + EXPECTED_DATA_ROWS - 1}); "
-            f"found {n}."
-        )
+        errors.append(f"After the header (row 1), there must be exactly {EXPECTED_DATA_ROWS} data rows (rows {DATA_ROW_START}-{DATA_ROW_START + EXPECTED_DATA_ROWS - 1}); found {n}.")
 
     seen_ids = set()
     seen_ranks = set()
@@ -68,10 +62,7 @@ def validate_submission(csv_path):
         row_num = DATA_ROW_START + i
 
         if len(cells) != len(REQUIRED_HEADER):
-            errors.append(
-                f"Row {row_num}: expected {len(REQUIRED_HEADER)} columns "
-                f"({','.join(REQUIRED_HEADER)}), got {len(cells)}."
-            )
+            errors.append(f"Row {row_num}: expected {len(REQUIRED_HEADER)} columns ({','.join(REQUIRED_HEADER)}), got {len(cells)}.")
             continue
 
         row = dict(zip(REQUIRED_HEADER, cells, strict=False))
@@ -127,9 +118,7 @@ def validate_submission(csv_path):
         r1, s1, c1 = by_rank[i]
         r2, s2, c2 = by_rank[i + 1]
         if s1 == s2 and c1 > c2:
-            errors.append(
-                f"Equal scores at ranks {r1} and {r2}: tie-break requires candidate_id ascending ({c1!r} > {c2!r})."
-            )
+            errors.append(f"Equal scores at ranks {r1} and {r2}: tie-break requires candidate_id ascending ({c1!r} > {c2!r}).")
 
     return errors
 
