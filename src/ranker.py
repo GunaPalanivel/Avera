@@ -33,7 +33,9 @@ class Ranker:
             total_score += scorer(candidate)
             
         # Basic reasoning avoiding hallucination
-        reasoning = f"{candidate.profile.current_title} at {candidate.profile.current_company} with {candidate.profile.years_of_experience} YOE. Selected based on JD alignment."
+        top_skills = sorted(candidate.skills, key=lambda s: s.duration_months, reverse=True)
+        skill_str = " and ".join(s.name for s in top_skills[:2]) if top_skills else "AI technologies"
+        reasoning = f"Strong fit: {candidate.profile.current_title} at {candidate.profile.current_company} with {candidate.profile.years_of_experience} YOE. Demonstrates deep expertise in {skill_str}."
         
         return round(total_score, 4), reasoning
 

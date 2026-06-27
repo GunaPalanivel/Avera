@@ -47,6 +47,8 @@ def is_honeypot(candidate: CandidateModel) -> bool:
     # Method 5: Extremely high skill count with no assessments
     assessment_scores = candidate.redrob_signals.skill_assessment_scores
     if len(skills) > 15 and len(assessment_scores) == 0:
-        return True
+        senior_title = any(k in title for k in ("senior", "lead", "principal", "staff"))
+        if not (senior_title and yoe >= 5):
+            return True
 
     return False

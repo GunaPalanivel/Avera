@@ -7,13 +7,15 @@ class TitleCareerScorer(BaseScorer):
         title_score = 0.0
         current_title = candidate.profile.current_title.lower()
         
-        if 'ai engineer' in current_title or 'machine learning' in current_title or 'ml engineer' in current_title:
-            if 'senior' in current_title or 'lead' in current_title or 'principal' in current_title:
+        if 'junior' in current_title:
+            title_score = 0.0
+        elif 'ai engineer' in current_title or 'machine learning' in current_title or 'ml engineer' in current_title:
+            if 'senior' in current_title or 'lead' in current_title or 'principal' in current_title or 'staff' in current_title:
                 title_score = 0.5
             else:
                 title_score = 0.4
         elif 'data scientist' in current_title:
-            title_score = 0.3
+            title_score = 0.1
         elif 'software engineer' in current_title:
             title_score = 0.2
             
