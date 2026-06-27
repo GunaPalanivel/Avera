@@ -15,6 +15,7 @@ class SkillModel(BaseModel):
 class ProfileModel(BaseModel):
     anonymized_name: str = Field(max_length=200)
     headline: str = Field(max_length=500)
+    # max_length caps ReDoS on regex-validated free text (ADR-14)
     summary: str = Field(max_length=8000)
     location: str = Field(max_length=200)
     country: str = Field(max_length=100)
@@ -52,7 +53,8 @@ class SalaryRangeModel(BaseModel):
     max: float = Field(ge=0)
 
 
-class RedrobSignalsModel(BaseModel):
+class BehavioralSignals(BaseModel):
+    # Dataset uses -1 for missing on some behavioral metrics; scorers treat None as N/A in P2
     profile_completeness_score: float = Field(ge=0, le=100)
     signup_date: str
     last_active_date: str
@@ -68,14 +70,21 @@ class RedrobSignalsModel(BaseModel):
     expected_salary_range_inr_lpa: SalaryRangeModel
     preferred_work_mode: str
     willing_to_relocate: bool
-    github_activity_score: float = Field(ge=0, le=100)
+    github_activity_score: float | None = Field(default=None, ge=0, le=100)
     search_appearance_30d: int = Field(ge=0)
     saved_by_recruiters_30d: int = Field(ge=0)
     interview_completion_rate: float = Field(ge=0, le=1)
-    offer_acceptance_rate: float = Field(ge=0, le=1)
+    offer_acceptance_rate: float | None = Field(default=None, ge=0, le=1)
     verified_email: bool
     verified_phone: bool
     linkedin_connected: bool
+
+    @field_validator("github_activity_score", "offer_acceptance_rate", mode="before")
+    @classmethod
+    def coerce_missing_sentinel(cls, v: Any) -> Any:
+        if v == -1 or v == -1.0:
+            return None
+        return v
 
 
 class CandidateModel(BaseModel):
@@ -84,7 +93,7 @@ class CandidateModel(BaseModel):
     career_history: list[CareerEntryModel] = Field(min_length=1, max_length=10)
     education: list[EducationModel] = Field(default_factory=list, max_length=5)
     skills: list[SkillModel] = Field(default_factory=list)
-    redrob_signals: RedrobSignalsModel
+    redrob_signals: BehavioralSignals  # dataset field name; class is BehavioralSignals in our spec
     certifications: list[dict[str, Any]] = Field(default_factory=list)
     languages: list[dict[str, Any]] = Field(default_factory=list)
 
@@ -92,3 +101,6 @@ class CandidateModel(BaseModel):
     @classmethod
     def candidate_id_upper(cls, v: str) -> str:
         return v.strip()
+
+
+RedrobSignalsModel = BehavioralSignals  # old name in early commits/tests
