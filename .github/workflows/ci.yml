@@ -30,7 +30,51 @@ jobs:
             exit 1
           fi
 
-      - name: Verify repository layout
+      - name: Verify application layout
         run: |
-          test ! -d src || (echo "error: src/ belongs in foundation milestone" && exit 1)
-          test ! -f rank.py || (echo "error: rank.py belongs in foundation milestone" && exit 1)
+          test -f rank.py
+          test -d src
+          test -d tests
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    needs: governance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ -v
+
+  security:
+    name: security
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: bandit -r src/ -ll
+      - run: pip-audit -r requirements.txt
