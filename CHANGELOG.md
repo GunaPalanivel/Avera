@@ -8,7 +8,11 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- Repository governance: CONTRIBUTING, CODEOWNERS, PR template, CI stub
+- Foundation: models, parsers, path validation, logging, `rank.py --health`
+- CI jobs: lint, test, security (plus governance layout check)
+- Makefile and `docs/getting-started.md`
+
+## [0.0.1] - 2026-06-27
 
 ### Added
 
