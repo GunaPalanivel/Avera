@@ -1,53 +1,47 @@
 # Avera
 
-Deterministic candidate ranking for the Redrob **Intelligent Candidate Discovery** challenge (Track 01).
+High-throughput, deterministic candidate ranking engine for the Redrob Track 01 Challenge. 
+Processes 100K+ JSONL profiles with strict Pydantic boundaries to score JD fit, career trajectory, and behavioral signals with zero hallucination risk.
 
-Ranks candidates from a JSONL pool against a job description using JD-calibrated scorers, behavioral signals, and honeypot detection, CPU-only, no hosted LLM calls.
+## Architecture (Up to Phase 2)
 
-**Status:** Foundation in place. `rank.py --health` works; scoring engine next.
+Avera uses a deterministic weighted scoring system over LLM-based parsing, heavily optimizing for speed and deterministic reasoning. The system is built for the Redrob Senior AI Engineer job description.
 
-## Built for
+### The Pipeline
 
-- [India Runs](https://hack2skill.com/event/india_runs), Redrob AI hackathon on Hack2skill
-- [Redrob](https://redrob.io/), India's AI platform for hiring, talent, and professional workflows
+1. **Boundary Validation (Pydantic)**
+   The 100K `candidates.jsonl` dataset is streamed line-by-line and strictly validated against Pydantic models. Malformed rows are gracefully skipped, preventing pipeline crashes. The `-1` sentinel for missing behavioral data is safely coerced.
 
-## Track 01: Intelligent Candidate Discovery
+2. **Honeypot & Fictional Company Filter**
+   Fast-fail filters eliminate fictional companies (e.g., Stark Industries) and keyword-stuffed traps (Marketing Managers with AI skills) instantly before any scoring logic executes.
 
-Part of **The Data & AI Challenge** track. The problem: keyword filters miss candidates whose fit shows up in context, career trajectory, and behavioral signals, not just title matches.
+3. **Deterministic Scoring Engine**
+   Five independent scorers calculate a composite score, strictly weighted according to the Redrob JD parameters:
+   * **Title & Career Scorer (35%)**: Prioritizes Product/AI roles over consulting, severely penalizing title-chasers averaging <1.5 years per role.
+   * **Behavioral Scorer (25%)**: Down-weights low recruiter response rates and long inactivity. Max points for <30 days notice period.
+   * **Skills Scorer (20%)**: Emphasizes embeddings, vector DBs, and evaluation metrics. Verified skill assessments get a 3x multiplier over self-reported skills.
+   * **Experience Scorer (10%)**: Optimal band at 5-9 years experience.
+   * **Location Scorer (10%)**: Preferred geofence in Noida/Pune or explicit willingness to relocate.
 
-**Mission:** Build a workable proof of concept that **ranks**, not just filters. A system that acts like a sharp recruiter:
+4. **O(K) Memory Ranker**
+   Scores are fed into a Min-Heap of size `K=100`, bounding memory usage while instantly sorting the top 100 candidates from the 100K stream.
 
-- **Deep job understanding**, interpret nuanced job descriptions
-- **Contextual relevance**, semantic fit beyond keywords
-- **Signal integration**, profile attributes, career metadata, and activity/behavioral signals
-- **Output**, a fast, accurate top-100 shortlist from the released candidate pool
-
-No fixed architecture required; evaluators care about methodology, reproducibility, and results.
-
-## Dataset
-
-Track 01 challenge files live in [`DataSet/`](DataSet/). The full pool is `DataSet/candidates.jsonl` (~465 MB, **Git LFS**).
-
-```bash
-git lfs install
-git lfs pull
-```
-
-See [`DataSet/README.md`](DataSet/README.md) for file descriptions and validation commands.
-
-## Quick start
+### Quick Start
 
 ```bash
-pip install -r requirements.txt
-python rank.py --health
+# Run tests and linting
+make test
+make lint
+
+# Run the ranking pipeline on the full dataset
+make rank
+# Alternatively:
+python rank.py --candidates DataSet/candidates.jsonl
 ```
 
-See [docs/getting-started.md](docs/getting-started.md) for venv setup and sample parse command.
+## DevOps & Security
 
-## Development
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for branching, PR process, and CI requirements.
-
-## License
-
-MIT, see [LICENSE](LICENSE).
+Avera is built with a dual-role mindset (AI Engineering + DevOps). It features:
+* **Structured JSON Logging**: Every pipeline event is logged in a machine-readable format.
+* **Graceful Degradation**: 5-level custom exception hierarchy (DataError, ScoringError, etc.).
+* **Security Scanning**: Integrated `pip-audit` and `bandit` in CI/CD.
