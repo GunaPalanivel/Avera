@@ -19,3 +19,5 @@ security:
 
 validate:
 	python rank.py --health
+	python rank.py --candidates tests/fixtures/sample.jsonl --limit 3
+	pytest tests/ -v

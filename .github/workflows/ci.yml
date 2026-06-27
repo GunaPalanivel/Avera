@@ -83,3 +83,16 @@ jobs:
       - run: pip install -r requirements.txt
       - run: bandit -r src/ -ll
       - run: pip-audit -r requirements.txt
+
+  integration:
+    name: integration
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python rank.py --candidates tests/fixtures/sample.jsonl --limit 5
