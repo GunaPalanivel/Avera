@@ -1,0 +1,27 @@
+# Challenge dataset (local only)
+DataSet/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Test / tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+idea/
+
+# OS
+.DS_Store
+Thumbs.db
