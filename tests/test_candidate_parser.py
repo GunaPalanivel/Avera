@@ -7,8 +7,8 @@ FIXTURE = Path("tests/fixtures/sample.jsonl")
 
 def test_stream_candidates_reads_fixture():
     ids = [c.candidate_id for c in stream_candidates(FIXTURE)]
-    assert len(ids) >= 1
-    assert ids[0].startswith("CAND_")
+    assert len(ids) == 2
+    assert all(i.startswith("CAND_") for i in ids)
 
 
 def test_count_candidates_with_limit():
