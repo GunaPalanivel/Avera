@@ -1,4 +1,4 @@
-# Redrob Hackathon — Submission Metadata Template
+# Redrob Hackathon: Submission Metadata Template
 #
 # Copy this file to your repo root as `submission_metadata.yaml` and fill it in.
 # The fields here should match what you submit via the portal at upload time.
@@ -48,15 +48,15 @@ compute:
   ram_gb: 16                                    # Available RAM in GB
   python_version: "3.11.4"                      # python --version
   os: "macOS 14.2"                              # Or "Ubuntu 22.04 LTS", etc.
-  uses_gpu_for_inference: false                 # Must be false — see compute constraints
-  has_network_during_ranking: false             # Must be false — no API calls during ranking
+  uses_gpu_for_inference: false                 # Must be false, see compute constraints
+  has_network_during_ranking: false             # Must be false, no API calls during ranking
   pre_computation_required: false               # true if you pre-compute embeddings or train models offline
   pre_computation_time_minutes: 0               # Approximate, if applicable
 
 # ============================================================================
 # AI tools declaration
 # ============================================================================
-# Transparency only — declared use is NOT penalized. Be honest. Stage 5 interview
+# Transparency only: declared use is NOT penalized. Be honest. Stage 5 interview
 # may verify these declarations against your code; declarations that contradict
 # your code or your interview are flagged.
 ai_tools_used:
@@ -92,5 +92,5 @@ declarations:
   read_submission_spec: true        # I have read submission_spec.md in full
   code_is_original_work: true       # My code is my team's original work (using AI as a tool is fine)
   no_collusion: true                # I have not coordinated my submission with other teams
-  honeypot_check_done: false        # OPTIONAL — set true if you explicitly checked for honeypots in your ranking
+  honeypot_check_done: false        # OPTIONAL, set true if you explicitly checked for honeypots in your ranking
   reproduction_tested: true         # I have tested that my reproduce_command runs end-to-end
