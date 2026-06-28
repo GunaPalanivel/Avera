@@ -12,7 +12,7 @@ class ExperienceScorer(BaseScorer):
         for job in candidate.career_history:
             if any(kw in job.title.lower() for kw in ml_keywords):
                 ml_months += job.duration_months
-        
+
         ml_yoe = ml_months / 12.0
 
         # Step bands for total YOE
@@ -33,5 +33,5 @@ class ExperienceScorer(BaseScorer):
             return base_score * 0.2
         elif ml_yoe < 4.0:
             return base_score * 0.6
-            
+
         return base_score

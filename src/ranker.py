@@ -33,7 +33,7 @@ class Ranker:
         total_score = 0.0
         for scorer in self.scorers:
             total_score += scorer(candidate)
-            
+
         # Stage 1.75: Apply multiplicative behavioral modifier
         behavioral_modifier = self.behavioral_scorer.score(candidate)
         total_score *= behavioral_modifier

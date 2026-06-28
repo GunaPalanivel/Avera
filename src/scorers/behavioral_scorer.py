@@ -30,7 +30,7 @@ class BehavioralScorer(BaseScorer):
         # 3. Open to work / Notice Period (Bonus)
         if sigs.open_to_work_flag:
             modifier *= 1.05
-        
+
         notice = sigs.notice_period_days
         if notice <= 30:
             modifier *= 1.10
@@ -40,12 +40,12 @@ class BehavioralScorer(BaseScorer):
         # 4. Market Demand & Interview Reliability
         if sigs.saved_by_recruiters_30d > 10:
             modifier *= 1.05
-            
+
         if sigs.interview_completion_rate >= 0.9:
             modifier *= 1.05
         elif sigs.interview_completion_rate < 0.5:
             modifier *= 0.7  # Flaky candidate
-            
+
         # 5. Verification
         if sigs.verified_email and sigs.verified_phone and sigs.linkedin_connected:
             modifier *= 1.05
