@@ -3,6 +3,13 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.config import (
+    JD_CITY_CATALOG,
+    SKILL_TAXONOMY_MUST,
+    SKILL_TAXONOMY_NICE,
+    TITLE_KEYWORDS_DEFAULT,
+)
+
 
 @dataclass(frozen=True)
 class JobRequirements:
@@ -10,6 +17,7 @@ class JobRequirements:
     must_have_skills: tuple[str, ...]
     nice_to_have_skills: tuple[str, ...]
     title_keywords: tuple[str, ...]
+    target_cities: tuple[str, ...]
     red_flags: tuple[str, ...]
 
 
@@ -19,49 +27,21 @@ def load_job_requirements(jd_path: Path | str | None = None) -> JobRequirements:
 
     path = Path(jd_path)
     if not path.exists():
-        text = "AI Engineer Machine Learning LLM NLP"
+        text = "AI Engineer Machine Learning LLM NLP Python PyTorch embeddings vector database"
     else:
         text = path.read_text(encoding="utf-8")
 
-    # Extract skills by looking for keywords in the JD text
-    skill_taxonomy = {
-        "embeddings",
-        "sentence-transformers",
-        "bge",
-        "e5",
-        "pinecone",
-        "weaviate",
-        "qdrant",
-        "milvus",
-        "opensearch",
-        "elasticsearch",
-        "faiss",
-        "vector database",
-        "python",
-        "ndcg",
-        "mrr",
-        "map",
-        "evaluation",
-        "a/b test",
-        "llm",
-        "nlp",
-        "pytorch",
-        "machine learning",
-    }
-
-    nice_taxonomy = {"lora", "qlora", "peft", "xgboost", "learning to rank", "ltr", "rag", "vector"}
-
     text_lower = text.lower()
 
-    must_have = tuple(sk for sk in skill_taxonomy if sk in text_lower)
-    nice_to_have = tuple(sk for sk in nice_taxonomy if sk in text_lower)
-
-    title_kws = ("ai", "ml", "machine learning", "llm", "nlp", "data scientist")
+    must_have = tuple(sk for sk in sorted(SKILL_TAXONOMY_MUST) if sk in text_lower)
+    nice_to_have = tuple(sk for sk in sorted(SKILL_TAXONOMY_NICE) if sk in text_lower)
+    target_cities = tuple(c for c in JD_CITY_CATALOG if c in text_lower)
 
     return JobRequirements(
         raw_text=text,
         must_have_skills=must_have,
         nice_to_have_skills=nice_to_have,
-        title_keywords=title_kws,
+        title_keywords=TITLE_KEYWORDS_DEFAULT,
+        target_cities=target_cities,
         red_flags=("fictional", "consulting only"),
     )

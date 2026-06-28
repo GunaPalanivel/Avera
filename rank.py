@@ -68,19 +68,33 @@ def main(argv: list[str] | None = None) -> int:
 
     logger.info("ranking candidates", extra={"extra_fields": {"run_id": run_id, "event": "ranking_start"}})
 
-    stream = stream_candidates(candidates_path, limit=args.limit)
     job_reqs = load_job_requirements(args.jd)
     ranker = Ranker(job_reqs)
     requested_top_k = args.limit if args.limit else 100
-    top_k = ranker.rank(stream, top_k=requested_top_k)
+    input_ids: set[str] = set()
+
+    def track_stream():
+        for candidate in stream_candidates(candidates_path, limit=args.limit):
+            input_ids.add(candidate.candidate_id)
+            yield candidate
+
+    top_k = ranker.rank(track_stream(), top_k=requested_top_k)
 
     logger.info(
         "ranked candidates",
-        extra={"extra_fields": {"run_id": run_id, "event": "ranking_done"}},
+        extra={
+            "extra_fields": {
+                "run_id": run_id,
+                "event": "ranking_done",
+                "input_count": len(input_ids),
+                "output_count": len(top_k),
+            }
+        },
     )
 
     if args.out:
-        write_submission(args.out, top_k)
+        expected_rows = requested_top_k if not args.limit else len(top_k)
+        write_submission(args.out, top_k, input_ids=input_ids, expected_rows=expected_rows)
         print(f"Ranked {len(top_k)} candidates and wrote to {args.out}")
     else:
         print(f"Ranked {len(top_k)} candidates. Top 5:")

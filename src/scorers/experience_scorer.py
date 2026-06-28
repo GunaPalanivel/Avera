@@ -1,21 +1,24 @@
+from src.config import TITLE_KEYWORDS_DEFAULT
 from src.models import CandidateModel
 from src.scorers.base import BaseScorer
 
 
 class ExperienceScorer(BaseScorer):
+    def __init__(self, weight: float, title_keywords: tuple[str, ...] | None = None):
+        super().__init__(weight)
+        self.title_keywords = title_keywords if title_keywords else TITLE_KEYWORDS_DEFAULT
+
     def score(self, candidate: CandidateModel) -> float:
         yoe = candidate.profile.years_of_experience
 
-        # Calculate ML/AI specific tenure
-        ml_keywords = {"ml", "machine learning", "ai", "artificial intelligence", "data scientist", "deep learning", "nlp", "computer vision"}
         ml_months = 0
         for job in candidate.career_history:
-            if any(kw in job.title.lower() for kw in ml_keywords):
+            title_lower = job.title.lower()
+            if any(kw in title_lower for kw in self.title_keywords):
                 ml_months += job.duration_months
 
         ml_yoe = ml_months / 12.0
 
-        # Step bands for total YOE
         base_score = 0.0
         if 5 <= yoe <= 9:
             base_score = 1.0
@@ -28,10 +31,9 @@ class ExperienceScorer(BaseScorer):
         elif 3 <= yoe < 4:
             base_score = 0.2
 
-        # Penalty if they have high total YOE but very little ML YOE (JD wants 4-5 years in ML)
         if ml_yoe < 2.0:
             return base_score * 0.2
-        elif ml_yoe < 4.0:
+        if ml_yoe < 4.0:
             return base_score * 0.6
 
         return base_score
