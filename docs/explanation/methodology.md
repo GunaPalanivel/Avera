@@ -6,11 +6,11 @@ The Avera ranking engine implements a deterministic, multi-faceted scoring syste
 
 | Scorer | Weight | Core Rationale (JD Derived) |
 |--------|--------|-----------------------------|
-| **Title & Career** | 35% | Candidates with explicit 'Senior AI Engineer' titles at product-focused companies are preferred over title-chasers (e.g., job hoppers with <15 month average tenures). |
-| **Behavioral Signals** | 25% | A perfect-on-paper candidate who hasn't logged in for 6 months and has a 5% recruiter response rate is functionally un-hireable. |
-| **Skills Credibility** | 20% | Prioritizes deep, verified expertise in Must-Have vector databases (e.g., Pinecone, Qdrant) over broad, unverified keyword stuffing. Assessment scores carry a 3x weight over self-reported proficiencies. |
-| **Experience Fit** | 10% | Applies a Gaussian curve centered exactly on 7 years (the JD optimal band of 6-8 years). |
-| **Location & Logistics** | 10% | Heavily favors candidates located in Pune/Noida, followed by Tier-1 Indian tech hubs, with steep penalties for inflexible remote-only candidates outside these zones. |
+| **Title & Career** | 45% (Base) | Candidates with explicit 'Senior AI Engineer' titles at product-focused companies are preferred over title-chasers (e.g., job hoppers with <15 month average tenures). |
+| **Skills Credibility** | 30% (Base) | Prioritizes deep, verified expertise in Must-Have vector databases (e.g., Pinecone, Qdrant) over broad, unverified keyword stuffing. Assessment scores carry a 3x weight over self-reported proficiencies. |
+| **Experience Fit** | 15% (Base) | Uses step bands for total YOE (favoring 5-9) and strictly evaluates ML/AI tenure in the career history to penalize high-YOE candidates lacking applied ML experience. |
+| **Location & Logistics** | 10% (Base) | Heavily favors candidates located strictly in the 4 JD-named cities (Pune, Hyderabad, Mumbai, Delhi NCR). |
+| **Behavioral Signals** | Multiplier | A multiplicative modifier (0.5 to 1.2) is applied to the final base score. A perfect-on-paper candidate who ghosts or has low response rates is functionally un-hireable. |
 
 ## 2. Honeypot Detection Engine
 
@@ -22,10 +22,9 @@ The dataset contains numerous "honeypot" candidates designed to trick keyword-ba
 | **Method 1: Title/Skill Mismatch** | Flags non-technical titles (e.g., 'HR Manager') claiming 5+ core AI skills like embeddings and LLMs. | Flagged (Dropped) |
 | **Method 2: Expert Anomaly** | Flags candidates claiming 'Expert' proficiency on 3+ skills with exactly 0 months of duration. | Flagged (Dropped) |
 | **Method 3: Impossible Seniority** | Flags 'Senior' titles with < 2 YOE, or 'Junior' titles with > 10 YOE. | Flagged (Dropped) |
-| **Method 4: Fictional Tenure** | Flags candidates claiming past experience of > 10 years at known fictional companies. | Flagged (Dropped) |
-| **Method 5: Unverified Generalist** | Flags candidates with > 15 skills but 0 assessment scores. | Flagged (Dropped) |
+| **Method 4: Unverified Generalist** | Flags candidates with > 15 skills but 0 assessment scores. | Flagged (Dropped) |
 
-*Note: Senior Engineers (Lead/Principal/Staff/Senior) with ≥ 5 YOE are explicitly exempted from the Unverified Generalist (Method 5) filter, as true Staff engineers often possess wide skill variance legitimately.*
+*Note: Senior Engineers (Lead/Principal/Staff/Senior) with ≥ 5 YOE are explicitly exempted from the Unverified Generalist (Method 4) filter, as true Staff engineers often possess wide skill variance legitimately.*
 
 ## 3. Dynamic Reasoning Generation
 

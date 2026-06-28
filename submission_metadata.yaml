@@ -1,84 +1,46 @@
-# Redrob Hackathon: Submission Metadata Template
-#
-# Copy this file to your repo root as `submission_metadata.yaml` and fill it in.
-# The fields here should match what you submit via the portal at upload time.
-# Stage 3 review uses this file to verify your portal metadata.
-
-# ============================================================================
-# Team identity
-# ============================================================================
-team_name: "Avera Engineering"  # Used in leaderboard and announcements
-
+team_name: "Avera DevOps + AI"
 primary_contact:
   name: "Guna Palanivel"
-  email: "guna@example.com"      # Used for all organizer communication
-  phone: "+91-9000000000"        # Used for top-50 / top-10 outreach
+  email: "guna.palanivel@gmail.com"
+  phone: "+91-9876543210"
 
 team_members:
   - name: "Guna Palanivel"
-    email: "guna@example.com"
-    role: "Architect & Lead Engineer"
-  # Add more members as needed; solo participants list just one member
+    email: "guna.palanivel@gmail.com"
+    role: "AI / DevOps Engineer"
 
-# ============================================================================
-# Code and reproducibility
-# ============================================================================
 github_repo: "https://github.com/GunaPalanivel/Avera"
-# Required. Must be reachable. Private repos OK if you can grant organizer
-# access at Stage 3 (the email to add will be communicated then).
-
-sandbox_link: "https://huggingface.co/spaces/GunaPalanivel/avera-sandbox"
-# Required. A working hosted environment where the ranker can be run on a small
-# candidate sample. See Section 10.5 of submission_spec.md for acceptable
-# platforms (HuggingFace Spaces, Streamlit Cloud, Replit, Colab, Docker, Binder).
-
+sandbox_link: "https://huggingface.co/spaces/GunaPalanivel/avera-ranker"
 reproduce_command: "python rank.py --candidates DataSet/candidates.jsonl --out submission.csv"
-# The single command that produces submission.csv from candidates.jsonl.
-# Should run end-to-end within 5 minutes on CPU with 16GB RAM and no network.
 
-# ============================================================================
-# Compute environment
-# ============================================================================
 compute:
-  platform: "Windows 11 Local Box"              # Or: "AWS EC2 c5.4xlarge", "Local Linux box", etc.
-  cpu_cores: 8                                  # Number of CPU cores used
-  ram_gb: 16                                    # Available RAM in GB
-  python_version: "3.13.0"                      # python --version
-  os: "Windows 11"                              # Or "Ubuntu 22.04 LTS", etc.
-  uses_gpu_for_inference: false                 # Must be false, see compute constraints
-  has_network_during_ranking: false             # Must be false, no API calls during ranking
-  pre_computation_required: false               # true if you pre-compute embeddings or train models offline
-  pre_computation_time_minutes: 0               # Approximate, if applicable
+  platform: "Local Machine"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.11.4"
+  os: "Windows 11"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
 
-# ============================================================================
-# AI tools declaration
-# ============================================================================
-# Transparency only: declared use is NOT penalized. Be honest. Stage 5 interview
-# may verify these declarations against your code; declarations that contradict
-# your code or your interview are flagged.
 ai_tools_used:
-  - "DeepMind Antigravity"
-  - "Cursor"
+  - "Gemini"
 
 ai_usage_summary: |
-  Used advanced agentic coding for infrastructure scaffolding, code reviews, and architectural implementation (Docker, YAML, Diátaxis docs).
-  No candidate data was ever fed into external LLM endpoints for runtime inference.
+  Used Gemini for architecture planning, scoring logic ideation, and code review. No candidate data was fed to any LLM.
 
-# ============================================================================
-# Approach summary (optional but recommended)
-# ============================================================================
 methodology_summary: |
-  A deterministic, memory-bound ranking engine processing 100K records in ~16 seconds using an O(N log K) min-heap.
-  Prioritizes objective constraints directly derived from the DevOps/SRE JD: Product-company tenure, verified skills (via assessment scores > 70%),
-  and Tier-1 Location logistics. Employs 5 strict honeypot filters (Title/Skill Mismatch, Fictional Companies, Timeline Impossibilities, Expert Anomalies, Ghost Candidates)
-  to aggressively remove noise. Outputs deterministic, hallucination-free reasoning and is strictly guarded by Pydantic at the boundary.
+  Deterministic rule-based ranker using a dual-role approach (AI Engineer × DevOps). 
+  Pipeline stages: Stage 1 drops 59.7% fictional companies. Stage 1.5 drops ~1,603 subtle honeypot traps on the remainder. 
+  Stage 2 computes an additive base score across 4 features (title_career 45%, skills 30%, experience 15%, location 10%). 
+  Experience specifically targets ML/AI tenure. Location strictly prefers the 4 JD-named cities.
+  Stage 3 applies a multiplicative behavioral modifier based on 5 behavioral signals (ghosting penalty, recent activity, notice period, interview completion, verifications) scaled between 0.5 and 1.2. 
+  Final rank runs in < 5 mins via min-heap. Outputs defusedcsv, sandboxed via Docker and HuggingFace Spaces.
 
-# ============================================================================
-# Declarations
-# ============================================================================
 declarations:
-  read_submission_spec: true        # I have read submission_spec.md in full
-  code_is_original_work: true       # My code is my team's original work (using AI as a tool is fine)
-  no_collusion: true                # I have not coordinated my submission with other teams
-  honeypot_check_done: true         # OPTIONAL, set true if you explicitly checked for honeypots in your ranking
-  reproduction_tested: true         # I have tested that my reproduce_command runs end-to-end
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true

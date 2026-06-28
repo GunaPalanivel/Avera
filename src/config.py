@@ -2,12 +2,11 @@
 
 from src.exceptions import ConfigError
 
-# Rule-based weights, no labels to train on; behavioral 25% for JD hireability emphasis
+# Rule-based weights, no labels to train on; behavioral is a multiplicative modifier
 SCORER_WEIGHTS: dict[str, float] = {
-    "title_career": 0.35,
-    "behavioral": 0.25,
-    "skills": 0.20,
-    "experience": 0.10,
+    "title_career": 0.45,
+    "skills": 0.30,
+    "experience": 0.15,
     "location": 0.10,
 }
 

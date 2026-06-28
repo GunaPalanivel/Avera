@@ -54,10 +54,7 @@ def is_honeypot(candidate: CandidateModel) -> bool:
     if "junior" in title and yoe > 10:
         return True
 
-    # Method 4: Impossible career tenure at fictional companies (since they might have past fictional jobs)
-    for job in career:
-        if job.duration_months > 120 and any(fic.lower() in job.company.lower() for fic in FICTIONAL_COMPANIES):
-            return True
+
 
     # Method 5: Extremely high skill count with no assessments
     assessment_scores = candidate.redrob_signals.skill_assessment_scores

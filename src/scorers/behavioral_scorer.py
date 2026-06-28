@@ -8,43 +8,46 @@ class BehavioralScorer(BaseScorer):
     def score(self, candidate: CandidateModel) -> float:
         sigs = candidate.redrob_signals
 
-        # Availability (max 0.6)
-        availability_score = 0.6
+        modifier = 1.0
 
-        # Recruiter response rate penalty
+        # 1. Availability / Ghosting (Strong penalty)
         resp_rate = sigs.recruiter_response_rate
         if resp_rate < 0.05:
-            availability_score -= 0.4
-        elif resp_rate < 0.2:
-            availability_score -= 0.2
+            modifier *= 0.5  # "Not actually available"
+        elif resp_rate < 0.20:
+            modifier *= 0.8
 
-        # Inactivity penalty
-        # Assume "now" is around Nov 2025 based on dataset context, or use standard diff
-        # Let's parse last_active_date
+        # 2. Inactivity (Penalty)
         try:
             last_active = datetime.strptime(sigs.last_active_date, "%Y-%m-%d")
-            # In our dataset context, the date is 2025.
-            # We'll use relative to 2026-01-01 for safety if it's late 2025.
-            # Actually, just use hardcoded difference from "2026-06-27" (current date in scenario)
             now = datetime(2026, 6, 27)
             months_inactive = (now - last_active).days / 30.0
-
             if months_inactive > 6:
-                availability_score -= 0.4
+                modifier *= 0.8
         except ValueError:
             pass
 
-        availability_score = max(0.0, availability_score)
-
-        # Notice Period (max 0.4)
+        # 3. Open to work / Notice Period (Bonus)
+        if sigs.open_to_work_flag:
+            modifier *= 1.05
+        
         notice = sigs.notice_period_days
-        notice_score = 0.0
-
         if notice <= 30:
-            notice_score = 0.4
-        elif notice <= 60:
-            notice_score = 0.2
-        else:
-            notice_score = 0.0
+            modifier *= 1.10
+        elif notice > 60:
+            modifier *= 0.95
 
-        return availability_score + notice_score
+        # 4. Market Demand & Interview Reliability
+        if sigs.saved_by_recruiters_30d > 10:
+            modifier *= 1.05
+            
+        if sigs.interview_completion_rate >= 0.9:
+            modifier *= 1.05
+        elif sigs.interview_completion_rate < 0.5:
+            modifier *= 0.7  # Flaky candidate
+            
+        # 5. Verification
+        if sigs.verified_email and sigs.verified_phone and sigs.linkedin_connected:
+            modifier *= 1.05
+
+        return max(0.5, min(1.2, modifier))

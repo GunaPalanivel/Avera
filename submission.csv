@@ -1,101 +1,101 @@
 candidate_id,rank,score,reasoning
-CAND_0018499,1,0.8800,Strong fit: Senior Machine Learning Engineer at Zomato with 7.2 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
-CAND_0080766,2,0.8625,Strong fit: Staff Machine Learning Engineer at Salesforce with 8.8 YOE. Demonstrates deep expertise in Python and Milvus.
-CAND_0061257,3,0.8475,Strong fit: Staff Machine Learning Engineer at LinkedIn with 8.0 YOE. Demonstrates deep expertise in Python.
-CAND_0081846,4,0.8475,Strong fit: Lead AI Engineer at Razorpay with 6.7 YOE. Demonstrates deep expertise in Embeddings and Python.
-CAND_0068351,5,0.8450,Strong fit: Lead AI Engineer at Sarvam AI with 6.4 YOE. Demonstrates deep expertise in Qdrant and Python.
-CAND_0045250,6,0.8425,Strong fit: Applied ML Engineer at Rephrase.ai with 6.6 YOE. Demonstrates deep expertise in Qdrant and Embeddings.
-CAND_0006567,7,0.8375,Strong fit: Senior AI Engineer at Meta with 7.9 YOE. Demonstrates deep expertise in Python.
-CAND_0087630,8,0.8250,Strong fit: AI Engineer at Vedantu with 7.2 YOE. Demonstrates deep expertise in Embeddings and Elasticsearch.
-CAND_0032216,9,0.8225,Strong fit: ML Engineer at upGrad with 6.1 YOE. Demonstrates deep expertise in Qdrant.
-CAND_0037566,10,0.8100,Strong fit: Machine Learning Engineer at LinkedIn with 6.9 YOE. Demonstrates deep expertise in Pinecone and Elasticsearch.
-CAND_0038368,11,0.8100,Strong fit: ML Engineer at PhonePe with 5.4 YOE. Demonstrates deep expertise in Embeddings and FAISS.
-CAND_0058688,12,0.8100,Strong fit: AI Engineer at Vedantu with 6.7 YOE. Demonstrates deep expertise in Milvus and Embeddings.
-CAND_0002025,13,0.8050,Strong fit: Senior AI Engineer at Apple with 5.9 YOE. Demonstrates deep expertise in FAISS and Python.
-CAND_0003841,14,0.8000,Strong fit: ML Engineer at Tech Mahindra with 5.0 YOE. Demonstrates deep expertise in Pinecone.
-CAND_0077337,15,0.7950,Strong fit: Staff Machine Learning Engineer at Paytm with 7.0 YOE. Demonstrates deep expertise in Python and Qdrant.
-CAND_0095213,16,0.7950,Strong fit: ML Engineer at Genpact AI with 5.1 YOE. Demonstrates deep expertise in Pinecone and Milvus.
-CAND_0050454,17,0.7925,Strong fit: AI Engineer at Rephrase.ai with 6.8 YOE. Demonstrates deep expertise in FAISS and Qdrant.
-CAND_0018094,18,0.7900,Strong fit: ML Engineer at Mad Street Den with 5.2 YOE. Demonstrates deep expertise in Pinecone.
-CAND_0071974,19,0.7850,Strong fit: Senior AI Engineer at Netflix with 7.8 YOE. Demonstrates deep expertise in Elasticsearch and Qdrant.
-CAND_0068932,20,0.7825,Strong fit: ML Engineer at Krutrim with 5.2 YOE. Demonstrates deep expertise in OpenSearch and Milvus.
-CAND_0083879,21,0.7825,Strong fit: Machine Learning Engineer at Ola with 7.1 YOE. Demonstrates deep expertise in Milvus.
-CAND_0068811,22,0.7800,Strong fit: Applied ML Engineer at Freshworks with 8.0 YOE. Demonstrates deep expertise in Pinecone and Qdrant.
-CAND_0017093,23,0.7775,Strong fit: ML Engineer at Zoho with 5.9 YOE. Demonstrates deep expertise in Embeddings.
-CAND_0043228,24,0.7775,Strong fit: Applied ML Engineer at Zoho with 6.8 YOE. Demonstrates deep expertise in OpenSearch and Weaviate.
-CAND_0093193,25,0.7775,Strong fit: Senior Machine Learning Engineer at Niramai with 7.9 YOE. Demonstrates deep expertise in OpenSearch and Qdrant.
-CAND_0094759,26,0.7775,Strong fit: Lead AI Engineer at Meta with 8.6 YOE. Demonstrates deep expertise in Qdrant and FAISS.
-CAND_0005477,27,0.7725,Strong fit: ML Engineer at Zomato with 6.2 YOE. Demonstrates deep expertise in OpenSearch.
-CAND_0020877,28,0.7725,Strong fit: Applied ML Engineer at CRED with 5.1 YOE. Demonstrates deep expertise in Weaviate and Milvus.
-CAND_0071939,29,0.7725,Strong fit: Data Scientist at Krutrim with 6.4 YOE. Demonstrates deep expertise in OpenSearch and Embeddings.
-CAND_0079284,30,0.7725,Strong fit: Machine Learning Engineer at Google with 4.9 YOE. Demonstrates deep expertise in Elasticsearch and Qdrant.
-CAND_0020350,31,0.7675,Strong fit: AI Engineer at Zoho with 5.8 YOE. Demonstrates deep expertise in FAISS.
-CAND_0046525,32,0.7675,Strong fit: Senior Machine Learning Engineer at Genpact AI with 6.1 YOE. Demonstrates deep expertise in Qdrant and Elasticsearch.
-CAND_0079387,33,0.7675,Strong fit: AI Engineer at Microsoft with 6.9 YOE. Demonstrates deep expertise in OpenSearch and Python.
-CAND_0049538,34,0.7650,Strong fit: Applied ML Engineer at Saarthi.ai with 5.8 YOE. Demonstrates deep expertise in Elasticsearch and Milvus.
-CAND_0006418,35,0.7625,Strong fit: Machine Learning Engineer at Verloop.io with 5.7 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
-CAND_0060054,36,0.7625,Strong fit: AI Engineer at Mad Street Den with 6.4 YOE. Demonstrates deep expertise in FAISS and Elasticsearch.
-CAND_0098217,37,0.7625,Strong fit: ML Engineer at Glance with 6.4 YOE. Demonstrates deep expertise in Pinecone and FAISS.
-CAND_0076482,38,0.7600,Strong fit: ML Engineer at Flipkart with 6.6 YOE. Demonstrates deep expertise in Pinecone and Embeddings.
-CAND_0099806,39,0.7600,Strong fit: AI Engineer at Mad Street Den with 4.6 YOE. Demonstrates deep expertise in Embeddings and Qdrant.
-CAND_0091909,40,0.7575,Strong fit: Machine Learning Engineer at Rephrase.ai with 6.9 YOE. Demonstrates deep expertise in Pinecone and OpenSearch.
-CAND_0015528,41,0.7550,Strong fit: Applied ML Engineer at Krutrim with 7.4 YOE. Demonstrates deep expertise in FAISS and OpenSearch.
-CAND_0017178,42,0.7550,Strong fit: ML Engineer at Swiggy with 4.2 YOE. Demonstrates deep expertise in PEFT and pgvector.
-CAND_0027691,43,0.7550,Strong fit: NLP Engineer at Haptik with 6.5 YOE. Demonstrates deep expertise in Weaviate and Python.
-CAND_0030031,44,0.7525,Strong fit: AI Engineer at Microsoft with 5.7 YOE. Demonstrates deep expertise in Milvus and Python.
-CAND_0055905,45,0.7525,Strong fit: Senior Machine Learning Engineer at Flipkart with 8.1 YOE. Demonstrates deep expertise in Elasticsearch and Embeddings.
-CAND_0088025,46,0.7525,Strong fit: Staff Machine Learning Engineer at Yellow.ai with 8.6 YOE. Demonstrates deep expertise in Elasticsearch and Python.
-CAND_0075439,47,0.7500,Strong fit: Machine Learning Engineer at Flipkart with 4.3 YOE. Demonstrates deep expertise in Elasticsearch and Embeddings.
-CAND_0069232,48,0.7475,Strong fit: ML Engineer at Yellow.ai with 6.3 YOE. Demonstrates deep expertise in Weaviate and Python.
-CAND_0048166,49,0.7450,Strong fit: ML Engineer at Aganitha with 5.2 YOE. Demonstrates deep expertise in Pinecone and Qdrant.
-CAND_0064888,50,0.7425,Strong fit: ML Engineer at Verloop.io with 5.8 YOE. Demonstrates deep expertise in Elasticsearch and Embeddings.
-CAND_0079468,51,0.7400,Strong fit: Software Engineer at Razorpay with 5.8 YOE. Demonstrates deep expertise in PEFT and LoRA.
-CAND_0007009,52,0.7375,Strong fit: Recommendation Systems Engineer at Wysa with 7.9 YOE. Demonstrates deep expertise in OpenSearch and Python.
-CAND_0052328,53,0.7375,Strong fit: Recommendation Systems Engineer at Amazon with 6.5 YOE. Demonstrates deep expertise in Python and OpenSearch.
-CAND_0024147,54,0.7350,Strong fit: ML Engineer at Ola with 5.9 YOE. Demonstrates deep expertise in Qdrant and OpenSearch.
-CAND_0052360,55,0.7350,Strong fit: ML Engineer at Wysa with 3.0 YOE. Demonstrates deep expertise in Python and FAISS.
-CAND_0055993,56,0.7350,Strong fit: Software Engineer at HCL with 5.6 YOE. Demonstrates deep expertise in Hadoop and Scrum.
-CAND_0070202,57,0.7350,Strong fit: Machine Learning Engineer at BYJU'S with 5.1 YOE. Demonstrates deep expertise in Embeddings and Qdrant.
-CAND_0011263,58,0.7325,Strong fit: ML Engineer at Ola with 5.1 YOE. Demonstrates deep expertise in Pinecone and OpenSearch.
-CAND_0013665,59,0.7325,Strong fit: Senior Software Engineer (ML) at InMobi with 5.2 YOE. Demonstrates deep expertise in Qdrant and Embeddings.
-CAND_0013393,60,0.7300,Strong fit: ML Engineer at Freshworks with 5.3 YOE. Demonstrates deep expertise in Pinecone and OpenSearch.
-CAND_0040178,61,0.7300,Strong fit: ML Engineer at Meesho with 5.0 YOE. Demonstrates deep expertise in OpenSearch and Python.
-CAND_0052431,62,0.7300,Strong fit: ML Engineer at Swiggy with 5.3 YOE. Demonstrates deep expertise in Milvus.
-CAND_0064270,63,0.7300,Strong fit: Applied ML Engineer at Verloop.io with 4.2 YOE. Demonstrates deep expertise in OpenSearch and Elasticsearch.
-CAND_0000273,64,0.7275,Strong fit: ML Engineer at BYJU'S with 5.8 YOE. Demonstrates deep expertise in Qdrant.
-CAND_0019159,65,0.7275,Strong fit: ML Engineer at Genpact AI with 6.1 YOE. Demonstrates deep expertise in Qdrant and Milvus.
-CAND_0049543,66,0.7275,Strong fit: ML Engineer at PolicyBazaar with 6.1 YOE. Demonstrates deep expertise in FAISS.
-CAND_0066690,67,0.7275,Strong fit: ML Engineer at Freshworks with 4.8 YOE. Demonstrates deep expertise in Pinecone and Elasticsearch.
-CAND_0070398,68,0.7275,Strong fit: Machine Learning Engineer at Genpact AI with 7.2 YOE. Demonstrates deep expertise in Embeddings and FAISS.
-CAND_0096142,69,0.7275,Strong fit: Applied ML Engineer at upGrad with 5.0 YOE. Demonstrates deep expertise in Python and Pinecone.
-CAND_0028888,70,0.7250,Strong fit: Senior Software Engineer at PhonePe with 7.4 YOE. Demonstrates deep expertise in Weaviate.
-CAND_0069905,71,0.7250,Strong fit: Applied ML Engineer at Sarvam AI with 6.6 YOE. Demonstrates deep expertise in Weaviate and Python.
-CAND_0005538,72,0.7225,Strong fit: Senior AI Engineer at Adobe with 5.9 YOE. Demonstrates deep expertise in Python.
-CAND_0091534,73,0.7225,Strong fit: AI Engineer at Flipkart with 16.6 YOE. Demonstrates deep expertise in Qdrant.
-CAND_0094197,74,0.7225,Strong fit: Software Engineer at InMobi with 6.6 YOE. Demonstrates deep expertise in Qdrant.
-CAND_0043676,75,0.7200,Strong fit: Senior Software Engineer (ML) at Observe.AI with 6.1 YOE. Demonstrates deep expertise in ASR and Reinforcement Learning.
-CAND_0047542,76,0.7200,Strong fit: Senior Software Engineer (ML) at Meesho with 5.0 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
-CAND_0030348,77,0.7175,Strong fit: Machine Learning Engineer at BYJU'S with 4.5 YOE. Demonstrates deep expertise in Python and Elasticsearch.
-CAND_0049615,78,0.7175,Strong fit: ML Engineer at Krutrim with 5.1 YOE. Demonstrates deep expertise in Pinecone.
-CAND_0062561,79,0.7175,Strong fit: ML Engineer at Razorpay with 5.9 YOE. Demonstrates deep expertise in Weaviate.
-CAND_0008049,80,0.7150,Strong fit: ML Engineer at Niramai with 6.3 YOE. Demonstrates deep expertise in BentoML and Time Series.
-CAND_0065514,81,0.7150,Strong fit: ML Engineer at Genpact AI with 6.6 YOE. Demonstrates deep expertise in Milvus and Elasticsearch.
-CAND_0082489,82,0.7150,Strong fit: ML Engineer at InMobi with 5.3 YOE. Demonstrates deep expertise in Weaviate.
-CAND_0006757,83,0.7125,Strong fit: Senior Software Engineer at Unacademy with 5.4 YOE. Demonstrates deep expertise in Embeddings.
-CAND_0007460,84,0.7125,Strong fit: AI Engineer at Salesforce with 4.7 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
-CAND_0015057,85,0.7125,Strong fit: ML Engineer at Meesho with 4.6 YOE. Demonstrates deep expertise in Qdrant and Embeddings.
-CAND_0020225,86,0.7125,Strong fit: Software Engineer at Zomato with 8.5 YOE. Demonstrates deep expertise in Weaviate.
-CAND_0027723,87,0.7125,Strong fit: ML Engineer at Wysa with 4.2 YOE. Demonstrates deep expertise in Pinecone and Elasticsearch.
-CAND_0092255,88,0.7125,Strong fit: ML Engineer at InMobi with 5.2 YOE. Demonstrates deep expertise in OpenSearch and Weaviate.
-CAND_0015578,89,0.7100,Strong fit: AI Engineer at Zoho with 5.4 YOE. Demonstrates deep expertise in Embeddings and FAISS.
-CAND_0031515,90,0.7100,Strong fit: Software Engineer at Flipkart with 8.4 YOE. Demonstrates deep expertise in Embeddings and Qdrant.
-CAND_0045475,91,0.7100,Strong fit: ML Engineer at Genpact AI with 4.9 YOE. Demonstrates deep expertise in FAISS and Pinecone.
-CAND_0052335,92,0.7100,Strong fit: Applied ML Engineer at Aganitha with 6.4 YOE. Demonstrates deep expertise in PyTorch and NLP.
-CAND_0062363,93,0.7100,Strong fit: Senior Software Engineer at Capgemini with 5.7 YOE. Demonstrates deep expertise in Pinecone and Python.
-CAND_0067866,94,0.7100,Strong fit: Senior Software Engineer (ML) at Tech Mahindra with 6.4 YOE. Demonstrates deep expertise in Embeddings and Elasticsearch.
-CAND_0069718,95,0.7100,Strong fit: ML Engineer at Saarthi.ai with 5.7 YOE. Demonstrates deep expertise in OpenSearch and Elasticsearch.
-CAND_0074339,96,0.7100,Strong fit: ML Engineer at Observe.AI with 5.3 YOE. Demonstrates deep expertise in OpenSearch and FAISS.
-CAND_0086460,97,0.7100,Strong fit: ML Engineer at Meesho with 6.2 YOE. Demonstrates deep expertise in OpenSearch and FAISS.
-CAND_0087228,98,0.7100,Strong fit: Software Engineer at Mindtree with 6.5 YOE. Demonstrates deep expertise in Qdrant.
-CAND_0090155,99,0.7100,Strong fit: ML Engineer at Swiggy with 5.8 YOE. Demonstrates deep expertise in Pinecone and Milvus.
-CAND_0097176,100,0.7100,Strong fit: ML Engineer at TCS with 5.9 YOE. Demonstrates deep expertise in FAISS.
+CAND_0018499,1,0.9840,Strong fit: Senior Machine Learning Engineer at Zomato with 7.2 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
+CAND_0080766,2,0.9645,Strong fit: Staff Machine Learning Engineer at Salesforce with 8.8 YOE. Demonstrates deep expertise in Python and Milvus.
+CAND_0068351,3,0.9570,Strong fit: Lead AI Engineer at Sarvam AI with 6.4 YOE. Demonstrates deep expertise in Qdrant and Python.
+CAND_0081846,4,0.9375,Strong fit: Lead AI Engineer at Razorpay with 6.7 YOE. Demonstrates deep expertise in Embeddings and Python.
+CAND_0088025,5,0.9339,Strong fit: Staff Machine Learning Engineer at Yellow.ai with 8.6 YOE. Demonstrates deep expertise in Elasticsearch and Python.
+CAND_0087630,6,0.9300,Strong fit: AI Engineer at Vedantu with 7.2 YOE. Demonstrates deep expertise in Embeddings and Elasticsearch.
+CAND_0006567,7,0.9255,Strong fit: Senior AI Engineer at Meta with 7.9 YOE. Demonstrates deep expertise in Python.
+CAND_0045250,8,0.9254,Strong fit: Applied ML Engineer at Rephrase.ai with 6.6 YOE. Demonstrates deep expertise in Qdrant and Embeddings.
+CAND_0071974,9,0.9058,Strong fit: Senior AI Engineer at Netflix with 7.8 YOE. Demonstrates deep expertise in Elasticsearch and Qdrant.
+CAND_0038368,10,0.9030,Strong fit: ML Engineer at PhonePe with 5.4 YOE. Demonstrates deep expertise in Embeddings and FAISS.
+CAND_0032216,11,0.9015,Strong fit: ML Engineer at upGrad with 6.1 YOE. Demonstrates deep expertise in Qdrant.
+CAND_0077337,12,0.9001,Strong fit: Staff Machine Learning Engineer at Paytm with 7.0 YOE. Demonstrates deep expertise in Python and Qdrant.
+CAND_0002025,13,0.8850,Strong fit: Senior AI Engineer at Apple with 5.9 YOE. Demonstrates deep expertise in FAISS and Python.
+CAND_0037566,14,0.8790,Strong fit: Machine Learning Engineer at LinkedIn with 6.9 YOE. Demonstrates deep expertise in Pinecone and Elasticsearch.
+CAND_0050454,15,0.8715,Strong fit: AI Engineer at Rephrase.ai with 6.8 YOE. Demonstrates deep expertise in FAISS and Qdrant.
+CAND_0005477,16,0.8697,Strong fit: ML Engineer at Zomato with 6.2 YOE. Demonstrates deep expertise in OpenSearch.
+CAND_0018094,17,0.8537,Strong fit: ML Engineer at Mad Street Den with 5.2 YOE. Demonstrates deep expertise in Pinecone.
+CAND_0061257,18,0.8535,Strong fit: Staff Machine Learning Engineer at LinkedIn with 8.0 YOE. Demonstrates deep expertise in Python.
+CAND_0020877,19,0.8503,Strong fit: Applied ML Engineer at CRED with 5.1 YOE. Demonstrates deep expertise in Weaviate and Milvus.
+CAND_0003841,20,0.8490,Strong fit: ML Engineer at Tech Mahindra with 5.0 YOE. Demonstrates deep expertise in Pinecone.
+CAND_0095213,21,0.8452,Strong fit: ML Engineer at Genpact AI with 5.1 YOE. Demonstrates deep expertise in Pinecone and Milvus.
+CAND_0017093,22,0.8445,Strong fit: ML Engineer at Zoho with 5.9 YOE. Demonstrates deep expertise in Embeddings.
+CAND_0046525,23,0.8407,Strong fit: Senior Machine Learning Engineer at Genpact AI with 6.1 YOE. Demonstrates deep expertise in Qdrant and Elasticsearch.
+CAND_0098217,24,0.8407,Strong fit: ML Engineer at Glance with 6.4 YOE. Demonstrates deep expertise in Pinecone and FAISS.
+CAND_0005538,25,0.8399,Strong fit: Senior AI Engineer at Adobe with 5.9 YOE. Demonstrates deep expertise in Python.
+CAND_0079284,26,0.8355,Strong fit: Machine Learning Engineer at Google with 4.9 YOE. Demonstrates deep expertise in Elasticsearch and Qdrant.
+CAND_0079387,27,0.8355,Strong fit: AI Engineer at Microsoft with 6.9 YOE. Demonstrates deep expertise in OpenSearch and Python.
+CAND_0070398,28,0.8344,Strong fit: Machine Learning Engineer at Genpact AI with 7.2 YOE. Demonstrates deep expertise in Embeddings and FAISS.
+CAND_0049538,29,0.8310,Strong fit: Applied ML Engineer at Saarthi.ai with 5.8 YOE. Demonstrates deep expertise in Elasticsearch and Milvus.
+CAND_0020350,30,0.8265,Strong fit: AI Engineer at Zoho with 5.8 YOE. Demonstrates deep expertise in FAISS.
+CAND_0093193,31,0.8234,Strong fit: Senior Machine Learning Engineer at Niramai with 7.9 YOE. Demonstrates deep expertise in OpenSearch and Qdrant.
+CAND_0011263,32,0.8175,Strong fit: ML Engineer at Ola with 5.1 YOE. Demonstrates deep expertise in Pinecone and OpenSearch.
+CAND_0068932,33,0.8175,Strong fit: ML Engineer at Krutrim with 5.2 YOE. Demonstrates deep expertise in OpenSearch and Milvus.
+CAND_0096142,34,0.8156,Strong fit: Applied ML Engineer at upGrad with 5.0 YOE. Demonstrates deep expertise in Python and Pinecone.
+CAND_0055905,35,0.8145,Strong fit: Senior Machine Learning Engineer at Flipkart with 8.1 YOE. Demonstrates deep expertise in Elasticsearch and Embeddings.
+CAND_0076482,36,0.8117,Strong fit: ML Engineer at Flipkart with 6.6 YOE. Demonstrates deep expertise in Pinecone and Embeddings.
+CAND_0058688,37,0.8070,Strong fit: AI Engineer at Vedantu with 6.7 YOE. Demonstrates deep expertise in Milvus and Embeddings.
+CAND_0017178,38,0.8040,Strong fit: ML Engineer at Swiggy with 4.2 YOE. Demonstrates deep expertise in PEFT and pgvector.
+CAND_0027691,39,0.8040,Strong fit: NLP Engineer at Haptik with 6.5 YOE. Demonstrates deep expertise in Weaviate and Python.
+CAND_0091909,40,0.8034,Strong fit: Machine Learning Engineer at Rephrase.ai with 6.9 YOE. Demonstrates deep expertise in Pinecone and OpenSearch.
+CAND_0016163,41,0.8028,Strong fit: Applied ML Engineer at Dream11 with 6.7 YOE. Demonstrates deep expertise in Embeddings and Pinecone.
+CAND_0065514,42,0.8028,Strong fit: ML Engineer at Genpact AI with 6.6 YOE. Demonstrates deep expertise in Milvus and Elasticsearch.
+CAND_0090155,43,0.8028,Strong fit: ML Engineer at Swiggy with 5.8 YOE. Demonstrates deep expertise in Pinecone and Milvus.
+CAND_0069905,44,0.8025,Strong fit: Applied ML Engineer at Sarvam AI with 6.6 YOE. Demonstrates deep expertise in Weaviate and Python.
+CAND_0042100,45,0.8014,Strong fit: Machine Learning Engineer at Freshworks with 7.3 YOE. Demonstrates deep expertise in Pinecone and Elasticsearch.
+CAND_0039383,46,0.7987,Strong fit: Applied ML Engineer at Meesho with 7.1 YOE. Demonstrates deep expertise in FAISS and Elasticsearch.
+CAND_0049615,47,0.7973,Strong fit: ML Engineer at Krutrim with 5.1 YOE. Demonstrates deep expertise in Pinecone.
+CAND_0047542,48,0.7959,Strong fit: Senior Software Engineer (ML) at Meesho with 5.0 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
+CAND_0071939,49,0.7955,Strong fit: Data Scientist at Krutrim with 6.4 YOE. Demonstrates deep expertise in OpenSearch and Embeddings.
+CAND_0075439,50,0.7950,Strong fit: Machine Learning Engineer at Flipkart with 4.3 YOE. Demonstrates deep expertise in Elasticsearch and Embeddings.
+CAND_0006418,51,0.7941,Strong fit: Machine Learning Engineer at Verloop.io with 5.7 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
+CAND_0060054,52,0.7935,Strong fit: AI Engineer at Mad Street Den with 6.4 YOE. Demonstrates deep expertise in FAISS and Elasticsearch.
+CAND_0040178,53,0.7930,Strong fit: ML Engineer at Meesho with 5.0 YOE. Demonstrates deep expertise in OpenSearch and Python.
+CAND_0000273,54,0.7915,Strong fit: ML Engineer at BYJU'S with 5.8 YOE. Demonstrates deep expertise in Qdrant.
+CAND_0030348,55,0.7905,Strong fit: Machine Learning Engineer at BYJU'S with 4.5 YOE. Demonstrates deep expertise in Python and Elasticsearch.
+CAND_0099806,56,0.7890,Strong fit: AI Engineer at Mad Street Den with 4.6 YOE. Demonstrates deep expertise in Embeddings and Qdrant.
+CAND_0024147,57,0.7883,Strong fit: ML Engineer at Ola with 5.9 YOE. Demonstrates deep expertise in Qdrant and OpenSearch.
+CAND_0070202,58,0.7880,Strong fit: Machine Learning Engineer at BYJU'S with 5.1 YOE. Demonstrates deep expertise in Embeddings and Qdrant.
+CAND_0033987,59,0.7842,Strong fit: ML Engineer at Wysa with 6.8 YOE. Demonstrates deep expertise in FAISS.
+CAND_0066376,60,0.7842,Strong fit: Applied ML Engineer at Dream11 with 5.7 YOE. Demonstrates deep expertise in FAISS.
+CAND_0039962,61,0.7822,Strong fit: ML Engineer at Paytm with 6.5 YOE. Demonstrates deep expertise in Pinecone.
+CAND_0010149,62,0.7808,Strong fit: ML Engineer at Glance with 6.9 YOE. Demonstrates deep expertise in Milvus and Elasticsearch.
+CAND_0069232,63,0.7768,Strong fit: ML Engineer at Yellow.ai with 6.3 YOE. Demonstrates deep expertise in Weaviate and Python.
+CAND_0015528,64,0.7739,Strong fit: Applied ML Engineer at Krutrim with 7.4 YOE. Demonstrates deep expertise in FAISS and OpenSearch.
+CAND_0043228,65,0.7725,Strong fit: Applied ML Engineer at Zoho with 6.8 YOE. Demonstrates deep expertise in OpenSearch and Weaviate.
+CAND_0044222,66,0.7713,Strong fit: AI Engineer at PolicyBazaar with 7.7 YOE. Demonstrates deep expertise in OpenSearch and Qdrant.
+CAND_0048166,67,0.7710,Strong fit: ML Engineer at Aganitha with 5.2 YOE. Demonstrates deep expertise in Pinecone and Qdrant.
+CAND_0064888,68,0.7710,Strong fit: ML Engineer at Verloop.io with 5.8 YOE. Demonstrates deep expertise in Elasticsearch and Embeddings.
+CAND_0069718,69,0.7698,Strong fit: ML Engineer at Saarthi.ai with 5.7 YOE. Demonstrates deep expertise in OpenSearch and Elasticsearch.
+CAND_0067866,70,0.7669,Strong fit: Senior Software Engineer (ML) at Tech Mahindra with 6.4 YOE. Demonstrates deep expertise in Embeddings and Elasticsearch.
+CAND_0082489,71,0.7646,Strong fit: ML Engineer at InMobi with 5.3 YOE. Demonstrates deep expertise in Weaviate.
+CAND_0009691,72,0.7633,Strong fit: Applied ML Engineer at LinkedIn with 6.2 YOE. Demonstrates deep expertise in Qdrant and FAISS.
+CAND_0092255,73,0.7626,Strong fit: ML Engineer at InMobi with 5.2 YOE. Demonstrates deep expertise in OpenSearch and Weaviate.
+CAND_0052335,74,0.7611,Strong fit: Applied ML Engineer at Aganitha with 6.4 YOE. Demonstrates deep expertise in PyTorch and NLP.
+CAND_0007460,75,0.7607,Strong fit: AI Engineer at Salesforce with 4.7 YOE. Demonstrates deep expertise in Weaviate and Embeddings.
+CAND_0015057,76,0.7607,Strong fit: ML Engineer at Meesho with 4.6 YOE. Demonstrates deep expertise in Qdrant and Embeddings.
+CAND_0043676,77,0.7590,Strong fit: Senior Software Engineer (ML) at Observe.AI with 6.1 YOE. Demonstrates deep expertise in ASR and Reinforcement Learning.
+CAND_0013393,78,0.7582,Strong fit: ML Engineer at Freshworks with 5.3 YOE. Demonstrates deep expertise in Pinecone and OpenSearch.
+CAND_0066690,79,0.7545,Strong fit: ML Engineer at Freshworks with 4.8 YOE. Demonstrates deep expertise in Pinecone and Elasticsearch.
+CAND_0049543,80,0.7538,Strong fit: ML Engineer at PolicyBazaar with 6.1 YOE. Demonstrates deep expertise in FAISS.
+CAND_0060538,81,0.7533,Strong fit: ML Engineer at Verloop.io with 5.2 YOE. Demonstrates deep expertise in Embeddings and OpenSearch.
+CAND_0013665,82,0.7522,Strong fit: Senior Software Engineer (ML) at InMobi with 5.2 YOE. Demonstrates deep expertise in Qdrant and Embeddings.
+CAND_0094759,83,0.7483,Strong fit: Lead AI Engineer at Meta with 8.6 YOE. Demonstrates deep expertise in Qdrant and FAISS.
+CAND_0045475,84,0.7469,Strong fit: ML Engineer at Genpact AI with 4.9 YOE. Demonstrates deep expertise in FAISS and Pinecone.
+CAND_0064270,85,0.7469,Strong fit: Applied ML Engineer at Verloop.io with 4.2 YOE. Demonstrates deep expertise in OpenSearch and Elasticsearch.
+CAND_0062561,86,0.7455,Strong fit: ML Engineer at Razorpay with 5.9 YOE. Demonstrates deep expertise in Weaviate.
+CAND_0083879,87,0.7455,Strong fit: Machine Learning Engineer at Ola with 7.1 YOE. Demonstrates deep expertise in Milvus.
+CAND_0091534,88,0.7455,Strong fit: AI Engineer at Flipkart with 16.6 YOE. Demonstrates deep expertise in Qdrant.
+CAND_0090584,89,0.7449,Strong fit: ML Engineer at Flipkart with 5.1 YOE. Demonstrates deep expertise in FAISS and OpenSearch.
+CAND_0075574,90,0.7438,Strong fit: Machine Learning Engineer at Haptik with 5.7 YOE. Demonstrates deep expertise in OpenSearch and Elasticsearch.
+CAND_0023093,91,0.7436,Strong fit: ML Engineer at PolicyBazaar with 5.1 YOE. Demonstrates deep expertise in Milvus and Embeddings.
+CAND_0015967,92,0.7410,Strong fit: Senior Software Engineer (ML) at Razorpay with 5.4 YOE. Demonstrates deep expertise in Embeddings and Pinecone.
+CAND_0050876,93,0.7410,Strong fit: Applied ML Engineer at Freshworks with 6.0 YOE. Demonstrates deep expertise in Python and OpenSearch.
+CAND_0052169,94,0.7410,Strong fit: ML Engineer at Flipkart with 4.1 YOE. Demonstrates deep expertise in Milvus and Embeddings.
+CAND_0030031,95,0.7365,Strong fit: AI Engineer at Microsoft with 5.7 YOE. Demonstrates deep expertise in Milvus and Python.
+CAND_0073314,96,0.7365,Strong fit: Senior Software Engineer (ML) at Aganitha with 5.2 YOE. Demonstrates deep expertise in Weaviate and Milvus.
+CAND_0097176,97,0.7365,Strong fit: ML Engineer at TCS with 5.9 YOE. Demonstrates deep expertise in FAISS.
+CAND_0078002,98,0.7345,Strong fit: Machine Learning Engineer at Meta with 6.3 YOE. Demonstrates deep expertise in Weaviate.
+CAND_0032089,99,0.7322,Strong fit: ML Engineer at Saarthi.ai with 6.6 YOE. Demonstrates deep expertise in Python and Pinecone.
+CAND_0061550,100,0.7322,Strong fit: ML Engineer at Infosys with 5.3 YOE. Demonstrates deep expertise in Data Science and pgvector.
