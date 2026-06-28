@@ -23,7 +23,7 @@ class JobRequirements:
 
 def load_job_requirements(jd_path: Path | str | None = None) -> JobRequirements:
     if not jd_path:
-        jd_path = Path("idea/ProcessedData/docx_extracts/job_description.txt")
+        jd_path = Path("DataSet/job_description.txt")
 
     path = Path(jd_path)
     if not path.exists():
