@@ -1,7 +1,7 @@
-.PHONY: help install lint test security validate ci docker-build docker-run docker-sandbox
+.PHONY: help install lint test security validate validate-full ci download-model docker-build docker-run docker-sandbox
 
 help:
-	@echo "Targets: install lint test security validate validate-full ci docker-build docker-run docker-sandbox"
+	@echo "Targets: install lint test security validate validate-full ci download-model docker-build docker-run docker-sandbox"
 
 install:
 	pip install -r requirements.txt
@@ -30,6 +30,9 @@ ci: lint test security
 	python rank.py --health
 	python rank.py --candidates tests/fixtures/sample.jsonl --limit 1 --out ci_submission.csv
 	python -c "import csv; from pathlib import Path; rows=list(csv.reader(Path('ci_submission.csv').open(encoding='utf-8'))); assert rows[0]==['candidate_id','rank','score','reasoning']; assert len(rows)>=2"
+
+download-model:
+	python scripts/download_model.py
 
 docker-build:
 	docker-compose build

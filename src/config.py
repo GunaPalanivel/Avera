@@ -16,6 +16,9 @@ SCORER_WEIGHTS: dict[str, float] = {
 BEHAVIORAL_MODIFIER_MIN = 0.4
 BEHAVIORAL_MODIFIER_MAX = 1.3
 
+# Skip expensive embedding when heuristic base is too weak to reach top-100
+SEMANTIC_MIN_HEURISTIC_SCORE = 0.06
+
 # Offline-friendly: set AVERA_SEMANTIC_MODEL to a local directory path after `make download-model`
 SEMANTIC_MODEL_NAME = os.environ.get("AVERA_SEMANTIC_MODEL", "all-MiniLM-L6-v2")
 

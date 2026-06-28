@@ -1,7 +1,7 @@
 import heapq
 from collections.abc import Iterable
 
-from src.config import FICTIONAL_COMPANIES, SCORER_WEIGHTS, expand_skill_keyword
+from src.config import FICTIONAL_COMPANIES, SCORER_WEIGHTS, SEMANTIC_MIN_HEURISTIC_SCORE, expand_skill_keyword
 from src.detectors.honeypot_detector import is_honeypot
 from src.models import CandidateModel
 from src.output_writer import EXPECTED_SUBMISSION_ROWS
@@ -50,8 +50,15 @@ class Ranker:
             return 0.0, ""
 
         total_score = 0.0
+        semantic_scorer: SemanticScorer | None = None
         for scorer in self.scorers:
+            if isinstance(scorer, SemanticScorer):
+                semantic_scorer = scorer
+                continue
             total_score += scorer(candidate)
+
+        if semantic_scorer is not None and total_score >= SEMANTIC_MIN_HEURISTIC_SCORE:
+            total_score += semantic_scorer(candidate)
 
         behavioral_modifier = self.behavioral_scorer.score(candidate)
         total_score *= behavioral_modifier

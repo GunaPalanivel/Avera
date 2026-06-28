@@ -28,7 +28,7 @@ class SemanticScorer(BaseScorer):
 
             self._util = util
             self._model = SentenceTransformer(SEMANTIC_MODEL_NAME)
-            self._jd_embedding = self._model.encode(self.jd_text, convert_to_tensor=True)
+            self._jd_embedding = self._model.encode(self.jd_text, convert_to_tensor=True, show_progress_bar=False)
             return True
         except Exception as e:
             logger.error("Failed to load sentence-transformers: %s", e)
@@ -56,7 +56,7 @@ class SemanticScorer(BaseScorer):
         cand_text = " ".join(cand_text_parts)
 
         try:
-            cand_emb = self._model.encode(cand_text, convert_to_tensor=True)
+            cand_emb = self._model.encode(cand_text, convert_to_tensor=True, show_progress_bar=False)
             similarity = self._util.cos_sim(self._jd_embedding, cand_emb).item()
             return max(0.0, float(similarity))
         except Exception as e:
