@@ -5,6 +5,7 @@ Redrob **Intelligent Candidate Discovery** release files for local ranking and v
 | File | Description |
 |------|-------------|
 | `candidates.jsonl` | Full candidate pool (~100K profiles). Stored with **Git LFS** (>100 MB). |
+| `job_description.txt` | Track 01 Senior AI Engineer JD (text extract for ranking) |
 | `candidate_schema.json` | JSON schema for candidate records |
 | `sample_candidates.json` | Small sample for quick inspection |
 | `sample_submission.csv` | Example output shape |

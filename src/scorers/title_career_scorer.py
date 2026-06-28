@@ -1,48 +1,36 @@
+from src.config import AI_TITLE_TIERS, CONSULTING_FIRMS
 from src.models import CandidateModel
 from src.scorers.base import BaseScorer
 
 
 class TitleCareerScorer(BaseScorer):
     def score(self, candidate: CandidateModel) -> float:
-        # Title Tiering (max 0.5)
-        title_score = 0.0
         current_title = candidate.profile.current_title.lower()
 
-        if "junior" in current_title:
-            title_score = 0.0
-        elif "ai engineer" in current_title or "machine learning" in current_title or "ml engineer" in current_title:
-            if "senior" in current_title or "lead" in current_title or "principal" in current_title or "staff" in current_title:
-                title_score = 0.5
-            else:
-                title_score = 0.4
-        elif "data scientist" in current_title:
-            title_score = 0.1
-        elif "software engineer" in current_title:
-            title_score = 0.2
+        title_score = 0.0
+        if "junior" not in current_title:
+            best_tier = 0.0
+            for tier_title, tier_val in sorted(AI_TITLE_TIERS.items(), key=lambda x: len(x[0]), reverse=True):
+                if tier_title in current_title:
+                    best_tier = max(best_tier, tier_val)
+            title_score = best_tier * 0.5
 
-        # Company Quality (max 0.3)
         company_score = 0.3
-        consulting_firms = {"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini", "ibm"}
-
         career = candidate.career_history
         all_companies = [c.company.lower() for c in career]
 
-        consulting_count = sum(1 for c in all_companies if any(f in c for f in consulting_firms))
+        consulting_count = sum(1 for c in all_companies if any(f in c for f in CONSULTING_FIRMS))
         if consulting_count == len(all_companies) and len(all_companies) > 0:
-            # Consulting only
             company_score = 0.1
         elif consulting_count > 0:
-            # Mixed
             company_score = 0.25
 
-        # Job Hopping (max 0.2)
         hopping_score = 0.2
-        # Exempt senior titles from strict job-hopping penalty (title chasers vs top talent)
         if len(career) > 1 and title_score < 0.5:
             total_months = sum(c.duration_months for c in career)
             avg_months = total_months / len(career)
             if avg_months < 15:
-                hopping_score = 0.0  # Penalty for <1.25 years
+                hopping_score = 0.0
             elif avg_months < 24:
                 hopping_score = 0.1
 

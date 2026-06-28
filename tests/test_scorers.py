@@ -1,3 +1,4 @@
+from src.config import SCORER_WEIGHTS
 from src.models import CandidateModel
 from src.scorers.behavioral_scorer import BehavioralScorer
 from src.scorers.experience_scorer import ExperienceScorer
@@ -74,14 +75,15 @@ def get_base_candidate() -> dict:
 
 
 def test_title_career_scorer():
-    scorer = TitleCareerScorer(weight=0.45)
+    weight = SCORER_WEIGHTS["title_career"]
+    scorer = TitleCareerScorer(weight=weight)
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
 
     score = scorer(c)
     # Expected: Title (Senior AI = 0.5) + Company (Product = 0.3) + Hopping (avg 24 = 0.2)
     # Raw = 1.0, Weighted = 0.45
-    assert abs(score - 0.45) < 0.001
+    assert abs(score - weight) < 0.001
 
     # Test consulting penalty
     c_dict["career_history"][0]["company"] = "TCS"
@@ -89,11 +91,11 @@ def test_title_career_scorer():
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
     # Company should be 0.1, Raw = 0.5 + 0.1 + 0.2 = 0.8, Weighted = 0.36
-    assert abs(score - (0.8 * 0.45)) < 0.001
+    assert abs(score - (0.8 * weight)) < 0.001
 
 
 def test_skills_scorer():
-    scorer = SkillsScorer(weight=0.30, must_have=("python", "machine learning"), nice_to_have=("xgboost",))
+    scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("python", "machine learning"), nice_to_have=("xgboost",))
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
@@ -114,16 +116,16 @@ def test_behavioral_scorer():
 
 
 def test_experience_scorer():
-    scorer = ExperienceScorer(weight=0.15)
+    scorer = ExperienceScorer(weight=SCORER_WEIGHTS["experience"])
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
-    assert abs(score - 0.15) < 0.001
+    assert abs(score - SCORER_WEIGHTS["experience"]) < 0.001
 
 
 def test_location_scorer():
-    scorer = LocationScorer(weight=0.10)
+    scorer = LocationScorer(weight=SCORER_WEIGHTS["location"])
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
-    assert abs(score - 0.10) < 0.001
+    assert abs(score - SCORER_WEIGHTS["location"]) < 0.001

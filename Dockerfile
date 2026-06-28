@@ -31,7 +31,7 @@ COPY --from=builder /install /usr/local
 
 # Copy application source
 COPY --chown=avera_user:avera_user src/ ./src/
-COPY --chown=avera_user:avera_user rank.py DataSet/validate_submission.py app.py ./
+COPY --chown=avera_user:avera_user rank.py DataSet/validate_submission.py DataSet/job_description.txt app.py ./
 
 # Switch to non-root user
 USER avera_user

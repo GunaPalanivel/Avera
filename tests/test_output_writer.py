@@ -1,8 +1,10 @@
 import csv
 from pathlib import Path
 
+import pytest
+from src.exceptions import OutputError
 from src.models import CandidateModel
-from src.output_writer import write_submission
+from src.output_writer import validate_output_canary, write_submission
 from tests.test_scorers import get_base_candidate
 
 
@@ -13,7 +15,7 @@ def test_write_submission(tmp_path: Path):
     results = [(0.950, c, "Strong AI Engineer at Product Corp")]
 
     out_file = tmp_path / "submission.csv"
-    write_submission(out_file, results)
+    write_submission(out_file, results, input_ids={c.candidate_id}, expected_rows=1)
 
     assert out_file.exists()
 
@@ -27,3 +29,17 @@ def test_write_submission(tmp_path: Path):
         assert row1[1] == "1"
         assert row1[2] == "0.9500"
         assert row1[3] == "Strong AI Engineer at Product Corp"
+
+
+def test_canary_rejects_duplicate_ids():
+    c = CandidateModel.model_validate(get_base_candidate())
+    results = [(0.9, c, "a"), (0.8, c, "b")]
+    with pytest.raises(OutputError, match="duplicate"):
+        validate_output_canary(results, expected_rows=2)
+
+
+def test_canary_rejects_id_not_in_input_pool():
+    c = CandidateModel.model_validate(get_base_candidate())
+    results = [(0.9, c, "a")]
+    with pytest.raises(OutputError, match="not in input"):
+        validate_output_canary(results, input_ids=set(), expected_rows=1)

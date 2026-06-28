@@ -21,8 +21,8 @@ compute:
   os: "Windows 11"
   uses_gpu_for_inference: false
   has_network_during_ranking: false
-  pre_computation_required: false
-  pre_computation_time_minutes: 0
+  pre_computation_required: true
+  pre_computation_time_minutes: 2
 
 ai_tools_used:
   - "Gemini"
@@ -36,8 +36,8 @@ methodology_summary: |
   Stage 2 computes a base score across 5 features (title_career 35%, skills 25%, experience 15%, location 10%, semantic 15%). 
   The Semantic scorer uses sentence-transformers (all-MiniLM-L6-v2) for deep contextual matching against the JD.
   Experience specifically targets ML/AI tenure. Location strictly prefers the 4 JD-named cities.
-  Stage 3 applies a multiplicative behavioral modifier based on 5 behavioral signals (ghosting penalty, recent activity, notice period, interview completion, verifications) scaled between 0.5 and 1.2. 
-  Final rank runs in < 5 mins via min-heap. Outputs defusedcsv, sandboxed via Docker and HuggingFace Spaces.
+  Stage 3 applies a multiplicative behavioral modifier based on GitHub activity, search visibility, offer acceptance, interview completion, and profile verifications, scaled between 0.4 and 1.3. 
+  Final rank runs in < 5 mins via min-heap. Semantic model (all-MiniLM-L6-v2) is pre-cached locally; set AVERA_SEMANTIC_MODEL for offline runs. Outputs defusedcsv, sandboxed via Docker and HuggingFace Spaces.
 
 declarations:
   read_submission_spec: true

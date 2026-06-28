@@ -1,8 +1,13 @@
+from src.config import JD_CITY_CATALOG
 from src.models import CandidateModel
 from src.scorers.base import BaseScorer
 
 
 class LocationScorer(BaseScorer):
+    def __init__(self, weight: float, target_cities: tuple[str, ...] | None = None):
+        super().__init__(weight)
+        self.target_cities = target_cities if target_cities else JD_CITY_CATALOG
+
     def score(self, candidate: CandidateModel) -> float:
         location = candidate.profile.location.lower()
         country = candidate.profile.country.lower() if candidate.profile.country else ""
@@ -15,8 +20,7 @@ class LocationScorer(BaseScorer):
         if candidate.redrob_signals.willing_to_relocate:
             score = max(score, 0.8)
 
-        tier_1 = ["hyderabad", "pune", "mumbai", "delhi ncr", "delhi", "noida", "gurgaon", "gurugram"]
-        if any(t in location for t in tier_1):
+        if any(t in location for t in self.target_cities):
             score = max(score, 1.0)
 
         return score

@@ -29,3 +29,10 @@ DataSet/\[PUB\]*/
 
 # Local GitHub branch-protection payloads (gh api), not for repo
 .branch-protection*.json
+
+# Generated smoke / CI outputs
+ci_submission.csv
+ci_submission.xlsx
+
+# Pre-downloaded semantic model (use make download-model)
+models/
