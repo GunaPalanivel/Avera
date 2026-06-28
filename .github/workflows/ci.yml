@@ -96,4 +96,4 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python rank.py --candidates tests/fixtures/sample.jsonl --limit 5 --out ci_submission.csv
-      - run: python DataSet/validate_submission.py ci_submission.csv
+      - run: python DataSet/validate_submission.py submission.csv
