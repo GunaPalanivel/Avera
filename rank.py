@@ -25,6 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Verify imports, config, and logging (no data required)",
     )
     parser.add_argument("--candidates", help="Path to candidates.jsonl")
+    parser.add_argument("--jd", help="Path to job_description.txt")
     parser.add_argument("--out", help="Output submission.csv path")
     parser.add_argument("--limit", type=int, default=None, help="Max candidates to read (smoke tests)")
     return parser
@@ -68,8 +69,10 @@ def main(argv: list[str] | None = None) -> int:
     logger.info("ranking candidates", extra={"extra_fields": {"run_id": run_id, "event": "ranking_start"}})
 
     stream = stream_candidates(candidates_path, limit=args.limit)
-    ranker = Ranker()
-    top_k = ranker.rank(stream, top_k=100)
+    job_reqs = load_job_requirements(args.jd)
+    ranker = Ranker(job_reqs)
+    requested_top_k = args.limit if args.limit else 100
+    top_k = ranker.rank(stream, top_k=requested_top_k)
 
     logger.info(
         "ranked candidates",

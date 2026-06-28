@@ -4,10 +4,11 @@ from src.exceptions import ConfigError
 
 # Rule-based weights, no labels to train on; behavioral is a multiplicative modifier
 SCORER_WEIGHTS: dict[str, float] = {
-    "title_career": 0.45,
-    "skills": 0.30,
+    "title_career": 0.35,
+    "skills": 0.25,
     "experience": 0.15,
     "location": 0.10,
+    "semantic": 0.15,
 }
 
 # ~60% of the pool is fictional companies; honeypot filter uses this in scoring milestone

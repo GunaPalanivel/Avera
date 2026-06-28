@@ -31,9 +31,10 @@ ai_usage_summary: |
   Used Gemini for architecture planning, scoring logic ideation, and code review. No candidate data was fed to any LLM.
 
 methodology_summary: |
-  Deterministic rule-based ranker using a dual-role approach (AI Engineer × DevOps). 
-  Pipeline stages: Stage 1 drops 59.7% fictional companies. Stage 1.5 drops ~1,603 subtle honeypot traps on the remainder. 
-  Stage 2 computes an additive base score across 4 features (title_career 45%, skills 30%, experience 15%, location 10%). 
+  Hybrid semantic & deterministic ranker using a dual-role approach (AI Engineer × DevOps). 
+  Stage 1 drops 59.7% fictional companies. Stage 1.5 drops ~1,603 subtle honeypot traps on the remainder. 
+  Stage 2 computes a base score across 5 features (title_career 35%, skills 25%, experience 15%, location 10%, semantic 15%). 
+  The Semantic scorer uses sentence-transformers (all-MiniLM-L6-v2) for deep contextual matching against the JD.
   Experience specifically targets ML/AI tenure. Location strictly prefers the 4 JD-named cities.
   Stage 3 applies a multiplicative behavioral modifier based on 5 behavioral signals (ghosting penalty, recent activity, notice period, interview completion, verifications) scaled between 0.5 and 1.2. 
   Final rank runs in < 5 mins via min-heap. Outputs defusedcsv, sandboxed via Docker and HuggingFace Spaces.

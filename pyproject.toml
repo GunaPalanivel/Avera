@@ -5,6 +5,8 @@ description = "Deterministic candidate ranking for Redrob Track 01"
 requires-python = ">=3.11"
 dependencies = [
     "pydantic>=2.9,<3",
+    "sentence-transformers>=3.0.0",
+    "torch>=2.4.0",
 ]
 
 [project.optional-dependencies]

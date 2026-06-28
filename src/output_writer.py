@@ -26,6 +26,13 @@ def write_submission(output_path: str | Path, results: list[tuple[float, Candida
     csv_path = path.with_suffix(".csv")
     xlsx_path = path.with_suffix(".xlsx")
 
+    # ADR-16: Output canary
+    seen_ids = set()
+    for _, candidate, _ in results:
+        if candidate.candidate_id in seen_ids:
+            raise ValueError(f"Output canary failed: Duplicate candidate_id {candidate.candidate_id}")
+        seen_ids.add(candidate.candidate_id)
+
     headers = ["candidate_id", "rank", "score", "reasoning"]
 
     # 1. Write defused CSV

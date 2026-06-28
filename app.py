@@ -14,7 +14,7 @@ def rank_candidates(file_obj):
     try:
         # Run the ranker pipeline
         result = subprocess.run(
-            ["python", "rank.py", "--candidates", input_path, "--out", output_path],
+            ["python", "rank.py", "--jd", "idea/ProcessedData/docx_extracts/job_description.txt", "--candidates", input_path, "--out", output_path],
             capture_output=True,
             text=True,
             check=True,
