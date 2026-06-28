@@ -17,7 +17,7 @@ python -m pytest tests/ -v
 python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
 
 # 4. Validate output format via the official contract
-python validate_submission.py submission.csv
+python DataSet/validate_submission.py submission.csv
 ```
 
 ## Observability (Structured Logging)
