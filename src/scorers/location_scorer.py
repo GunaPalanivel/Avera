@@ -15,11 +15,8 @@ class LocationScorer(BaseScorer):
         if candidate.redrob_signals.willing_to_relocate:
             score = max(score, 0.8)
 
-        tier_1 = ["bangalore", "bengaluru", "hyderabad", "chennai", "mumbai", "delhi", "gurgaon", "gurugram"]
+        tier_1 = ["hyderabad", "pune", "mumbai", "delhi ncr", "delhi", "noida", "gurgaon", "gurugram"]
         if any(t in location for t in tier_1):
-            score = max(score, 0.8)
-
-        if "noida" in location or "pune" in location:
             score = max(score, 1.0)
 
         return score

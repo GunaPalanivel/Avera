@@ -14,12 +14,12 @@ from src.scorers.title_career_scorer import TitleCareerScorer
 class Ranker:
     def __init__(self):
         self.scorers = [
-            TitleCareerScorer(weight=0.35),
-            BehavioralScorer(weight=0.25),
-            SkillsScorer(weight=0.20),
-            ExperienceScorer(weight=0.10),
+            TitleCareerScorer(weight=0.45),
+            SkillsScorer(weight=0.30),
+            ExperienceScorer(weight=0.15),
             LocationScorer(weight=0.10),
         ]
+        self.behavioral_scorer = BehavioralScorer(weight=1.0)
 
     def score_candidate(self, candidate: CandidateModel) -> tuple[float, str]:
         # Stage 1: Drop if current company is fictional
@@ -33,6 +33,10 @@ class Ranker:
         total_score = 0.0
         for scorer in self.scorers:
             total_score += scorer(candidate)
+
+        # Stage 1.75: Apply multiplicative behavioral modifier
+        behavioral_modifier = self.behavioral_scorer.score(candidate)
+        total_score *= behavioral_modifier
 
         # Basic reasoning avoiding hallucination
         must_have_kws = [

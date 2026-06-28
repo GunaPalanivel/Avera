@@ -74,26 +74,26 @@ def get_base_candidate() -> dict:
 
 
 def test_title_career_scorer():
-    scorer = TitleCareerScorer(weight=0.35)
+    scorer = TitleCareerScorer(weight=0.45)
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
 
     score = scorer(c)
     # Expected: Title (Senior AI = 0.5) + Company (Product = 0.3) + Hopping (avg 24 = 0.2)
-    # Raw = 1.0, Weighted = 0.35
-    assert abs(score - 0.35) < 0.001
+    # Raw = 1.0, Weighted = 0.45
+    assert abs(score - 0.45) < 0.001
 
     # Test consulting penalty
     c_dict["career_history"][0]["company"] = "TCS"
     c_dict["career_history"][1]["company"] = "Infosys"
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
-    # Company should be 0.1, Raw = 0.5 + 0.1 + 0.2 = 0.8, Weighted = 0.28
-    assert abs(score - (0.8 * 0.35)) < 0.001
+    # Company should be 0.1, Raw = 0.5 + 0.1 + 0.2 = 0.8, Weighted = 0.36
+    assert abs(score - (0.8 * 0.45)) < 0.001
 
 
 def test_skills_scorer():
-    scorer = SkillsScorer(weight=0.20)
+    scorer = SkillsScorer(weight=0.30)
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
@@ -106,22 +106,20 @@ def test_skills_scorer():
 
 
 def test_behavioral_scorer():
-    scorer = BehavioralScorer(weight=0.25)
+    scorer = BehavioralScorer(weight=1.0)
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
-    score = scorer(c)
-    # Availability = 0.6 (resp 0.8, active recently)
-    # Notice = 0.4 (15 days)
-    # Raw = 1.0, Weighted = 0.25
-    assert abs(score - 0.25) < 0.001
+    score = scorer.score(c)
+    # Open to work (1.05) * Notice 15 (1.10) * Interview 1.0 (1.05) * Verifications (1.05) = >1.2 -> capped at 1.2
+    assert abs(score - 1.2) < 0.001
 
 
 def test_experience_scorer():
-    scorer = ExperienceScorer(weight=0.10)
+    scorer = ExperienceScorer(weight=0.15)
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
-    assert abs(score - 0.10) < 0.001
+    assert abs(score - 0.15) < 0.001
 
 
 def test_location_scorer():

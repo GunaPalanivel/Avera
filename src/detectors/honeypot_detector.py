@@ -1,4 +1,3 @@
-from src.config import FICTIONAL_COMPANIES
 from src.models import CandidateModel
 
 AI_KEYWORDS = {
@@ -35,7 +34,6 @@ def is_honeypot(candidate: CandidateModel) -> bool:
     title = candidate.profile.current_title.lower()
     yoe = candidate.profile.years_of_experience
     skills = candidate.skills
-    career = candidate.career_history
 
     # Method 1: Title/skill mismatch (non-tech title with many AI skills)
     if any(non_tech in title for non_tech in NON_TECH_TITLES):
@@ -53,11 +51,6 @@ def is_honeypot(candidate: CandidateModel) -> bool:
         return True
     if "junior" in title and yoe > 10:
         return True
-
-    # Method 4: Impossible career tenure at fictional companies (since they might have past fictional jobs)
-    for job in career:
-        if job.duration_months > 120 and any(fic.lower() in job.company.lower() for fic in FICTIONAL_COMPANIES):
-            return True
 
     # Method 5: Extremely high skill count with no assessments
     assessment_scores = candidate.redrob_signals.skill_assessment_scores

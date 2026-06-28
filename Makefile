@@ -20,6 +20,7 @@ security:
 validate:
 	python rank.py --health
 	python rank.py --candidates tests/fixtures/sample.jsonl --limit 3
+	python DataSet/validate_submission.py submission.csv
 	pytest tests/ -v
 
 docker-build:

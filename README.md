@@ -35,7 +35,7 @@ pip install -r requirements.txt
 python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
 
 # Validate the output contract
-python validate_submission.py submission.csv
+python DataSet/validate_submission.py submission.csv
 ```
 
 ## Repository Structure
@@ -50,7 +50,6 @@ python validate_submission.py submission.csv
 │   ├── logging_config.py    # Structured JSON observability
 │   └── scorers/             # Multi-faceted deterministic scorers
 ├── tests/                   # Pytest suite (Regression & Edge-cases)
-├── validate_submission.py   # Output contract validator
 ├── rank.py                  # CLI Entrypoint
 └── README.md                # This document
 ```
