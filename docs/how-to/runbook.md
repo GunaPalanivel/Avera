@@ -20,6 +20,30 @@ python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
 python DataSet/validate_submission.py submission.csv
 ```
 
+### Makefile targets
+
+```bash
+make validate        # health check + smoke rank + pytest
+make validate-full   # full 100K rank + organizer validation
+make ci              # lint + test + security + integration smoke
+```
+
+### Environment variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `AVERA_SKIP_SEMANTIC` | unset (load model) | Set to `1` in tests to skip `sentence-transformers` load |
+| `AVERA_SEMANTIC_MODEL` | `all-MiniLM-L6-v2` | HuggingFace model id or **local directory** for offline ranking |
+
+For sandbox/Docker with `has_network_during_ranking: false`, pre-download the model once:
+
+```bash
+python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+# Then set AVERA_SEMANTIC_MODEL to the cached snapshot path (see HuggingFace cache dir)
+```
+
+Unit tests set `AVERA_SKIP_SEMANTIC=1` automatically via `tests/conftest.py`.
+
 ## Observability (Structured Logging)
 
 We employ a custom `JSONFormatter` in `src/logging_config.py` to output structured JSON logs, which can be easily ingested by Datadog, ELK, or CloudWatch.

@@ -15,8 +15,11 @@ graph TD
     E --> F[Location Scorer]
     E --> G[Title & Career Scorer]
     E --> H[Skills Scorer]
-    E --> I[Behavioral Scorer]
-    F & G & H & I --> J[Min-Heap O N log K]
+    E --> I[Semantic Scorer]
+    E --> X[Experience Scorer]
+    F & G & H & I & X --> Y[Aggregate Base Score]
+    Y --> Z[Behavioral Multiplier]
+    Z --> J[Min-Heap O N log K]
     J --> K[Dynamic Reasoning]
     K --> L[defusedcsv Output Writer]
     L --> M[submission.csv / submission.xlsx]
@@ -26,7 +29,9 @@ graph TD
 
 | Decision | Rationale | Alternatives Rejected |
 |----------|-----------|-----------------------|
-| **Deterministic Rule-Based Scoring** | JD constraints are absolute (e.g., must have 5+ YOE). Allows for 100% explainable reasoning per candidate. | **LLMs/LambdaMART**: Unverifiable hallucinations, exceeds CPU budget, no labeled training data. |
+| **Hybrid Semantic + Deterministic Scoring** | Job constraints (YOE, skills) are evaluated deterministically, combined with an embedding-based Semantic Scorer (`all-MiniLM-L6-v2`) for deep JD contextual fit. | **Generative LLMs/LambdaMART**: Unverifiable hallucinations, exceeds CPU budget, unpredictable latency. |
+| **Behavioral Multiplier** | Availability and GitHub activity act as a multiplier (0.4× to 1.3×) rather than a base additive score. A ghost candidate with a perfect profile is functionally un-hireable. | **Additive Behavioral Score**: Allows unresponsive candidates to outrank available ones based purely on skills. |
+| **Hybrid Semantic Layer (ADR-003)** | `all-MiniLM-L6-v2` cosine similarity on JD vs career narrative text complements deterministic scorers without LLM hallucination risk. | **Pure keyword match**: Falls into dataset honeypot traps. **End-to-end LLM ranker**: Unverifiable, slow on CPU. |
 | **Pydantic Validation Boundary** | Protects the core engine from `TypeError` exceptions. A single null field cannot crash the pipeline. | **Raw JSON Access**: High risk of catastrophic pipeline failure on minute 4. |
 | **Filter Fictional Companies First** | Eliminates ~60% of the dataset upfront. Guarantees no wasted compute on noise. | **Scoring Everything**: Unnecessary processing overhead. |
 | **DefusedCSV / OWASP A03 Protection** | Prevents Formula Injection (`=CMD()`) when output is opened by evaluators in Excel. | **Standard Python CSV**: Vulnerable to execution of malicious payloads. |

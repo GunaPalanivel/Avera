@@ -1,35 +1,73 @@
 # Scoring Methodology
 
-The Avera ranking engine implements a deterministic, multi-faceted scoring system. Weights and logic are derived strictly from the technical constraints of the Job Description.
+The Avera ranking engine implements a hybrid semantic + deterministic scoring system. Weights and logic are derived from the Track 1 Job Description (`idea/ProcessedData/docx_extracts/job_description.txt`).
 
-## 1. Feature Engineering & Weights
+## 1. Job Description Parsing & Understanding
+
+The pipeline begins with a **JD Parser** that ingests the raw job description text. It extracts:
+
+*   **Must-Have Skills**: Taxonomy-backed matches present in the JD (e.g., `embeddings`, `pinecone`, `sentence-transformers`, `python`).
+*   **Nice-to-Have Skills**: Secondary skills (e.g., `lora`, `rag`, `xgboost`).
+*   **Target Cities**: JD-named locations (Hyderabad, Pune, Mumbai, Delhi NCR, Noida, etc.).
+*   **Raw Text**: Preserved for the semantic embedding layer.
+
+Skill synonyms (e.g., `vector database` → `vector db`, `faiss`) expand matching without scoring on raw substring stuffing alone.
+
+## 2. Feature Engineering & Weights
+
+Base weights sum to **1.0**; behavioral is applied as a **multiplier** after the base sum.
 
 | Scorer | Weight | Core Rationale (JD Derived) |
 |--------|--------|-----------------------------|
-| **Title & Career** | 45% (Base) | Candidates with explicit 'Senior AI Engineer' titles at product-focused companies are preferred over title-chasers (e.g., job hoppers with <15 month average tenures). |
-| **Skills Credibility** | 30% (Base) | Prioritizes deep, verified expertise in Must-Have vector databases (e.g., Pinecone, Qdrant) over broad, unverified keyword stuffing. Assessment scores carry a 3x weight over self-reported proficiencies. |
-| **Experience Fit** | 15% (Base) | Uses step bands for total YOE (favoring 5-9) and strictly evaluates ML/AI tenure in the career history to penalize high-YOE candidates lacking applied ML experience. |
-| **Location & Logistics** | 10% (Base) | Heavily favors candidates located strictly in the 4 JD-named cities (Pune, Hyderabad, Mumbai, Delhi NCR). |
-| **Behavioral Signals** | Multiplier | A multiplicative modifier (0.5 to 1.2) is applied to the final base score. A perfect-on-paper candidate who ghosts or has low response rates is functionally un-hireable. |
+| **Title & Career** | 35% | AI/ML title tiers and product-company trajectory over title-chasers; consulting-only careers penalized per JD red flags. |
+| **Skills Credibility** | 25% | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency. |
+| **Semantic Fit** | 15% | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, and `career_history` descriptions. |
+| **Experience Fit** | 15% | ML/AI tenure in career history; step bands for total YOE aligned to the 5–9 year JD band. |
+| **Location & Logistics** | 10% | Favors candidates in JD-named Indian cities. |
+| **Behavioral Signals** | Multiplier (0.4×–1.3×) | Applied to final base score — see §3. |
 
-## 2. Honeypot Detection Engine
+## 3. Behavioral Multiplier
 
-The dataset contains numerous "honeypot" candidates designed to trick keyword-based matching systems. Our engine employs 5 independent detection methods:
+Behavioral signals answer: *is this candidate actually available and credible to recruiters?* Factors (from `redrob_signals`):
+
+| Signal | Effect |
+|--------|--------|
+| Recruiter response rate &lt; 5% | Strong down-weight (ghosting) |
+| Last active &gt; 6 months ago | Down-weight |
+| Notice period ≤ 30 days | Up-weight |
+| Interview completion rate | Up/down by threshold |
+| Offer acceptance rate | Up/down by threshold |
+| GitHub activity score ≥ 80 | Up-weight |
+| Search appearances / saved by recruiters | Mild up-weight |
+| Email + phone + LinkedIn verified | Mild up-weight |
+
+Clamped to `[0.4, 1.3]` via `BEHAVIORAL_MODIFIER_MIN/MAX` in `src/config.py`.
+
+## 4. Honeypot Detection Engine
+
+The dataset contains honeypots designed to trick keyword-based matching. The engine applies filters **before** scoring:
 
 | Method | Detection Logic | Result |
 |--------|-----------------|--------|
-| **Fictional Companies** | Identifies companies like 'Dunder Mifflin' and 'Acme Corp' directly at ingestion layer. | Pre-filter (Dropped) |
-| **Method 1: Title/Skill Mismatch** | Flags non-technical titles (e.g., 'HR Manager') claiming 5+ core AI skills like embeddings and LLMs. | Flagged (Dropped) |
-| **Method 2: Expert Anomaly** | Flags candidates claiming 'Expert' proficiency on 3+ skills with exactly 0 months of duration. | Flagged (Dropped) |
-| **Method 3: Impossible Seniority** | Flags 'Senior' titles with < 2 YOE, or 'Junior' titles with > 10 YOE. | Flagged (Dropped) |
-| **Method 4: Unverified Generalist** | Flags candidates with > 15 skills but 0 assessment scores. | Flagged (Dropped) |
+| **Fictional Companies** | Companies like `Dunder Mifflin`, `Globex Inc`, `Acme Corp` at ingestion. | Pre-filter (score 0, skipped) |
+| **Method 1: Title/Skill Mismatch** | Non-technical titles claiming many core AI skills. | Honeypot (dropped) |
+| **Method 2: Expert Anomaly** | Expert proficiency on 3+ skills with 0 months duration. | Honeypot (dropped) |
+| **Method 3: Impossible Seniority** | Senior title with &lt; 2 YOE, or junior title with &gt; 10 YOE. | Honeypot (dropped) |
+| **Method 4: Unverified Generalist** | &gt; 15 skills, zero assessment scores (senior YOE exempt). | Honeypot (dropped) |
 
-*Note: Senior Engineers (Lead/Principal/Staff/Senior) with ≥ 5 YOE are explicitly exempted from the Unverified Generalist (Method 4) filter, as true Staff engineers often possess wide skill variance legitimately.*
+## 5. Dynamic Reasoning Generation
 
-## 3. Dynamic Reasoning Generation
+Reasoning is **deterministic** — no LLM in the output path.
 
-Instead of using non-deterministic LLMs that risk hallucination, our Output Subsystem generates human-readable reasoning deterministically.
+1. **Extract verified facts**: title, company, YOE.
+2. **Match must-have skills** against JD requirements.
+3. **Construct sentence**: e.g., *"Strong fit: Lead AI Engineer at Razorpay with 6.7 YOE. Demonstrates deep expertise in Embeddings and Python."*
+4. **Rank-tone variation**: top-5 vs borderline phrasing via `src/reasoning.py`.
 
-1.  **Extract Verified Facts**: Pulls exact Title, Company, and YOE.
-2.  **Match Must-Have Skills**: Cross-references the candidate's verified skills against the JD's exact vector database and ML requirements (e.g., `FAISS`, `Pinecone`, `Embeddings`).
-3.  **Construct Sentence**: Creates sentences like: *“Strong fit: Lead AI Engineer at Razorpay with 6.7 YOE. Demonstrates deep expertise in Embeddings and Python.”*
+## 6. Output Canary (ADR-16)
+
+Before writing `submission.csv`, `validate_output_canary` enforces:
+
+- Exactly **100** ranked rows for production runs
+- Unique `candidate_id` values
+- Every output ID present in the input pool processed for that run
