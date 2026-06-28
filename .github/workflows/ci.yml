@@ -23,7 +23,6 @@ jobs:
           test -f .github/pull_request_template.md
           test -d .github/ISSUE_TEMPLATE
           test -f .github/ISSUE_TEMPLATE/bug.md
-          test -f .github/ISSUE_TEMPLATE/phase_work.md
           test -f .github/ISSUE_TEMPLATE/chore.md
 
       - name: Verify internal planning is not committed
@@ -96,4 +95,4 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: python rank.py --candidates tests/fixtures/sample.jsonl --limit 5 --out ci_submission.csv
-      - run: python DataSet/validate_submission.py submission.csv
+      - run: python DataSet/validate_submission.py ci_submission.csv

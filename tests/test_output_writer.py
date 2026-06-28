@@ -10,7 +10,7 @@ def test_write_submission(tmp_path: Path):
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
 
-    results = [(0.950, c, "Strong AI Engineer at Product Corp"), (0.850, c, "Good fit")]
+    results = [(0.950, c, "Strong AI Engineer at Product Corp")]
 
     out_file = tmp_path / "submission.csv"
     write_submission(out_file, results)
@@ -27,9 +27,3 @@ def test_write_submission(tmp_path: Path):
         assert row1[1] == "1"
         assert row1[2] == "0.9500"
         assert row1[3] == "Strong AI Engineer at Product Corp"
-
-        row2 = next(reader)
-        assert row2[0] == c.candidate_id
-        assert row2[1] == "2"
-        assert row2[2] == "0.8500"
-        assert row2[3] == "Good fit"

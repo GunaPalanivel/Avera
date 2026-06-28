@@ -1,10 +1,15 @@
 from src.models import CandidateModel
+from src.parsers.jd_parser import JobRequirements
 from src.ranker import Ranker
 from tests.test_scorers import get_base_candidate
 
 
+def get_dummy_reqs():
+    return JobRequirements(raw_text="", must_have_skills=("python",), nice_to_have_skills=(), title_keywords=(), red_flags=())
+
+
 def test_ranker_honeypot():
-    ranker = Ranker()
+    ranker = Ranker(get_dummy_reqs())
     c_dict = get_base_candidate()
     c_dict["profile"]["current_title"] = "Marketing Manager"
     c_dict["skills"].extend(
@@ -24,7 +29,7 @@ def test_ranker_honeypot():
 
 
 def test_ranker_normal():
-    ranker = Ranker()
+    ranker = Ranker(get_dummy_reqs())
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
 
@@ -35,7 +40,7 @@ def test_ranker_normal():
 
 
 def test_ranker_top_k():
-    ranker = Ranker()
+    ranker = Ranker(get_dummy_reqs())
 
     c_dict1 = get_base_candidate()
     c_dict1["candidate_id"] = "CAND_0000001"

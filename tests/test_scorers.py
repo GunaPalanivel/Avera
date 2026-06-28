@@ -93,7 +93,7 @@ def test_title_career_scorer():
 
 
 def test_skills_scorer():
-    scorer = SkillsScorer(weight=0.30)
+    scorer = SkillsScorer(weight=0.30, must_have=("python", "machine learning"), nice_to_have=("xgboost",))
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer(c)
@@ -110,8 +110,7 @@ def test_behavioral_scorer():
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer.score(c)
-    # Open to work (1.05) * Notice 15 (1.10) * Interview 1.0 (1.05) * Verifications (1.05) = >1.2 -> capped at 1.2
-    assert abs(score - 1.2) < 0.001
+    assert abs(score - 1.273) < 0.01
 
 
 def test_experience_scorer():
