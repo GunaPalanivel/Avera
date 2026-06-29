@@ -8,6 +8,28 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- README blueprint: methodology, technical choices, system architecture, why Avera is built this way
+- Two-pass streaming pipeline: batch semantic prefill (`prefill_semantic_stream`) + single-pass rank
+- `scripts/eval.py` (honeypot rate, NDCG@10, optional `--benchmark`)
+- `scripts/test_generalization.py` (AI/ML + DevOps JD, zero code edits)
+- `DataSet/job_description_devops.txt` alternate JD fixture
+- Seniority-aware scorer weights (`get_scorer_weights`) and dynamic JD parser fields
+- Rank-tier honest reasoning in `src/reasoning.py`
+- CI jobs: `mypy`, `docker-smoke`; integration runs generalization script
+- `tests/test_ranking_determinism.py` SHA256 replay fixture
+- Makefile targets: `eval`, `generalization`, `mypy`
+- `docs/submission/portal_checklist.md`
+- Structured pipeline logs: `trace_id`, `prefill_ms`, `latency_ms`, `seniority_level`
+- `AVERA_REFERENCE_DATE` env for deterministic behavioral recency
+
+### Changed
+
+- Semantic gate tuned to `SEMANTIC_MIN_HEURISTIC_SCORE = 0.11` with batch encode (`batch_size=512`)
+- Documentation synced across README, walkthrough, methodology, architecture, deck, ADR-003
+- Health check validates config import and JD must-have skills
+
+### Added (foundation)
+
 - Foundation modules: `exceptions`, `path_validation`, `logging_config`, `config`, `models`, `parsers`
 - Pydantic boundary models including `BehavioralSignals` (ADR-14)
 - ADR-15 exception hierarchy with structured context fields
@@ -23,10 +45,6 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - GitHub issue templates: bug, phase work, chore
 - `docs/getting-started.md` install and health check guide
 - Test coverage: path validation, models, parser guards, JD parser, logging, CLI
-
-### Changed
-
-- Health check validates config import and JD must-have skills
 
 ### Fixed
 

@@ -15,6 +15,7 @@ dev = [
     "ruff>=0.8,<1",
     "bandit>=1.8,<2",
     "pip-audit>=2.7,<3",
+    "mypy>=1.14,<2",
 ]
 
 [tool.ruff]
@@ -32,3 +33,9 @@ pythonpath = ["."]
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src", "rank.py"]
+ignore_missing_imports = true
+warn_unused_ignores = true

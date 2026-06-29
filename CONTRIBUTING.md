@@ -60,6 +60,11 @@ Every PR runs GitHub Actions (see [.github/workflows/ci.yml](.github/workflows/c
 - **lint** — `ruff check` and `ruff format --check`
 - **test** — `pytest` and `python rank.py --health`
 - **security** — `bandit` on `src/` and `pip-audit` on dependencies
+- **mypy** — static type check on `src/` and `rank.py`
+- **integration** — smoke rank + `scripts/test_generalization.py`
+- **docker-smoke** — `docker compose` health check
+
+Local equivalent: `make ci` · docs: [README.md](README.md), [docs/README.md](docs/README.md)
 
 ## Code style
 

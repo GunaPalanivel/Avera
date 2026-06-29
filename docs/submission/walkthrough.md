@@ -14,27 +14,43 @@ Avera ranks 100,000 profiles and outputs the **top 100** with explainable reason
 
 ---
 
-## 2. Architecture (30-second version)
+## 2. Why Avera is built this way
+
+| Design choice            | Reason                                                                                       |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| Hybrid semantic + rules  | JD says keyword matching is a trap; embeddings read career narratives rules cannot           |
+| Behavioral multiplier    | Hireability ≠ skill fit — ghosts with perfect profiles must not outrank available candidates |
+| Two-pass stream          | Batch semantic prefill + streaming rank — CPU budget without materializing 100K scores       |
+| No LLM in ranking path   | Explainable, deterministic, auditable output for judges and compliance                       |
+| JD-parameterized product | Same `rank.py` on AI/ML and DevOps JD files — proves generalization, not a one-off script    |
+| DevOps shell             | Docker offline model, CI (mypy, docker-smoke), structured logs — operable PoC                |
+
+Full blueprint: [README.md](../../README.md) · [architecture.md](../explanation/architecture.md)
+
+---
+
+## 3. Architecture (30-second version)
 
 ```
-JSONL stream → Pydantic validate → Fictional filter → Honeypot detector
-    → 5 base scorers (title, skills, semantic, experience, location)
-    → Behavioral multiplier → Min-heap top-100 → Reasoning → CSV + XLSX
+JD file → jd_parser → JobRequirements (skills, cities, seniority)
+JSONL stream → validate → fictional filter → honeypot detector
+    → Pass 1: batch semantic prefill (heuristic gate ≥ 0.11)
+    → Pass 2: 5 scorers + behavioral × → min-heap top-100 → rank-tier reasoning → CSV
 ```
 
-| Stage         | Purpose                                                                                |
-| ------------- | -------------------------------------------------------------------------------------- |
-| **Stage 1**   | Drop ~60% fictional companies (`Dunder Mifflin`, `Globex Inc`, …)                      |
-| **Stage 1.5** | Drop ~1,603 honeypot traps (title/skill mismatch, expert anomaly, …)                   |
-| **Stage 2**   | Weighted base score: title 35%, skills 25%, semantic 15%, experience 15%, location 10% |
-| **Stage 3**   | Behavioral multiplier 0.4×–1.3× (availability, GitHub, interviews, verifications)      |
-| **Output**    | ADR-16 canary: exactly 100 unique IDs, subset of input pool, defused CSV               |
+| Stage         | Purpose                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| **Stage 1**   | Drop ~60% fictional companies (`Dunder Mifflin`, `Globex Inc`, …)                                  |
+| **Stage 1.5** | Drop ~1,603 honeypot traps (title/skill mismatch, expert anomaly, …)                               |
+| **Stage 2**   | Weighted base score: title 35%, skills 25%, semantic 15%, experience 15%, location 10% (senior JD) |
+| **Stage 3**   | Behavioral multiplier 0.4×–1.3× (availability, GitHub, interviews, verifications)                  |
+| **Output**    | ADR-16 canary: exactly 100 unique IDs, subset of input pool, defused CSV                           |
 
 Deep dive: [architecture.md](../explanation/architecture.md) · [methodology.md](../explanation/methodology.md) · [ADR-003](../adr/003-semantic-hybrid-layer.md)
 
 ---
 
-## 3. Why hybrid semantic + deterministic?
+## 4. Why hybrid semantic + deterministic?
 
 The JD explicitly states keyword matching is a trap. Pure BM25/keyword rankers promote honeypots.
 
@@ -42,11 +58,11 @@ We use **`sentence-transformers` (`all-MiniLM-L6-v2`)** to compare the full JD t
 
 Deterministic scorers enforce bounded constraints (YOE bands, JD cities, must-have skills with synonym expansion). Behavioral signals are a **multiplier**, not additive — a ghost profile with perfect skills still ranks down.
 
-**Performance:** Semantic encoding runs only when the heuristic base score (title + skills + experience + location) exceeds `SEMANTIC_MIN_HEURISTIC_SCORE` (0.06 in `src/config.py`). Weak candidates skip the embedding step so 100K ranking stays within the CPU budget.
+**Performance:** Semantic encoding runs in **Pass 1** as batch prefill (`batch_size=512`) only when the heuristic base score (title + skills + experience + location) exceeds `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11** in `src/config.py`). Weak candidates skip embeddings; survivors use a cached vector in Pass 2.
 
 ---
 
-## 4. Reproduce the submission (Stage 3)
+## 5. Reproduce the submission (Stage 3)
 
 ### Prerequisites
 
@@ -68,6 +84,13 @@ Or:
 make validate-full
 ```
 
+### Evaluation & generalization
+
+```bash
+python scripts/eval.py                    # honeypot rate, NDCG@10
+python scripts/test_generalization.py     # AI/ML + DevOps JD, zero code edits
+```
+
 ### Offline model (no network during ranking)
 
 ```bash
@@ -83,7 +106,7 @@ Pre-computation (model download) is ~2 minutes once; ranking completes within th
 
 ---
 
-## 5. Sandbox demo
+## 6. Sandbox demo
 
 **HuggingFace Space:** https://huggingface.co/spaces/gp5901/avera-ranker
 
@@ -95,7 +118,7 @@ The Gradio UI:
 2. Runs `python rank.py --candidates <upload> --limit <N> --out submission.csv`
 3. Shows a results table and a **Download submission.csv** button
 
-Bundled JD: `DataSet/job_description.txt` (no `--jd` flag needed).
+Bundled JD: `DataSet/job_description.txt` (override with `--jd`).
 
 **Local sandbox smoke** (mirrors HF behavior):
 
@@ -118,7 +141,9 @@ make docker-build && make docker-sandbox
 
 ---
 
-## 6. Scoring weights (defensible vs JD)
+## 7. Scoring weights (defensible vs JD)
+
+Senior/staff JD profile (default for bundled `job_description.txt`):
 
 | Component      | Weight    | JD anchor                                                  |
 | -------------- | --------- | ---------------------------------------------------------- |
@@ -129,11 +154,11 @@ make docker-build && make docker-sandbox
 | Location       | 10%       | Pune, Hyderabad, Mumbai, Delhi NCR                         |
 | Behavioral     | ×0.4–×1.3 | Down-weight unavailable / low response candidates          |
 
-Weights live in `src/config.py` and are validated at import (`sum == 1.0`).
+Weights adjust by JD seniority via `get_scorer_weights()` in `src/config.py` (validated at import).
 
 ---
 
-## 7. Honeypot strategy
+## 8. Honeypot strategy
 
 Honeypot keywords in `honeypot_detector.py` are **intentional trap detection**, not positive scoring. We detect:
 
@@ -146,40 +171,55 @@ Fictional companies are zero-scored before the heap — they never consume a top
 
 ---
 
-## 8. CI / DevOps signals
+## 9. Explainable reasoning
+
+`src/reasoning.py` produces **rank-tier** strings — no LLM:
+
+- Top 5: strength-focused with optional minor notes
+- Ranks 6–89: explicit concerns (skill gaps, response rate, notice period, GitHub)
+- Ranks 90–100: lower-tier framing with key gaps
+
+Every claim traces to parsed profile fields — no invented credentials.
+
+---
+
+## 10. CI / DevOps signals
 
 ```bash
 make ci    # ruff + pytest + bandit + pip-audit + integration smoke
+make mypy  # static type check
 ```
 
-GitHub Actions: lint → test → security → integration (smoke rank on fixture).
+GitHub Actions: `governance` → `lint` → `test` + `security` + `mypy` → `integration` (smoke rank + generalization) → `docker-smoke`.
 
-Structured JSON logging with `run_id` for traceability. CSV output uses `defusedcsv` (OWASP A03). Docker + docker-compose for sandbox parity.
-
----
-
-## 9. AI tools declaration
-
-Gemini was used for architecture planning and code review. **No candidate records were sent to any LLM.** Ranking and reasoning are fully deterministic.
+Structured JSON logging with `trace_id`, `latency_ms`, `prefill_ms`. CSV output uses `defusedcsv` (OWASP A03). Docker + docker-compose for sandbox parity.
 
 ---
 
-## 10. Portal artifacts checklist
+## 11. AI tools declaration
+
+Gemini and Claude/Cursor were used for architecture planning and code review. **No candidate records were sent to any LLM.** Ranking and reasoning are fully deterministic.
+
+---
+
+## 12. Portal artifacts checklist
 
 | Artifact         | Path                                                                                          |
 | ---------------- | --------------------------------------------------------------------------------------------- |
-| CSV submission   | `submission.csv`                                                                              |
-| XLSX submission  | `submission.xlsx` (auto-generated alongside CSV)                                              |
+| CSV submission   | `submission.csv` (rename to participant ID for portal)                                        |
+| XLSX submission  | `submission.xlsx` (local only — do not upload to portal)                                      |
 | Metadata         | `submission_metadata.yaml`                                                                    |
 | This walkthrough | `docs/submission/walkthrough.md`                                                              |
+| Portal steps     | `docs/submission/portal_checklist.md`                                                         |
 | Slide deck (PDF) | `docs/submission/deck.pdf` (source: `docs/submission/deck.md`; regenerate: `make export-pdf`) |
 
 ---
 
-## 11. Known limits & future work
+## 13. Known limits & future work
 
 - MiniLM is English-centric; Redrob's multilingual roadmap would need a multilingual encoder.
-- Semantic encoding is per-candidate on CPU; batching would further reduce latency.
-- JD skill extraction uses a controlled taxonomy scanned against JD text — not generative NLP parse.
+- Skill taxonomy is AI/ML-biased; non-AI JDs lean more on semantic + JD bullet extraction until taxonomy expands.
+- Calibration fixture has 14 labeled IDs; target 20 for stronger NDCG confidence.
+- Production scale (900M index, cross-encoder rerank, LTR) is roadmap — not PoC scope.
 
 These are documented tradeoffs (ADR-003), not hidden shortcuts.

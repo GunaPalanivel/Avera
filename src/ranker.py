@@ -1,7 +1,8 @@
 import heapq
+import time
 from collections.abc import Iterable
 
-from src.config import FICTIONAL_COMPANIES, SCORER_WEIGHTS, SEMANTIC_MIN_HEURISTIC_SCORE, expand_skill_keyword
+from src.config import FICTIONAL_COMPANIES, SEMANTIC_MIN_HEURISTIC_SCORE, expand_skill_keyword, get_scorer_weights
 from src.detectors.honeypot_detector import is_honeypot
 from src.models import CandidateModel
 from src.output_writer import EXPECTED_SUBMISSION_ROWS
@@ -18,19 +19,52 @@ from src.scorers.title_career_scorer import TitleCareerScorer
 class Ranker:
     def __init__(self, job_reqs: JobRequirements):
         self.job_reqs = job_reqs
+        weights = get_scorer_weights(job_reqs.seniority_level)
         self.scorers = [
-            TitleCareerScorer(weight=SCORER_WEIGHTS["title_career"]),
+            TitleCareerScorer(weight=weights["title_career"]),
             SkillsScorer(
-                weight=SCORER_WEIGHTS["skills"],
+                weight=weights["skills"],
                 must_have=job_reqs.must_have_skills,
                 nice_to_have=job_reqs.nice_to_have_skills,
             ),
-            ExperienceScorer(weight=SCORER_WEIGHTS["experience"], title_keywords=job_reqs.title_keywords),
-            LocationScorer(weight=SCORER_WEIGHTS["location"], target_cities=job_reqs.target_cities),
-            SemanticScorer(weight=SCORER_WEIGHTS["semantic"], jd_text=job_reqs.raw_text),
+            ExperienceScorer(weight=weights["experience"], title_keywords=job_reqs.title_keywords),
+            LocationScorer(weight=weights["location"], target_cities=job_reqs.target_cities),
+            SemanticScorer(weight=weights["semantic"], jd_text=job_reqs.raw_text),
         ]
         self.behavioral_scorer = BehavioralScorer(weight=1.0)
         self.last_input_ids: set[str] = set()
+        self.last_pipeline_stats: dict[str, float | int] = {}
+
+    def _semantic_scorer(self) -> SemanticScorer | None:
+        for scorer in self.scorers:
+            if isinstance(scorer, SemanticScorer):
+                return scorer
+        return None
+
+    def _heuristic_score(self, candidate: CandidateModel) -> float:
+        total = 0.0
+        for scorer in self.scorers:
+            if isinstance(scorer, SemanticScorer):
+                continue
+            total += scorer(candidate)
+        return total
+
+    def prefill_semantic_stream(self, candidates: Iterable[CandidateModel]) -> int:
+        """First pass: batch-encode semantic scores for candidates clearing the heuristic gate."""
+        semantic_scorer = self._semantic_scorer()
+        if semantic_scorer is None:
+            return 0
+
+        queue: list[tuple[str, CandidateModel]] = []
+        for candidate in candidates:
+            if candidate.profile.current_company in FICTIONAL_COMPANIES:
+                continue
+            if is_honeypot(candidate):
+                continue
+            if self._heuristic_score(candidate) >= SEMANTIC_MIN_HEURISTIC_SCORE:
+                queue.append((candidate.candidate_id, candidate))
+
+        return semantic_scorer.prefill_batch(queue)
 
     def _matched_skill_names(self, candidate: CandidateModel) -> list[str]:
         matched: list[str] = []
@@ -49,14 +83,9 @@ class Ranker:
         if is_honeypot(candidate):
             return 0.0, ""
 
-        total_score = 0.0
-        semantic_scorer: SemanticScorer | None = None
-        for scorer in self.scorers:
-            if isinstance(scorer, SemanticScorer):
-                semantic_scorer = scorer
-                continue
-            total_score += scorer(candidate)
+        total_score = self._heuristic_score(candidate)
 
+        semantic_scorer = self._semantic_scorer()
         if semantic_scorer is not None and total_score >= SEMANTIC_MIN_HEURISTIC_SCORE:
             total_score += semantic_scorer(candidate)
 
@@ -73,14 +102,20 @@ class Ranker:
         *,
         require_exact_count: bool = True,
     ) -> list[tuple[float, CandidateModel, str]]:
+        t0 = time.perf_counter()
         heap: list[tuple[float, int, CandidateModel, str]] = []
-        self.last_input_ids = set()
+        scored = 0
+        filtered_zero = 0
+        input_count = 0
 
         for candidate in candidates:
+            input_count += 1
             self.last_input_ids.add(candidate.candidate_id)
             score, matched_skills_csv = self.score_candidate(candidate)
             if score == 0.0:
+                filtered_zero += 1
                 continue
+            scored += 1
 
             try:
                 id_num = int(candidate.candidate_id.split("_")[1])
@@ -95,13 +130,31 @@ class Ranker:
             else:
                 heapq.heappushpop(heap, item)
 
+        score_ms = int((time.perf_counter() - t0) * 1000)
         heap.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
         results: list[tuple[float, CandidateModel, str]] = []
+        must_have_count = len(self.job_reqs.must_have_skills)
         for rank_idx, (score, _tie, candidate, matched_skills_csv) in enumerate(heap):
             matched_skills = [s for s in matched_skills_csv.split(",") if s]
-            reasoning = generate_reasoning(candidate, rank_idx, matched_skills)
+            reasoning = generate_reasoning(
+                candidate,
+                rank_idx,
+                matched_skills,
+                must_have_count=must_have_count,
+            )
             results.append((score, candidate, reasoning))
+
+        total_ms = int((time.perf_counter() - t0) * 1000)
+        self.last_pipeline_stats = {
+            "input_count": input_count,
+            "scored_count": scored,
+            "filtered_zero": filtered_zero,
+            "output_count": len(results),
+            "prefill_ms": 0,
+            "score_ms": score_ms,
+            "total_ms": total_ms,
+        }
 
         if require_exact_count and top_k >= EXPECTED_SUBMISSION_ROWS and len(results) < top_k:
             raise RuntimeError(f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. Dataset is too small or filters are too strict.")

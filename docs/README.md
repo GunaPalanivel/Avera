@@ -1,28 +1,37 @@
 # Avera documentation
 
-Diátaxis layout for the Track 1 ranking engine.
+Diátaxis layout for the Track 1 ranking engine. The **[README](../README.md)** is the blueprint entry point: methodology, technical choices, system architecture, and why Avera is built this way.
 
 ## Tutorials & getting started
 
-| Document                                               | Purpose                                          |
-| ------------------------------------------------------ | ------------------------------------------------ |
-| [getting-started.md](getting-started.md)               | Install, health check, smoke rank, validation    |
-| [submission/walkthrough.md](submission/walkthrough.md) | Full walkthrough, reproduction, portal checklist |
-| [submission/deck.md](submission/deck.md)               | Slide deck source                                |
-| [submission/deck.pdf](submission/deck.pdf)             | Portal PDF deck (`make export-pdf`)              |
+| Document                                                         | Purpose                                          |
+| ---------------------------------------------------------------- | ------------------------------------------------ |
+| [getting-started.md](getting-started.md)                         | Install, health check, smoke rank, validation    |
+| [submission/walkthrough.md](submission/walkthrough.md)           | Full walkthrough, reproduction, portal checklist |
+| [submission/portal_checklist.md](submission/portal_checklist.md) | Hack2skill + HF Space manual steps               |
+| [submission/deck.md](submission/deck.md)                         | Slide deck source                                |
+| [submission/deck.pdf](submission/deck.pdf)                       | Portal PDF deck (`make export-pdf`)              |
 
-## Explanation
+## Explanation (methodology & architecture)
 
-| Document                                                   | Purpose                                                  |
-| ---------------------------------------------------------- | -------------------------------------------------------- |
-| [explanation/architecture.md](explanation/architecture.md) | Pipeline, ADR summary, exception hierarchy               |
-| [explanation/methodology.md](explanation/methodology.md)   | Scorers, behavioral multiplier, honeypots, output canary |
+| Document                                                   | Purpose                                                                    |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [explanation/architecture.md](explanation/architecture.md) | Pipeline, two-pass stream, ADR summary, CI, observability                  |
+| [explanation/methodology.md](explanation/methodology.md)   | Scorers, semantic gate, behavioral multiplier, honeypots, honest reasoning |
 
 ## How-to guides
 
 | Document                               | Purpose                                                   |
 | -------------------------------------- | --------------------------------------------------------- |
 | [how-to/runbook.md](how-to/runbook.md) | Local ops, offline model, Docker sandbox, troubleshooting |
+
+## Evaluation & generalization
+
+| Script / target                     | Purpose                                                  |
+| ----------------------------------- | -------------------------------------------------------- |
+| `scripts/eval.py`                   | Honeypot rate in top-100, NDCG@10 on calibration fixture |
+| `scripts/test_generalization.py`    | Same pipeline on AI/ML + DevOps JD — zero code edits     |
+| `make eval` / `make generalization` | Makefile shortcuts                                       |
 
 ## Architecture decision records
 

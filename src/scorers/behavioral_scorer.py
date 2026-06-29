@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 from src.config import BEHAVIORAL_MODIFIER_MAX, BEHAVIORAL_MODIFIER_MIN
@@ -19,7 +20,8 @@ class BehavioralScorer(BaseScorer):
 
         try:
             last_active = datetime.strptime(sigs.last_active_date, "%Y-%m-%d")
-            now = datetime(2026, 6, 27)
+            ref = os.environ.get("AVERA_REFERENCE_DATE", "2026-06-27")
+            now = datetime.strptime(ref, "%Y-%m-%d")
             months_inactive = (now - last_active).days / 30.0
             if months_inactive > 6:
                 modifier *= 0.8

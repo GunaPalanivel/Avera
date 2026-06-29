@@ -2,7 +2,9 @@
 """Avera ranking CLI (foundation: health check and path validation)."""
 
 import argparse
+import os
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -66,7 +68,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    logger.info("ranking candidates", extra={"extra_fields": {"run_id": run_id, "event": "ranking_start"}})
+    logger.info(
+        "ranking candidates",
+        extra={
+            "extra_fields": {
+                "run_id": run_id,
+                "event": "ranking_start",
+                "trace_id": run_id,
+                "jd_path": str(args.jd or "DataSet/job_description.txt"),
+            }
+        },
+    )
 
     job_reqs = load_job_requirements(args.jd)
     ranker = Ranker(job_reqs)
@@ -78,16 +90,37 @@ def main(argv: list[str] | None = None) -> int:
             input_ids.add(candidate.candidate_id)
             yield candidate
 
+    use_semantic_prefill = os.environ.get("AVERA_SKIP_SEMANTIC", "").lower() not in ("1", "true", "yes")
+    if use_semantic_prefill and args.limit is None:
+        t_prefill = time.perf_counter()
+        encoded = ranker.prefill_semantic_stream(stream_candidates(candidates_path))
+        prefill_ms = int((time.perf_counter() - t_prefill) * 1000)
+    else:
+        encoded = 0
+        prefill_ms = 0
+
+    t0 = time.perf_counter()
     top_k = ranker.rank(track_stream(), top_k=requested_top_k, require_exact_count=(args.limit is None))
+    wall_ms = int((time.perf_counter() - t0) * 1000)
+    stats = ranker.last_pipeline_stats
 
     logger.info(
         "ranked candidates",
         extra={
             "extra_fields": {
                 "run_id": run_id,
+                "trace_id": run_id,
                 "event": "ranking_done",
-                "input_count": len(input_ids),
-                "output_count": len(top_k),
+                "stage": "pipeline_complete",
+                "input_count": stats.get("input_count", len(input_ids)),
+                "output_count": stats.get("output_count", len(top_k)),
+                "scored_count": stats.get("scored_count", 0),
+                "filtered_zero": stats.get("filtered_zero", 0),
+                "prefill_ms": prefill_ms,
+                "semantic_encoded": encoded,
+                "score_ms": stats.get("score_ms", wall_ms),
+                "latency_ms": stats.get("total_ms", wall_ms),
+                "seniority_level": job_reqs.seniority_level,
             }
         },
     )

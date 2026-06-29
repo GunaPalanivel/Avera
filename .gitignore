@@ -40,6 +40,7 @@ DataSet/\[PUB\]*/
 # Generated smoke / CI outputs
 ci_submission.csv
 ci_submission.xlsx
+.sandbox/
 
 # Pre-downloaded semantic model (use make download-model)
 models/
