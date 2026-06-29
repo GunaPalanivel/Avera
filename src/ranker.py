@@ -66,7 +66,13 @@ class Ranker:
         matched_skills = self._matched_skill_names(candidate)
         return round(total_score, 4), ",".join(matched_skills)
 
-    def rank(self, candidates: Iterable[CandidateModel], top_k: int = 100) -> list[tuple[float, CandidateModel, str]]:
+    def rank(
+        self,
+        candidates: Iterable[CandidateModel],
+        top_k: int = 100,
+        *,
+        require_exact_count: bool = True,
+    ) -> list[tuple[float, CandidateModel, str]]:
         heap: list[tuple[float, int, CandidateModel, str]] = []
         self.last_input_ids = set()
 
@@ -97,7 +103,7 @@ class Ranker:
             reasoning = generate_reasoning(candidate, rank_idx, matched_skills)
             results.append((score, candidate, reasoning))
 
-        if top_k >= EXPECTED_SUBMISSION_ROWS and len(results) < top_k:
+        if require_exact_count and top_k >= EXPECTED_SUBMISSION_ROWS and len(results) < top_k:
             raise RuntimeError(f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. Dataset is too small or filters are too strict.")
 
         return results

@@ -4,6 +4,9 @@ Full Track 1 walkthrough, reproduction steps, and portal checklist:
 
 **[docs/submission/walkthrough.md](docs/submission/walkthrough.md)**
 
-Slide deck (export to PDF for portal):
+Slide deck for portal upload:
 
-**[docs/submission/deck.md](docs/submission/deck.md)**
+- **PDF:** [docs/submission/deck.pdf](docs/submission/deck.pdf)
+- **Source:** [docs/submission/deck.md](docs/submission/deck.md) — regenerate with `make export-pdf`
+
+Documentation index: **[docs/README.md](docs/README.md)**

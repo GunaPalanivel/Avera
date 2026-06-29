@@ -78,7 +78,7 @@ def main(argv: list[str] | None = None) -> int:
             input_ids.add(candidate.candidate_id)
             yield candidate
 
-    top_k = ranker.rank(track_stream(), top_k=requested_top_k)
+    top_k = ranker.rank(track_stream(), top_k=requested_top_k, require_exact_count=(args.limit is None))
 
     logger.info(
         "ranked candidates",

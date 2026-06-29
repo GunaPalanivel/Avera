@@ -1,43 +1,45 @@
-# Stage 1: Build & Dependencies
+# Stage 1: Build dependencies
 FROM python:3.13-slim as builder
 
-# Prevents Python from writing pyc files to disc
 ENV PYTHONDONTWRITEBYTECODE=1
-# Prevents Python from buffering stdout and stderr
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends gcc && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 
-# Stage 2: Runtime
+# Stage 2: Runtime + offline model bake
 FROM python:3.13-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
 WORKDIR /app
 
-# Create a non-root user for security
 RUN useradd -m -s /bin/bash avera_user
-RUN chown -R avera_user:avera_user /app
 
-# Copy installed packages from builder
 COPY --from=builder /install /usr/local
 
-# Copy application source
-COPY --chown=avera_user:avera_user src/ ./src/
-COPY --chown=avera_user:avera_user rank.py DataSet/validate_submission.py DataSet/job_description.txt app.py ./
+COPY src/ ./src/
+COPY scripts/download_model.py ./scripts/
+COPY rank.py DataSet/validate_submission.py DataSet/job_description.txt app.py ./
 
-# Switch to non-root user
+ENV AVERA_MODEL_OUT=/app/models/all-MiniLM-L6-v2
+RUN python scripts/download_model.py \
+    && mkdir -p /app/.sandbox \
+    && chown -R avera_user:avera_user /app/models /app/.sandbox /app/src /app/scripts /app/rank.py /app/app.py
+
+ENV AVERA_SEMANTIC_MODEL=/app/models/all-MiniLM-L6-v2
+
 USER avera_user
 
-# Expose Gradio port
 EXPOSE 7860
 
-# Default command runs the Gradio Sandbox
+HEALTHCHECK --interval=30s --timeout=15s --start-period=90s --retries=3 \
+  CMD python rank.py --health || exit 1
+
 CMD ["python", "app.py"]

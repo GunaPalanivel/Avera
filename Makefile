@@ -1,7 +1,7 @@
-.PHONY: help install lint test security validate validate-full ci download-model docker-build docker-run docker-sandbox
+.PHONY: help install lint test security validate validate-full ci download-model export-pdf docker-build docker-run docker-sandbox
 
 help:
-	@echo "Targets: install lint test security validate validate-full ci download-model docker-build docker-run docker-sandbox"
+	@echo "Targets: install lint test security validate validate-full ci download-model export-pdf docker-build docker-run docker-sandbox"
 
 install:
 	pip install -r requirements.txt
@@ -33,6 +33,9 @@ ci: lint test security
 
 download-model:
 	python scripts/download_model.py
+
+export-pdf:
+	python scripts/export_deck_pdf.py
 
 docker-build:
 	docker-compose build
