@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any
 
 from src.config import SEMANTIC_MODEL_NAME
 from src.models import CandidateModel
@@ -7,14 +8,17 @@ from src.scorers.base import BaseScorer
 
 logger = logging.getLogger(__name__)
 
+_BATCH_SIZE = 512
+
 
 class SemanticScorer(BaseScorer):
     def __init__(self, weight: float, jd_text: str):
         super().__init__(weight)
         self.jd_text = jd_text.strip()
-        self._model = None
-        self._jd_embedding = None
-        self._util = None
+        self._model: Any = None
+        self._jd_embedding: Any = None
+        self._util: Any = None
+        self._score_cache: dict[str, float] = {}
 
     def _ensure_model(self) -> bool:
         if self._model is not None:
@@ -34,31 +38,91 @@ class SemanticScorer(BaseScorer):
             logger.error("Failed to load sentence-transformers: %s", e)
             return False
 
+    @staticmethod
+    def build_candidate_text(candidate: CandidateModel) -> str:
+        parts: list[str] = []
+        if candidate.profile.headline:
+            parts.append(candidate.profile.headline)
+        if candidate.profile.summary:
+            parts.append(candidate.profile.summary)
+        for job in candidate.career_history:
+            if job.description:
+                parts.append(job.description)
+        return " ".join(parts)
+
+    def prefill_batch(self, candidates: list[tuple[str, CandidateModel]]) -> int:
+        """Batch-encode semantic scores for (candidate_id, candidate) pairs. Returns encoded count."""
+        if not candidates or not self._ensure_model():
+            return 0
+
+        pending_ids: list[str] = []
+        pending_texts: list[str] = []
+        encoded = 0
+
+        for cid, candidate in candidates:
+            if cid in self._score_cache:
+                continue
+            text = self.build_candidate_text(candidate)
+            if not text:
+                self._score_cache[cid] = 0.0
+                continue
+            pending_ids.append(cid)
+            pending_texts.append(text)
+
+            if len(pending_texts) >= _BATCH_SIZE:
+                encoded += self._flush_batch(pending_ids, pending_texts)
+                pending_ids = []
+                pending_texts = []
+
+        if pending_texts:
+            encoded += self._flush_batch(pending_ids, pending_texts)
+
+        logger.info(
+            "semantic prefill complete",
+            extra={"extra_fields": {"encoded": encoded, "cache_size": len(self._score_cache)}},
+        )
+        return encoded
+
+    def _flush_batch(self, ids: list[str], texts: list[str]) -> int:
+        if not ids:
+            return 0
+        try:
+            embeddings = self._model.encode(
+                texts,
+                convert_to_tensor=True,
+                batch_size=_BATCH_SIZE,
+                show_progress_bar=False,
+            )
+            for idx, cid in enumerate(ids):
+                similarity = self._util.cos_sim(self._jd_embedding, embeddings[idx]).item()
+                self._score_cache[cid] = max(0.0, float(similarity)) * self.weight
+            return len(ids)
+        except Exception as e:
+            logger.error("Batch semantic encode failed: %s", e)
+            for cid in ids:
+                self._score_cache.setdefault(cid, 0.0)
+            return 0
+
     def score(self, candidate: CandidateModel) -> float:
         if not self.jd_text:
             return 0.0
+        cached = self._score_cache.get(candidate.candidate_id)
+        if cached is not None:
+            return cached
+
         if not self._ensure_model():
             return 0.0
 
-        cand_text_parts: list[str] = []
-        if candidate.profile.headline:
-            cand_text_parts.append(candidate.profile.headline)
-        if candidate.profile.summary:
-            cand_text_parts.append(candidate.profile.summary)
-
-        for job in candidate.career_history:
-            if job.description:
-                cand_text_parts.append(job.description)
-
-        if not cand_text_parts:
+        text = self.build_candidate_text(candidate)
+        if not text:
             return 0.0
 
-        cand_text = " ".join(cand_text_parts)
-
         try:
-            cand_emb = self._model.encode(cand_text, convert_to_tensor=True, show_progress_bar=False)
+            cand_emb = self._model.encode(text, convert_to_tensor=True, show_progress_bar=False)
             similarity = self._util.cos_sim(self._jd_embedding, cand_emb).item()
-            return max(0.0, float(similarity))
+            raw = max(0.0, float(similarity)) * self.weight
+            self._score_cache[candidate.candidate_id] = raw
+            return raw
         except Exception as e:
             logger.error("Error computing semantic score: %s", e)
             return 0.0

@@ -1,28 +1,105 @@
+"""Deterministic reasoning strings for submission output (ADR-06)."""
+
 from src.models import CandidateModel
 
 
-def generate_reasoning(candidate: CandidateModel, rank_index: int, matched_skills: list[str]) -> str:
-    """
-    Generate dynamic reasoning for a candidate based on ADR-06 templates.
-    Avoids hallucinations by sticking to parsed data.
-    """
-    top_skills = sorted(candidate.skills, key=lambda s: s.duration_months, reverse=True)
+def _concern_fragments(candidate: CandidateModel, matched_skills: list[str], rank_index: int) -> list[str]:
+    """Verifiable weaknesses drawn only from parsed profile/signals."""
+    concerns: list[str] = []
+    sigs = candidate.redrob_signals
+    must_gap = not matched_skills
+
+    if must_gap:
+        concerns.append("limited overlap with JD must-have skills")
+    elif len(matched_skills) < 2:
+        concerns.append(f"only {len(matched_skills)} core JD skill matched")
+
+    if sigs.recruiter_response_rate < 0.20:
+        concerns.append("low recruiter response rate")
+
+    if sigs.notice_period_days > 60:
+        concerns.append(f"{sigs.notice_period_days}-day notice period")
+
+    github = sigs.github_activity_score
+    if github is not None and github >= 0 and github < 10:
+        concerns.append("minimal GitHub activity signal")
+
+    yoe = candidate.profile.years_of_experience
+    if yoe < 4:
+        concerns.append("below typical senior YOE band for this JD")
+    elif yoe > 12 and rank_index >= 50:
+        concerns.append("experience above target band for this role")
+
+    if rank_index >= 70 and not sigs.open_to_work_flag:
+        concerns.append("not flagged open to work")
+
+    return concerns[:3]
+
+
+def _strength_line(candidate: CandidateModel, matched_skills: list[str]) -> str:
+    top_skills = sorted(candidate.skills, key=lambda s: s.duration_months or 0, reverse=True)
     skill_names = [s.name for s in top_skills]
 
-    # Prioritize matched JD skills if any
     if matched_skills:
-        skill_str = " and ".join(matched_skills[:2])
+        skill_str = ", ".join(matched_skills[:3])
+        skill_clause = f"JD-aligned skills: {skill_str}"
     elif skill_names:
-        skill_str = " and ".join(skill_names[:2])
+        skill_str = ", ".join(skill_names[:2])
+        skill_clause = f"strongest listed skills: {skill_str}"
     else:
-        skill_str = "AI technologies"
+        skill_clause = "sparse skills section"
 
-    base_reasoning = f"Strong fit: {candidate.profile.current_title} at {candidate.profile.current_company} with {candidate.profile.years_of_experience} YOE. Demonstrates deep expertise in {skill_str}."
+    return f"{candidate.profile.current_title} at {candidate.profile.current_company} ({candidate.profile.years_of_experience} YOE); {skill_clause}"
 
-    # ADR-06 Tone Variation based on rank
+
+def generate_reasoning(
+    candidate: CandidateModel,
+    rank_index: int,
+    matched_skills: list[str],
+    *,
+    must_have_count: int = 0,
+) -> str:
+    """
+    Rank-aware reasoning with honest concerns for mid/low ranks.
+    Avoids hallucinations by sticking to parsed data only.
+    """
+    strength = _strength_line(candidate, matched_skills)
+    concerns = _concern_fragments(candidate, matched_skills, rank_index)
+
     if rank_index < 5:
-        return f"Exceptional Top 5 Match: {base_reasoning} Highly recommended for immediate interview."
-    elif rank_index >= 90:
-        return f"Borderline Match: {base_reasoning} Meets minimum bar but lacks standout secondary signals."
+        extra = "Top-tier composite score across career, skills, and availability."
+        if concerns:
+            return f"Rank {rank_index + 1}: {strength}. {extra} Minor note: {'; '.join(concerns)}."
+        return f"Rank {rank_index + 1}: {strength}. {extra}"
 
-    return base_reasoning
+    if rank_index < 20:
+        concern_txt = f" Watch: {'; '.join(concerns)}." if concerns else ""
+        return f"Strong match — {strength}.{concern_txt}"
+
+    if rank_index < 50:
+        tier = rank_index % 4
+        openers = (
+            "Solid profile:",
+            "Good fit with caveats:",
+            "Competitive candidate:",
+            "Meets several JD signals:",
+        )
+        concern_txt = f" Concerns: {'; '.join(concerns)}." if concerns else ""
+        return f"{openers[tier]} {strength}.{concern_txt}"
+
+    if rank_index < 90:
+        mid_openers: tuple[str, ...] = (
+            "Moderate fit:",
+            "Partial alignment:",
+            "Acceptable but not standout:",
+            "Mixed signals:",
+            "JD overlap is thin:",
+        )
+        tier = rank_index % len(mid_openers)
+        if not concerns and must_have_count and len(matched_skills) < must_have_count // 2:
+            concerns.append("under half of JD must-have skills covered")
+        concern_txt = f" Gaps: {'; '.join(concerns)}." if concerns else " Gaps: limited standout signals."
+        return f"{mid_openers[tier]} {strength}.{concern_txt}"
+
+    concern_txt = f" Key gaps: {'; '.join(concerns)}." if concerns else " Key gaps: weak secondary signals vs higher ranks."
+    return f"Lower-tier shortlist entry — {strength}.{concern_txt}"

@@ -26,7 +26,7 @@ def test_semantic_scorer_uses_career_descriptions(monkeypatch):
 
     score = scorer.score(candidate)
 
-    assert score == pytest.approx(0.82, rel=1e-3)
+    assert score == pytest.approx(0.82 * 0.15, rel=1e-3)
     encoded_text = mock_model.encode.call_args_list[-1][0][0]
     assert "RAG pipeline" in encoded_text
     assert "semantic search" in encoded_text

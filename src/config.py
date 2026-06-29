@@ -17,7 +17,8 @@ BEHAVIORAL_MODIFIER_MIN = 0.4
 BEHAVIORAL_MODIFIER_MAX = 1.3
 
 # Skip expensive embedding when heuristic base is too weak to reach top-100
-SEMANTIC_MIN_HEURISTIC_SCORE = 0.06
+# Tuned above sample P10 (~0.105) so gate drops weak heuristic profiles before batch embed
+SEMANTIC_MIN_HEURISTIC_SCORE = 0.11
 
 # Offline-friendly: set AVERA_SEMANTIC_MODEL to a local directory path after `make download-model`
 SEMANTIC_MODEL_NAME = os.environ.get("AVERA_SEMANTIC_MODEL", "all-MiniLM-L6-v2")
@@ -126,6 +127,34 @@ if not FICTIONAL_COMPANIES:
     raise ConfigError("FICTIONAL_COMPANIES must not be empty")
 if not AI_TITLE_TIERS:
     raise ConfigError("AI_TITLE_TIERS must not be empty")
+
+
+def get_scorer_weights(seniority_level: str) -> dict[str, float]:
+    """JD-derived weight profiles; behavioral remains a separate multiplier (ADR-03)."""
+    level = (seniority_level or "mid").lower()
+    if level in ("senior", "staff", "principal", "lead"):
+        return {
+            "title_career": 0.35,
+            "skills": 0.25,
+            "experience": 0.15,
+            "location": 0.10,
+            "semantic": 0.15,
+        }
+    if level in ("junior", "entry", "associate"):
+        return {
+            "title_career": 0.20,
+            "skills": 0.35,
+            "experience": 0.15,
+            "location": 0.10,
+            "semantic": 0.20,
+        }
+    return {
+        "title_career": 0.30,
+        "skills": 0.30,
+        "experience": 0.15,
+        "location": 0.10,
+        "semantic": 0.15,
+    }
 
 
 def expand_skill_keyword(keyword: str) -> frozenset[str]:
