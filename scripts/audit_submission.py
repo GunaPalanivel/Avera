@@ -130,13 +130,7 @@ def main(argv: list[str] | None = None) -> int:
         candidate = lookup[row["candidate_id"]]
         profile = candidate["profile"]
         flags = audit_flags(candidate)
-        print(
-            f"{row['rank']:>4} {row['candidate_id']:<14} "
-            f"{profile.get('current_title', '')[:32]:<32} "
-            f"{profile.get('current_company', '')[:18]:<18} "
-            f"{profile.get('years_of_experience', 0):>4} "
-            f"{row['score']:>7} {flags}"
-        )
+        print(f"{row['rank']:>4} {row['candidate_id']:<14} {profile.get('current_title', '')[:32]:<32} {profile.get('current_company', '')[:18]:<18} {profile.get('years_of_experience', 0):>4} {row['score']:>7} {flags}")
     return 0
 
 

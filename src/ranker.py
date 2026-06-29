@@ -104,9 +104,6 @@ class Ranker:
             results.append((score, candidate, reasoning))
 
         if require_exact_count and top_k >= EXPECTED_SUBMISSION_ROWS and len(results) < top_k:
-            raise RuntimeError(
-                f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. "
-                "Dataset is too small or filters are too strict."
-            )
+            raise RuntimeError(f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. Dataset is too small or filters are too strict.")
 
         return results

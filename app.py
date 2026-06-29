@@ -59,21 +59,14 @@ def rank_candidates(file_obj):
     with output_path.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.reader(handle))
 
-    log = (
-        f"Ranked {limit} candidate(s) from upload ({candidate_count} valid in file).\n"
-        f"Bundled JD: DataSet/job_description.txt\n\n"
-        f"{result.stdout.strip()}"
-    )
+    log = f"Ranked {limit} candidate(s) from upload ({candidate_count} valid in file).\nBundled JD: DataSet/job_description.txt\n\n{result.stdout.strip()}"
     return rows, log, str(output_path)
 
 
 def build_demo() -> gr.Blocks:
     with gr.Blocks(title="Avera Ranking Engine Sandbox") as demo:
         gr.Markdown(
-            "# Avera Ranking Engine Sandbox\n"
-            "Upload a `.jsonl` candidate file. The engine scores deterministically "
-            "and returns a ranked CSV (up to 100 rows). "
-            "Fictional companies and honeypots are filtered — output may be fewer than upload rows."
+            "# Avera Ranking Engine Sandbox\nUpload a `.jsonl` candidate file. The engine scores deterministically and returns a ranked CSV (up to 100 rows). Fictional companies and honeypots are filtered — output may be fewer than upload rows."
         )
         with gr.Row():
             file_in = gr.File(label="Upload candidates.jsonl", file_types=[".jsonl"])
