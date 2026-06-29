@@ -10,7 +10,7 @@ team_members:
     role: "AI / DevOps Engineer"
 
 github_repo: "https://github.com/GunaPalanivel/Avera"
-sandbox_link: "https://huggingface.co/spaces/GunaPalanivel/avera-ranker"
+sandbox_link: "https://huggingface.co/spaces/gp5901/avera-ranker"
 reproduce_command: "python rank.py --candidates DataSet/candidates.jsonl --out submission.csv"
 
 compute:
