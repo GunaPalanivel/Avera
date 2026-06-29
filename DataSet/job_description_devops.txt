@@ -1,0 +1,28 @@
+DevOps & SRE Engineer — Pune / Noida (Hybrid)
+
+Job Title: Senior DevOps & SRE Engineer
+
+We are hiring a founding infrastructure engineer to own CI/CD, AWS cloud infrastructure, observability, and security for a new AI product vertical.
+
+Must have:
+- 5+ years experience in DevOps, SRE, or platform engineering
+- Strong Python and Linux systems skills
+- CI/CD pipelines (GitHub Actions, Jenkins, or GitLab CI)
+- Docker and Kubernetes orchestration
+- AWS (EC2, ECS/EKS, IAM, VPC)
+- Infrastructure monitoring: Prometheus, Grafana, or Datadog
+- Terraform or CloudFormation for infrastructure as code
+
+Nice to have:
+- Experience operating ML inference services or GPU workloads
+- Security hardening: SAST, dependency scanning, secrets management
+- On-call runbooks and incident response
+
+Location: Pune or Noida preferred; hybrid for exceptional candidates in Bangalore.
+
+Responsibilities:
+- Build CI/CD from scratch for an AI ranking and retrieval platform
+- Design observability (structured logs, metrics, alerting) for batch and online paths
+- Harden sandbox and production deployments (non-root containers, input validation)
+
+This role partners daily with the AI/ML team — you must understand ranking pipeline latency budgets and offline model delivery, not just generic infra.
