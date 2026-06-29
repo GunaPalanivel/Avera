@@ -42,6 +42,9 @@ Or:
 make validate        # health + smoke rank + pytest
 make validate-full   # full 100K rank + organizer validation
 make ci              # lint + test + security + integration smoke
+make eval            # honeypot rate + NDCG@10
+make generalization  # two-JD demo (AI/ML + DevOps)
+make mypy            # static type check
 ```
 
 ## Offline semantic model
@@ -71,7 +74,9 @@ make docker-sandbox
 
 ## Next steps
 
+- [README — methodology, architecture, why Avera](../README.md)
 - [Walkthrough & portal checklist](submission/walkthrough.md)
+- [Portal checklist](submission/portal_checklist.md)
 - [Architecture](explanation/architecture.md)
 - [Scoring methodology](explanation/methodology.md)
 - [SRE runbook](how-to/runbook.md)

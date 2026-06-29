@@ -26,6 +26,9 @@ python DataSet/validate_submission.py submission.csv
 make validate        # health check + smoke rank + pytest
 make validate-full   # full 100K rank + organizer validation
 make ci              # lint + test + security + integration smoke
+make eval            # honeypot rate + NDCG@10 on calibration fixture
+make generalization  # AI/ML + DevOps JD, zero code edits
+make mypy            # static type check (src + rank.py)
 make download-model  # pre-download MiniLM for offline ranking
 make export-pdf      # regenerate docs/submission/deck.pdf
 make docker-build    # build image with baked semantic model
@@ -38,6 +41,7 @@ make docker-sandbox  # Gradio on http://localhost:7860
 | ---------------------- | ------------------ | --------------------------------------------------------------- |
 | `AVERA_SKIP_SEMANTIC`  | unset (load model) | Set to `1` in tests to skip `sentence-transformers` load        |
 | `AVERA_SEMANTIC_MODEL` | `all-MiniLM-L6-v2` | HuggingFace model id or **local directory** for offline ranking |
+| `AVERA_REFERENCE_DATE` | `2026-06-27`       | Fixed date for behavioral recency — deterministic replay        |
 
 For sandbox/Docker with `has_network_during_ranking: false`, pre-download the model once:
 
@@ -70,8 +74,14 @@ We employ a custom `JSONFormatter` in `src/logging_config.py` to output structur
   "timestamp": "2026-06-27T14:30:00.000Z",
   "level": "INFO",
   "module": "rank",
-  "message": "Scoring Engine completed in 15.4 seconds.",
-  "run_id": "c70f9159-df76-4347-9b32-c70f91596b92"
+  "message": "ranked candidates",
+  "run_id": "c70f9159-df76-4347-9b32-c70f91596b92",
+  "trace_id": "c70f9159-df76-4347-9b32-c70f91596b92",
+  "event": "ranking_done",
+  "prefill_ms": 12000,
+  "semantic_encoded": 8420,
+  "latency_ms": 37000,
+  "seniority_level": "senior"
 }
 ```
 
