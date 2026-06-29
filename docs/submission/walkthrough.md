@@ -2,7 +2,7 @@
 
 **Team:** Avera DevOps + AI  
 **Repo:** https://github.com/GunaPalanivel/Avera  
-**Sandbox:** https://huggingface.co/spaces/GunaPalanivel/avera-ranker  
+**Sandbox:** https://huggingface.co/spaces/gp5901/avera-ranker
 
 ---
 
@@ -22,13 +22,13 @@ JSONL stream → Pydantic validate → Fictional filter → Honeypot detector
     → Behavioral multiplier → Min-heap top-100 → Reasoning → CSV + XLSX
 ```
 
-| Stage | Purpose |
-|-------|---------|
-| **Stage 1** | Drop ~60% fictional companies (`Dunder Mifflin`, `Globex Inc`, …) |
-| **Stage 1.5** | Drop ~1,603 honeypot traps (title/skill mismatch, expert anomaly, …) |
-| **Stage 2** | Weighted base score: title 35%, skills 25%, semantic 15%, experience 15%, location 10% |
-| **Stage 3** | Behavioral multiplier 0.4×–1.3× (availability, GitHub, interviews, verifications) |
-| **Output** | ADR-16 canary: exactly 100 unique IDs, subset of input pool, defused CSV |
+| Stage         | Purpose                                                                                |
+| ------------- | -------------------------------------------------------------------------------------- |
+| **Stage 1**   | Drop ~60% fictional companies (`Dunder Mifflin`, `Globex Inc`, …)                      |
+| **Stage 1.5** | Drop ~1,603 honeypot traps (title/skill mismatch, expert anomaly, …)                   |
+| **Stage 2**   | Weighted base score: title 35%, skills 25%, semantic 15%, experience 15%, location 10% |
+| **Stage 3**   | Behavioral multiplier 0.4×–1.3× (availability, GitHub, interviews, verifications)      |
+| **Output**    | ADR-16 canary: exactly 100 unique IDs, subset of input pool, defused CSV               |
 
 Deep dive: [architecture.md](../explanation/architecture.md) · [methodology.md](../explanation/methodology.md) · [ADR-003](../adr/003-semantic-hybrid-layer.md)
 
@@ -85,30 +85,49 @@ Pre-computation (model download) is ~2 minutes once; ranking completes within th
 
 ## 5. Sandbox demo
 
-**HuggingFace Space:** Upload a `.jsonl` sample (≤100 rows). The Gradio UI runs:
+**HuggingFace Space:** https://huggingface.co/spaces/gp5901/avera-ranker
+
+Upload a `.jsonl` sample (1–100 rows). Output may be **fewer than upload rows** after filters (e.g. 48/100). This is **not** portal `submission.csv` (100 rows from the full 100K pool).
+
+The Gradio UI:
+
+1. Validates the upload filename (no path traversal)
+2. Runs `python rank.py --candidates <upload> --limit <N> --out submission.csv`
+3. Shows a results table and a **Download submission.csv** button
+
+Bundled JD: `DataSet/job_description.txt` (no `--jd` flag needed).
+
+**Local sandbox smoke** (mirrors HF behavior):
 
 ```bash
-python rank.py --jd <bundled-jd> --candidates <upload> --out submission.csv
+python -c "
+from pathlib import Path
+import app
+class F: name = str(Path('tests/fixtures/sample.jsonl').resolve())
+rows, log, csv_path = app.rank_candidates(F)
+assert rows and csv_path
+print(log)
+"
 ```
 
-For local smoke:
+**Docker sandbox** (offline model baked in):
 
 ```bash
-python rank.py --candidates tests/fixtures/sample.jsonl --limit 1 --out ci_submission.csv
+make docker-build && make docker-sandbox
 ```
 
 ---
 
 ## 6. Scoring weights (defensible vs JD)
 
-| Component | Weight | JD anchor |
-|-----------|--------|-----------|
-| Title & career | 35% | "Career trajectory > skill lists"; anti title-chaser |
-| Skills | 25% | Embeddings, vector DB, Python, evaluation frameworks |
-| Semantic | 15% | "Read between the lines" — production retrieval experience |
-| Experience | 15% | 5–9 year band; applied ML tenure |
-| Location | 10% | Pune, Hyderabad, Mumbai, Delhi NCR |
-| Behavioral | ×0.4–×1.3 | Down-weight unavailable / low response candidates |
+| Component      | Weight    | JD anchor                                                  |
+| -------------- | --------- | ---------------------------------------------------------- |
+| Title & career | 35%       | "Career trajectory > skill lists"; anti title-chaser       |
+| Skills         | 25%       | Embeddings, vector DB, Python, evaluation frameworks       |
+| Semantic       | 15%       | "Read between the lines" — production retrieval experience |
+| Experience     | 15%       | 5–9 year band; applied ML tenure                           |
+| Location       | 10%       | Pune, Hyderabad, Mumbai, Delhi NCR                         |
+| Behavioral     | ×0.4–×1.3 | Down-weight unavailable / low response candidates          |
 
 Weights live in `src/config.py` and are validated at import (`sum == 1.0`).
 
@@ -147,13 +166,13 @@ Gemini was used for architecture planning and code review. **No candidate record
 
 ## 10. Portal artifacts checklist
 
-| Artifact | Path |
-|----------|------|
-| CSV submission | `submission.csv` |
-| XLSX submission | `submission.xlsx` (auto-generated alongside CSV) |
-| Metadata | `submission_metadata.yaml` |
-| This walkthrough | `docs/submission/walkthrough.md` |
-| Slide deck (export to PDF) | `docs/submission/deck.md` |
+| Artifact         | Path                                                                                          |
+| ---------------- | --------------------------------------------------------------------------------------------- |
+| CSV submission   | `submission.csv`                                                                              |
+| XLSX submission  | `submission.xlsx` (auto-generated alongside CSV)                                              |
+| Metadata         | `submission_metadata.yaml`                                                                    |
+| This walkthrough | `docs/submission/walkthrough.md`                                                              |
+| Slide deck (PDF) | `docs/submission/deck.pdf` (source: `docs/submission/deck.md`; regenerate: `make export-pdf`) |
 
 ---
 

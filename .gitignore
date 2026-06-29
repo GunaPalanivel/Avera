@@ -13,6 +13,13 @@ venv/
 .coverage
 htmlcov/
 
+# Local-only artifacts (E2E logs, smoke outputs, sandbox uploads, demo slices)
+local/*
+!local/.gitkeep
+
+# HF deploy staging (upload via hf CLI, not tracked)
+space_deploy/
+
 # IDE
 .idea/
 .vscode/

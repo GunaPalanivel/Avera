@@ -1,11 +1,12 @@
 # Avera — Track 1 Ranking Engine
+
 ### Redrob India Runs · Intelligent Candidate Discovery
 
 ---
 
 ## The trap Redrob built into the dataset
 
-> *"The right answer is not find candidates whose skills section contains the most AI keywords."*
+> _"The right answer is not find candidates whose skills section contains the most AI keywords."_
 
 - Marketing managers with perfect ML skill lists
 - Fictional companies (60% of pool)
@@ -93,8 +94,8 @@ Offline: `make download-model` → set `AVERA_SEMANTIC_MODEL`
 - Built for **India scale** — 100K in minutes on CPU
 
 **Repo:** github.com/GunaPalanivel/Avera  
-**Sandbox:** huggingface.co/spaces/GunaPalanivel/avera-ranker
+**Sandbox:** huggingface.co/spaces/gp5901/avera-ranker
 
 ---
 
-*Export this file to PDF via VS Code Markdown PDF, Pandoc, or print-to-PDF for portal upload.*
+_PDF deck: `docs/submission/deck.pdf` — regenerate with `make export-pdf`._
