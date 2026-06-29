@@ -108,3 +108,28 @@ jobs:
           assert rows[0] == ['candidate_id', 'rank', 'score', 'reasoning'], rows[0]
           assert len(rows) >= 2, 'expected header plus at least one data row'
           "
+      - run: python scripts/test_generalization.py
+        env:
+          AVERA_SKIP_SEMANTIC: "1"
+
+  mypy:
+    name: mypy
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt mypy
+      - run: mypy src rank.py
+
+  docker-smoke:
+    name: docker-smoke
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose build avera-cli
+      - run: docker compose run --rm avera-cli python rank.py --health
