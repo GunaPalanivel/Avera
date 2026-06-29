@@ -11,6 +11,8 @@ services:
       - ./DataSet:/app/DataSet:ro
     environment:
       - PYTHONUNBUFFERED=1
+      - AVERA_SEMANTIC_MODEL=/app/models/all-MiniLM-L6-v2
+      - AVERA_SANDBOX_DIR=/app/.sandbox
     command: ["python", "app.py"]
 
   avera-cli:
@@ -22,4 +24,13 @@ services:
       - ./:/app/output
     environment:
       - PYTHONUNBUFFERED=1
-    command: ["python", "rank.py", "--candidates", "DataSet/candidates.jsonl", "--out", "output/submission.csv"]
+      - AVERA_SEMANTIC_MODEL=/app/models/all-MiniLM-L6-v2
+    command:
+      [
+        "python",
+        "rank.py",
+        "--candidates",
+        "DataSet/candidates.jsonl",
+        "--out",
+        "output/submission.csv",
+      ]

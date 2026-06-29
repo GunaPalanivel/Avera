@@ -4,8 +4,8 @@
 import os
 from pathlib import Path
 
-from src.config import SEMANTIC_MODEL_NAME
-
+# Always pull from HuggingFace hub during download — never the local cache path.
+HUB_MODEL_ID = os.environ.get("AVERA_SEMANTIC_HUB", "all-MiniLM-L6-v2")
 DEFAULT_OUT = Path("models/all-MiniLM-L6-v2")
 
 
@@ -15,8 +15,8 @@ def main() -> None:
 
     from sentence_transformers import SentenceTransformer
 
-    print(f"Downloading {SEMANTIC_MODEL_NAME} → {out.resolve()}")
-    model = SentenceTransformer(SEMANTIC_MODEL_NAME)
+    print(f"Downloading {HUB_MODEL_ID} → {out.resolve()}")
+    model = SentenceTransformer(HUB_MODEL_ID)
     model.save(str(out))
     print("Done. Set AVERA_SEMANTIC_MODEL to this path before ranking:")
     print(f"  export AVERA_SEMANTIC_MODEL={out.resolve()}")
