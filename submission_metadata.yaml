@@ -1,4 +1,5 @@
-team_name: "Avera DevOps + AI"
+team_name: "The Maverick's"
+participant_id: "gunapalanivel2003_9679"
 primary_contact:
   name: "Guna Palanivel"
   email: "gunapalanivel2003@gmail.com"
@@ -7,7 +8,10 @@ primary_contact:
 team_members:
   - name: "Guna Palanivel"
     email: "gunapalanivel2003@gmail.com"
-    role: "AI / DevOps Engineer"
+    role: "Leader"
+  - name: "Vidyasree"
+    email: "vidyasreegty2006@gmail.com"
+    role: "Member"
 
 github_repo: "https://github.com/GunaPalanivel/Avera"
 sandbox_link: "https://huggingface.co/spaces/gp5901/avera-ranker"

@@ -41,3 +41,20 @@ def test_generic_domain_injects_no_taxonomy():
     assert must == frozenset()
     assert nice == frozenset()
     assert get_title_tiers("generic") == {}
+
+
+def test_bullet_skills_no_substring_leak():
+    # "going"/"Google"/"trust" must not leak "go"/"rust" into must-have skills
+    req = load_job_requirements(Path("DataSet/job_description.txt"))
+    assert "go" not in req.must_have_skills
+    assert "rust" not in req.must_have_skills
+
+
+def test_bullet_skills_real_token_still_extracted(tmp_path):
+    from src.parsers.jd_parser import _bullet_skills
+
+    jd = "Senior Engineer\nMust have:\n- Go\n- Rust\n- Kubernetes\n"
+    found = _bullet_skills(jd)
+    assert "go" in found
+    assert "rust" in found
+    assert "kubernetes" in found

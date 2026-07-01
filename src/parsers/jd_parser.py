@@ -111,8 +111,10 @@ def _bullet_skills(text: str) -> set[str]:
         "tensorflow",
     )
     text_lower = text.lower()
+    # Word-boundary match so short common substrings (go, rust, scala) do not leak from
+    # unrelated words like "going", "trust", or "scalable".
     for token in tech_tokens:
-        if token in text_lower:
+        if re.search(rf"\b{re.escape(token)}\b", text_lower):
             found.add(token)
     for raw in _BULLET_SKILL_RE.findall(text):
         token = raw.strip().lower()
