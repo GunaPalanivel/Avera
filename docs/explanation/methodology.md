@@ -29,7 +29,7 @@ Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a *
 | ------------------------ | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **Title & Career**       | 35%                    | Domain-appropriate title tiers (AI/ML or DevOps) and product-company trajectory over title-chasers; consulting-only careers penalized per JD red flags. |
 | **Skills Credibility**   | 25%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                        |
-| **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, and `career_history` descriptions. |
+| **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. |
 | **Experience Fit**       | 15%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                              |
 | **Location & Logistics** | 10%                    | Favors candidates in JD-named Indian cities.                                                                                  |
 | **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                         |
