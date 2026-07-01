@@ -2,7 +2,13 @@ import heapq
 import time
 from collections.abc import Iterable
 
-from src.config import FICTIONAL_COMPANIES, SEMANTIC_MIN_HEURISTIC_SCORE, expand_skill_keyword, get_scorer_weights
+from src.config import (
+    FICTIONAL_COMPANIES,
+    SEMANTIC_MIN_HEURISTIC_SCORE,
+    expand_skill_keyword,
+    get_scorer_weights,
+    get_title_tiers,
+)
 from src.detectors.honeypot_detector import is_honeypot
 from src.models import CandidateModel
 from src.output_writer import EXPECTED_SUBMISSION_ROWS
@@ -21,7 +27,7 @@ class Ranker:
         self.job_reqs = job_reqs
         weights = get_scorer_weights(job_reqs.seniority_level)
         self.scorers = [
-            TitleCareerScorer(weight=weights["title_career"]),
+            TitleCareerScorer(weight=weights["title_career"], title_tiers=get_title_tiers(job_reqs.domain)),
             SkillsScorer(
                 weight=weights["skills"],
                 must_have=job_reqs.must_have_skills,

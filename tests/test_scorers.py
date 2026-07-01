@@ -1,4 +1,4 @@
-from src.config import SCORER_WEIGHTS
+from src.config import DEVOPS_TITLE_TIERS, SCORER_WEIGHTS
 from src.models import CandidateModel
 from src.scorers.behavioral_scorer import BehavioralScorer
 from src.scorers.experience_scorer import ExperienceScorer
@@ -92,6 +92,19 @@ def test_title_career_scorer():
     score = scorer(c)
     # Company should be 0.1, Raw = 0.5 + 0.1 + 0.2 = 0.8, Weighted = 0.36
     assert abs(score - (0.8 * weight)) < 0.001
+
+
+def test_title_career_scorer_devops_domain():
+    weight = SCORER_WEIGHTS["title_career"]
+    ai_scorer = TitleCareerScorer(weight=weight)
+    devops_scorer = TitleCareerScorer(weight=weight, title_tiers=DEVOPS_TITLE_TIERS)
+
+    c_dict = get_base_candidate()
+    c_dict["profile"]["current_title"] = "Site Reliability Engineer"
+    c = CandidateModel.model_validate(c_dict)
+
+    # An SRE title should score higher under the DevOps taxonomy than under the AI/ML one
+    assert devops_scorer(c) > ai_scorer(c)
 
 
 def test_skills_scorer():
