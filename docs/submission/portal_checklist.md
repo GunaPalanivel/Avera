@@ -37,7 +37,9 @@ Note: sandbox output can be fewer than 100 rows (honeypots and fictional compani
 
 | Field       | Value                                                                  |
 | ----------- | ---------------------------------------------------------------------- |
-| Ranked CSV  | Rename `submission.csv` to **your registered participant ID** + `.csv` |
+| Team        | The Maverick's (Leader: Guna Palanivel, Member: Vidyasree)             |
+| Participant | `gunapalanivel2003_9679`                                               |
+| Ranked CSV  | Rename `submission.csv` to `gunapalanivel2003_9679.csv` before upload  |
 | Slide deck  | `docs/submission/deck.pdf`                                             |
 | Metadata    | Copy fields from `submission_metadata.yaml`                            |
 | Sandbox URL | `https://huggingface.co/spaces/gp5901/avera-ranker`                    |
