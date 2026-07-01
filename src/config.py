@@ -20,6 +20,11 @@ BEHAVIORAL_MODIFIER_MAX = 1.3
 # Tuned above sample P10 (~0.105) so gate drops weak heuristic profiles before batch embed
 SEMANTIC_MIN_HEURISTIC_SCORE = 0.11
 
+# Two-stage funnel: only embed the strongest heuristic candidates (candidate generation ->
+# semantic rerank). Generous default keeps the top-100 effectively unchanged while cutting
+# the encode workload from all survivors to K. Override with AVERA_SEMANTIC_RERANK_TOPK.
+SEMANTIC_RERANK_TOPK = int(os.environ.get("AVERA_SEMANTIC_RERANK_TOPK", "5000"))
+
 # Offline-friendly: set AVERA_SEMANTIC_MODEL to a local directory path after `make download-model`
 SEMANTIC_MODEL_NAME = os.environ.get("AVERA_SEMANTIC_MODEL", "all-MiniLM-L6-v2")
 
