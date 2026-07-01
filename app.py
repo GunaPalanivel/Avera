@@ -66,7 +66,12 @@ def rank_candidates(file_obj):
 def build_demo() -> gr.Blocks:
     with gr.Blocks(title="Avera Ranking Engine Sandbox") as demo:
         gr.Markdown(
-            "# Avera Ranking Engine Sandbox\nUpload a `.jsonl` candidate file. The engine scores deterministically and returns a ranked CSV (up to 100 rows). Fictional companies and honeypots are filtered — output may be fewer than upload rows."
+            "# Avera Ranking Engine Sandbox\n"
+            "Upload a `.jsonl` candidate file. The engine scores deterministically and returns a ranked CSV (up to 100 rows). "
+            "Fictional companies and honeypots are filtered, so output may be fewer than upload rows.\n\n"
+            "Note: this ranks only the rows you upload against the bundled JD. Shortlist quality reflects your slice. "
+            "An arbitrary slice with few real matches yields low scores and measured reasoning by design; the production "
+            "shortlist comes from the full 100K pool."
         )
         with gr.Row():
             file_in = gr.File(label="Upload candidates.jsonl", file_types=[".jsonl"])

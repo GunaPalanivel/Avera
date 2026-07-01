@@ -38,6 +38,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Fixed (unreleased)
 
 - `scripts/eval.py` honeypot lookup now resolves the exact ranked ids across the full pool instead of only the first 100 rows
+- Reasoning wording is now gated by absolute score (`STRONG_FIT_SCORE = 0.70`): a weak pool no longer yields an over-claimed "Top-tier" or "Strong match" top rank. Full-pool top-100 output is unchanged (all scores are well above the floor).
+- Sandbox UI notes that shortlist quality reflects the uploaded slice; the production shortlist comes from the full 100K pool.
 
 ### Added (foundation)
 
