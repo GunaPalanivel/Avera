@@ -32,11 +32,12 @@ ai_usage_summary: |
   Used Gemini and Claude/Cursor for architecture planning, review synthesis, scoring logic ideation, and code review. No candidate data was fed to any LLM.
 
 methodology_summary: |
-  Hybrid semantic & deterministic ranker using a dual-role approach (AI Engineer × DevOps). 
-  Stage 1 drops ~60% fictional companies. Stage 1.5 drops honeypot traps on the remainder. 
-  Stage 2 computes a base score across 5 features with seniority-aware weights (title/career, skills, experience, location, semantic). 
-  Semantic scoring uses batch-encoded sentence-transformers (all-MiniLM-L6-v2) behind a heuristic gate (min 0.11).
-  Stage 3 applies a multiplicative behavioral modifier (0.4×–1.3×). 
+  Hybrid semantic & deterministic ranker using a dual-role approach (AI Engineer × DevOps).
+  Stage 1 drops ~60% fictional companies. Stage 1.5 drops honeypot traps on the remainder.
+  Stage 2 computes a base score across 5 features with seniority-aware weights (title/career, skills, experience, location, semantic).
+  JD domain is detected (ai_ml, devops, generic) and the title and skill taxonomies branch accordingly, so non-AI/ML JDs rank on domain-appropriate signals.
+  Semantic scoring is a two-stage funnel: heuristic candidate generation, then sentence-transformers (all-MiniLM-L6-v2) rerank on the heuristic top-K only (default 5000), which cut a full 100K CPU run from about 43 minutes to about 6 minutes.
+  Stage 3 applies a multiplicative behavioral modifier (0.4x-1.3x) over response rate, recency, notice, interview/offer rates, GitHub, verifications, profile completeness, and recent applications.
   Full 100K run (CPU, semantic on): benchmark with `python scripts/eval.py --benchmark` after `make validate-full`.
   Generalization: `python scripts/test_generalization.py` runs the same pipeline on AI/ML and DevOps JD files with zero code edits.
   Outputs defusedcsv; sandbox via Docker and HuggingFace Spaces.

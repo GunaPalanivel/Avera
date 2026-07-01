@@ -8,6 +8,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Domain-branching taxonomy (ADR-17): `detect_domain`, `get_title_tiers`, `get_skill_taxonomy`, and DevOps title/skill tables so non-AI/ML JDs rank on domain-appropriate signals
+- Behavioral signal coverage: `profile_completeness_score` and `applications_submitted_30d` folded into the availability multiplier
+- Counterfactual notes on top-tier reasoning so rank 1-5 explanations are not uniformly positive
+- `AVERA_SEMANTIC_BATCH` and `AVERA_SEMANTIC_RERANK_TOPK` environment overrides
 - README blueprint: methodology, technical choices, system architecture, why Avera is built this way
 - Two-pass streaming pipeline: batch semantic prefill (`prefill_semantic_stream`) + single-pass rank
 - `scripts/eval.py` (honeypot rate, NDCG@10, optional `--benchmark`)
@@ -24,9 +28,16 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
-- Semantic gate tuned to `SEMANTIC_MIN_HEURISTIC_SCORE = 0.11` with batch encode (`batch_size=512`)
+- Semantic layer is now a two-stage funnel: heuristic candidate generation then semantic rerank on the heuristic top-K only (`SEMANTIC_RERANK_TOPK`, default 5000), cutting a full 100K CPU run from about 43 minutes to about 6 minutes
+- Semantic batch size default lowered to 128 and made configurable for host stability
+- Semantic scorer no longer encodes on-demand after prefill (funnel invariant)
+- Semantic gate tuned to `SEMANTIC_MIN_HEURISTIC_SCORE = 0.11`
 - Documentation synced across README, walkthrough, methodology, architecture, deck, ADR-003
 - Health check validates config import and JD must-have skills
+
+### Fixed (unreleased)
+
+- `scripts/eval.py` honeypot lookup now resolves the exact ranked ids across the full pool instead of only the first 100 rows
 
 ### Added (foundation)
 

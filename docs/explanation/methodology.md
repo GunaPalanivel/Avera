@@ -19,27 +19,29 @@ Skill synonyms (e.g. `vector database` → `vector db`, `faiss`) expand matching
 
 **Seniority-aware weights** — `get_scorer_weights(seniority_level)` in `src/config.py` shifts emphasis between title/career and skills for junior vs senior JDs. Behavioral scoring remains a separate multiplier in all profiles.
 
+**Domain branching (ADR-17)** — `detect_domain` classifies each JD as `ai_ml`, `devops`, or `generic` by keyword prevalence. `get_title_tiers(domain)` and `get_skill_taxonomy(domain)` then select the appropriate title tier table and skill taxonomy, so a DevOps or SRE JD ranks on infrastructure titles and skills rather than AI/ML ones. AI/ML remains the default, so existing AI/ML behavior is unchanged.
+
 ## 2. Feature Engineering & Weights
 
 Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a **multiplier** after the base sum.
 
 | Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                   |
 | ------------------------ | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| **Title & Career**       | 35%                    | AI/ML title tiers and product-company trajectory over title-chasers; consulting-only careers penalized per JD red flags.      |
+| **Title & Career**       | 35%                    | Domain-appropriate title tiers (AI/ML or DevOps) and product-company trajectory over title-chasers; consulting-only careers penalized per JD red flags. |
 | **Skills Credibility**   | 25%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                        |
 | **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, and `career_history` descriptions. |
 | **Experience Fit**       | 15%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                              |
 | **Location & Logistics** | 10%                    | Favors candidates in JD-named Indian cities.                                                                                  |
 | **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                         |
 
-### Semantic performance gate
+### Semantic performance gate and funnel
 
-MiniLM encoding is expensive at 100K scale. Avera uses a **two-pass stream**:
+MiniLM encoding is expensive at 100K scale. Avera uses a **two-stage funnel**:
 
-1. **Pass 1 — batch prefill** (`prefill_semantic_stream`): candidates whose heuristic score (title + skills + experience + location, no semantic) ≥ `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11**) are batch-encoded (`batch_size=512`) with an embedding cache.
-2. **Pass 2 — rank**: streaming single pass applies cached semantic vectors only to gate survivors; others receive semantic score `0.0`.
+1. **Pass 1 — heuristic candidate generation + prefill** (`prefill_semantic_stream`): every candidate is scored on the heuristic base (title + skills + experience + location, no semantic). Candidates clearing `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11**) are the survivor set; only the strongest **`SEMANTIC_RERANK_TOPK`** of them (default **5000**, deterministic selection) are batch-encoded. Batch size is configurable via `AVERA_SEMANTIC_BATCH` (default 128) for host stability.
+2. **Pass 2 — rank**: streaming single pass applies cached semantic vectors to the reranked top-K; everyone else receives semantic score `0.0`. After prefill the scorer never encodes on-demand (funnel invariant).
 
-This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on survivors — within CPU budget.
+This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top-K only. Encoding roughly 5000 documents instead of every survivor cuts a full 100K CPU run from about 43 minutes to about 6 minutes. A candidate below the heuristic top-K cannot realistically reach the final top-100 because semantic contributes at most 15% of the base score, so the shortlist is effectively unchanged. Raise `AVERA_SEMANTIC_RERANK_TOPK` to trade latency for recall margin.
 
 ## 3. Behavioral Multiplier
 
@@ -55,6 +57,8 @@ Behavioral signals answer: _is this candidate actually available and credible to
 | GitHub activity score ≥ 80               | Up-weight                     |
 | Search appearances / saved by recruiters | Mild up-weight                |
 | Email + phone + LinkedIn verified        | Mild up-weight                |
+| Profile completeness (≥ 90 / &lt; 40)    | Mild up-weight / down-weight  |
+| Applications submitted in 30d (1–20)     | Mild up-weight (active intent) |
 
 Clamped to `[0.4, 1.3]` via `BEHAVIORAL_MODIFIER_MIN/MAX` in `src/config.py`.
 
@@ -80,7 +84,7 @@ Reasoning is **deterministic** — no LLM in the output path (`src/reasoning.py`
 
 1. **Extract verified facts**: title, company, YOE, matched JD skills.
 2. **Rank-tier templates**:
-   - Ranks 1–5: top-tier framing; minor concerns if present.
+   - Ranks 1–5: top-tier framing; a minor concern when present, otherwise an explicit counterfactual ("trails a perfect match on N uncovered JD skills", "no GitHub signal to corroborate depth") so no top entry reads as uniformly positive.
    - Ranks 6–19: strong match with optional watch-items.
    - Ranks 20–49: solid/good-fit openers with explicit concerns.
    - Ranks 50–89: moderate/partial alignment with gap lists.
