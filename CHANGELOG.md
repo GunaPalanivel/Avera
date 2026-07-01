@@ -55,7 +55,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - CI pipeline: governance, lint, test, security, integration (bandit + pip-audit)
 - CI `integration` job: parse smoke after test and security
 - Determinism and perturbation tests; expanded `make validate`
-- GitHub issue templates: bug, phase work, chore
+- GitHub issue templates: bug, chore
 - `docs/getting-started.md` install and health check guide
 - Test coverage: path validation, models, parser guards, JD parser, logging, CLI
 

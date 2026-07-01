@@ -60,9 +60,15 @@ Behavioral signals answer: _is this candidate actually available and credible to
 | Profile completeness (≥ 90 / &lt; 40)    | Mild up-weight / down-weight  |
 | Applications submitted in 30d (1–20)     | Mild up-weight (active intent) |
 
+The applications bound is `1 <= applications_submitted_30d <= 20`: below 1 is passive, above 20 in 30 days signals spray-and-pray, so neither extreme earns the availability boost.
+
 Clamped to `[0.4, 1.3]` via `BEHAVIORAL_MODIFIER_MIN/MAX` in `src/config.py`.
 
 Recency calculations use `AVERA_REFERENCE_DATE` (default `2026-06-27`) for deterministic replay across environments.
+
+### Score scale
+
+The base score sums to `[0, 1]` (title/career 0.35 + skills 0.25 + semantic 0.15 + experience 0.15 + location 0.10, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
 
 ## 4. Honeypot Detection Engine
 

@@ -73,6 +73,13 @@ def write_submission(
     ws.append(headers)
 
     for rank_idx, (score, candidate, reasoning) in enumerate(results, start=1):
-        ws.append([candidate.candidate_id, rank_idx, f"{score:.4f}", reasoning])
+        ws.append(
+            [
+                sanitize_cell(candidate.candidate_id),
+                sanitize_cell(rank_idx),
+                sanitize_cell(f"{score:.4f}"),
+                sanitize_cell(reasoning),
+            ]
+        )
 
     wb.save(xlsx_path)

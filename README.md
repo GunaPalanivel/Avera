@@ -52,6 +52,8 @@ candidates.jsonl ──► stream ───────────────�
 5. **Behavioral multiplier** — Response rate, activity recency (`AVERA_REFERENCE_DATE`), notice period, interview/offer rates, GitHub score, verifications, profile completeness, recent applications — clamped to `[0.4, 1.3]`.
 6. **Explainable output** — Rank-tier reasoning in `src/reasoning.py`: top ranks highlight strengths; ranks 20–99 include verifiable concerns (skill gaps, low response rate, notice period). No LLM in the output path.
 
+**Score scale:** the base score is bounded to `[0, 1]` and the behavioral multiplier to `[0.4, 1.3]`, so the written `score` lies in `[0, 1.3]`. A score above 1.0 means a strong base fit lifted by strong availability signals; scores are a ranking order, not a percentage.
+
 **Evaluation hooks**
 
 ```bash
