@@ -15,6 +15,7 @@ from src.path_validation import validate_upload_filename
 REPO_ROOT = Path.cwd()
 SANDBOX_DIR = Path(os.environ.get("AVERA_SANDBOX_DIR", REPO_ROOT / ".sandbox"))
 SANDBOX_DIR.mkdir(parents=True, exist_ok=True)
+DEMO_FILE = REPO_ROOT / "DataSet" / "sample_candidates_demo.jsonl"
 
 
 def rank_candidates(file_obj):
@@ -83,6 +84,17 @@ def build_demo() -> gr.Blocks:
         )
         log_out = gr.Textbox(label="Execution log", lines=8)
         csv_out = gr.File(label="Download submission.csv")
+
+        if DEMO_FILE.exists():
+            gr.Markdown("Tip: click the bundled example below for a representative run on real strong candidates. An arbitrary slice scores low by design, so weak uploads are labelled honestly.")
+            gr.Examples(
+                examples=[[str(DEMO_FILE)]],
+                inputs=file_in,
+                outputs=[results_table, log_out, csv_out],
+                fn=rank_candidates,
+                cache_examples=False,
+                label="Example: curated strong candidates",
+            )
 
         rank_btn.click(
             fn=rank_candidates,
