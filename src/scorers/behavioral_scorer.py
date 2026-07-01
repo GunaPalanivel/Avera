@@ -66,7 +66,8 @@ class BehavioralScorer(BaseScorer):
         elif completeness < 40:
             modifier *= 0.9
 
-        # Recent applications signal active job-seeking intent (bounded, no linear reward for spam)
+        # Recent applications signal active job-seeking intent. Bounded 1-20: below 1 is passive,
+        # above 20 in 30 days signals spray-and-pray, so neither extreme earns the availability boost.
         if 1 <= sigs.applications_submitted_30d <= 20:
             modifier *= 1.05
 

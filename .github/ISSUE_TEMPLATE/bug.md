@@ -30,4 +30,4 @@ assignees: ""
 
 - [ ]
 
-**Labels:** `type:fix` + `area:*` + `phase:P*` (if applicable)
+**Labels:** `type:fix` + `area:*` + `domain:*` (if applicable)

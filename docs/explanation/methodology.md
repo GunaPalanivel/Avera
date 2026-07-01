@@ -29,7 +29,7 @@ Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a *
 | ------------------------ | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | **Title & Career**       | 35%                    | Domain-appropriate title tiers (AI/ML or DevOps) and product-company trajectory over title-chasers; consulting-only careers penalized per JD red flags. |
 | **Skills Credibility**   | 25%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                        |
-| **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, and `career_history` descriptions. |
+| **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. |
 | **Experience Fit**       | 15%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                              |
 | **Location & Logistics** | 10%                    | Favors candidates in JD-named Indian cities.                                                                                  |
 | **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                         |
@@ -60,9 +60,15 @@ Behavioral signals answer: _is this candidate actually available and credible to
 | Profile completeness (≥ 90 / &lt; 40)    | Mild up-weight / down-weight  |
 | Applications submitted in 30d (1–20)     | Mild up-weight (active intent) |
 
+The applications bound is `1 <= applications_submitted_30d <= 20`: below 1 is passive, above 20 in 30 days signals spray-and-pray, so neither extreme earns the availability boost.
+
 Clamped to `[0.4, 1.3]` via `BEHAVIORAL_MODIFIER_MIN/MAX` in `src/config.py`.
 
 Recency calculations use `AVERA_REFERENCE_DATE` (default `2026-06-27`) for deterministic replay across environments.
+
+### Score scale
+
+The base score sums to `[0, 1]` (title/career 0.35 + skills 0.25 + semantic 0.15 + experience 0.15 + location 0.10, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
 
 ## 4. Honeypot Detection Engine
 

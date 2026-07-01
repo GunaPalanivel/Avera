@@ -35,6 +35,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Documentation synced across README, walkthrough, methodology, architecture, deck, ADR-003
 - Health check validates config import and JD must-have skills
 
+### Reviewer fixes (unreleased)
+
+- Candidate skills are now included in the semantic embedding text so skill-dense, thin-narrative profiles are represented fairly
+- Bullet skill extraction allowlist broadened beyond DevOps (react, java, spark, sql, kafka, and more) so non-DevOps stacks are not silently dropped
+- Generic (non-AI/ML, non-DevOps) JDs now inject no title or skill taxonomy instead of falling back to AI/ML
+- Top-rank reasoning frames thin must-have coverage as intentional career-trajectory ranking aligned with the JD anti-keyword-stuffing guidance
+- XLSX output cells now pass through `sanitize_cell` (ADR-16 parity with the CSV path)
+- Score scale `[0, 1.3]` documented in README and methodology; behavioral applications bound justified
+- Real primary contact details in `submission_metadata.yaml`
+- Residual phase references removed from `.github/ISSUE_TEMPLATE/bug.md` and `CHANGELOG.md`
+
 ### Fixed (unreleased)
 
 - `scripts/eval.py` honeypot lookup now resolves the exact ranked ids across the full pool instead of only the first 100 rows
@@ -55,7 +66,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - CI pipeline: governance, lint, test, security, integration (bandit + pip-audit)
 - CI `integration` job: parse smoke after test and security
 - Determinism and perturbation tests; expanded `make validate`
-- GitHub issue templates: bug, phase work, chore
+- GitHub issue templates: bug, chore
 - `docs/getting-started.md` install and health check guide
 - Test coverage: path validation, models, parser guards, JD parser, logging, CLI
 

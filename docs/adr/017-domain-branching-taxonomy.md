@@ -19,7 +19,7 @@ Branch the domain-specific taxonomy by JD, keeping AI/ML as the default so exist
 - **Positive:** A DevOps/SRE JD now surfaces infrastructure titles in the shortlist (0 to 97 infra titles in a full-pool top-100 check).
 - **Positive:** Adding a new domain is a config table plus a keyword list, not a code change in the scorers.
 - **Positive:** AI/ML JDs resolve to `ai_ml` and use the existing tables, so the Track 1 shortlist is unchanged.
-- **Negative:** Domains beyond AI/ML and DevOps fall back to `generic` (AI/ML default tables) until a table is authored; this is honest partial coverage, not universal generalization.
+- **Neutral:** Domains beyond AI/ML and DevOps resolve to `generic`, which injects no title or skill taxonomy (`get_title_tiers("generic")` returns an empty table and `get_skill_taxonomy("generic")` returns empty sets). A generic JD therefore ranks on experience, location, semantic fit, and behavioral signals rather than borrowing AI/ML titles and skills. `TitleCareerScorer` distinguishes an explicit empty table (generic) from `None` (unspecified, defaults to AI/ML).
 
 ## Related
 

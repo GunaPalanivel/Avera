@@ -32,3 +32,12 @@ def test_jd_domain_detection():
 
     devops_req = load_job_requirements(Path("DataSet/job_description_devops.txt"))
     assert devops_req.domain == "devops"
+
+
+def test_generic_domain_injects_no_taxonomy():
+    from src.config import get_skill_taxonomy, get_title_tiers
+
+    must, nice = get_skill_taxonomy("generic")
+    assert must == frozenset()
+    assert nice == frozenset()
+    assert get_title_tiers("generic") == {}

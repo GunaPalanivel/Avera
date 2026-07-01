@@ -46,6 +46,10 @@ def _top_rank_counterfactual(candidate: CandidateModel, matched_skills: list[str
     sigs = candidate.redrob_signals
 
     if must_have_count and 0 < len(matched_skills) < must_have_count:
+        # Thin keyword coverage on a top pick is by design: the JD warns against keyword stuffing,
+        # so frame it as ranking on trajectory rather than apologizing for a low match count.
+        if len(matched_skills) * 2 < must_have_count:
+            return f"ranks on career trajectory and assessed depth over keyword coverage ({len(matched_skills)}/{must_have_count} listed must-haves), aligning with the JD anti-keyword-stuffing guidance"
         uncovered = must_have_count - len(matched_skills)
         return f"trails a perfect match on {uncovered} uncovered JD must-have skill(s)"
 

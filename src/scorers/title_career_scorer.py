@@ -6,7 +6,9 @@ from src.scorers.base import BaseScorer
 class TitleCareerScorer(BaseScorer):
     def __init__(self, weight: float, title_tiers: dict[str, float] | None = None):
         super().__init__(weight)
-        self.title_tiers = title_tiers if title_tiers else AI_TITLE_TIERS
+        # None means "caller did not specify" -> default to AI/ML. An explicit empty dict
+        # (generic domain) is respected as "no title-tier bias".
+        self.title_tiers = AI_TITLE_TIERS if title_tiers is None else title_tiers
 
     def score(self, candidate: CandidateModel) -> float:
         current_title = candidate.profile.current_title.lower()
