@@ -26,7 +26,7 @@ hf upload gp5901/avera-ranker space_deploy . --repo-type=space --commit-message 
 1. `python scripts/sync_space.py` mirrors the current code into `space_deploy/` (preserves the Space README frontmatter and runtime `requirements.txt`).
 2. `hf upload ... --repo-type=space` pushes it; the Space rebuilds automatically.
 3. Open https://huggingface.co/spaces/gp5901/avera-ranker
-4. Upload `tests/fixtures/sample.jsonl` (or a small JSONL slice).
+4. Click the bundled "curated strong candidates" example (or upload `DataSet/sample_candidates_demo.jsonl`) for a representative run; an arbitrary slice scores low by design.
 5. Confirm results table renders and **Download submission.csv** works.
 6. Optional checks: `hf spaces info gp5901/avera-ranker` and `hf spaces logs --build gp5901/avera-ranker`.
 7. Record date/time in your notes for Stage 5 defense.
