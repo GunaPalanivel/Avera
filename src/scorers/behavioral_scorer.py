@@ -60,4 +60,14 @@ class BehavioralScorer(BaseScorer):
         if sigs.verified_email and sigs.verified_phone and sigs.linkedin_connected:
             modifier *= 1.05
 
+        completeness = sigs.profile_completeness_score
+        if completeness >= 90:
+            modifier *= 1.05
+        elif completeness < 40:
+            modifier *= 0.9
+
+        # Recent applications signal active job-seeking intent (bounded, no linear reward for spam)
+        if 1 <= sigs.applications_submitted_30d <= 20:
+            modifier *= 1.05
+
         return max(BEHAVIORAL_MODIFIER_MIN, min(BEHAVIORAL_MODIFIER_MAX, modifier))

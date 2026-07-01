@@ -112,7 +112,25 @@ def test_behavioral_scorer():
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer.score(c)
-    assert abs(score - 1.273) < 0.01
+    # Base positives plus completeness (100) and active applications (1) push to the clamp ceiling
+    assert abs(score - 1.3) < 0.01
+
+
+def test_behavioral_scorer_completeness_and_applications():
+    scorer = BehavioralScorer(weight=1.0)
+
+    low = get_base_candidate()
+    low["redrob_signals"]["profile_completeness_score"] = 20
+    low["redrob_signals"]["applications_submitted_30d"] = 0
+    low_score = scorer.score(CandidateModel.model_validate(low))
+
+    high = get_base_candidate()
+    high["redrob_signals"]["profile_completeness_score"] = 95
+    high["redrob_signals"]["applications_submitted_30d"] = 5
+    high_score = scorer.score(CandidateModel.model_validate(high))
+
+    # A complete, actively-applying profile should never rank below a sparse, inactive one
+    assert high_score > low_score
 
 
 def test_experience_scorer():
