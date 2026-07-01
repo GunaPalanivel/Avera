@@ -25,14 +25,14 @@ Skill synonyms (e.g. `vector database` → `vector db`, `faiss`) expand matching
 
 Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a **multiplier** after the base sum.
 
-| Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                   |
-| ------------------------ | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                                             |
+| ------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Title & Career**       | 35%                    | Domain-appropriate title tiers (AI/ML or DevOps) and product-company trajectory over title-chasers; consulting-only careers penalized per JD red flags. |
-| **Skills Credibility**   | 25%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                        |
-| **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. |
-| **Experience Fit**       | 15%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                              |
-| **Location & Logistics** | 10%                    | Favors candidates in JD-named Indian cities.                                                                                  |
-| **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                         |
+| **Skills Credibility**   | 25%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                                                  |
+| **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills.                   |
+| **Experience Fit**       | 15%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                        |
+| **Location & Logistics** | 10%                    | Favors candidates in JD-named Indian cities.                                                                                                            |
+| **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                                                   |
 
 ### Semantic performance gate and funnel
 
@@ -47,17 +47,17 @@ This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top
 
 Behavioral signals answer: _is this candidate actually available and credible to recruiters?_ Factors (from `redrob_signals`):
 
-| Signal                                   | Effect                        |
-| ---------------------------------------- | ----------------------------- |
-| Recruiter response rate &lt; 5%          | Strong down-weight (ghosting) |
-| Last active &gt; 6 months ago            | Down-weight                   |
-| Notice period ≤ 30 days                  | Up-weight                     |
-| Interview completion rate                | Up/down by threshold          |
-| Offer acceptance rate                    | Up/down by threshold          |
-| GitHub activity score ≥ 80               | Up-weight                     |
-| Search appearances / saved by recruiters | Mild up-weight                |
-| Email + phone + LinkedIn verified        | Mild up-weight                |
-| Profile completeness (≥ 90 / &lt; 40)    | Mild up-weight / down-weight  |
+| Signal                                   | Effect                         |
+| ---------------------------------------- | ------------------------------ |
+| Recruiter response rate &lt; 5%          | Strong down-weight (ghosting)  |
+| Last active &gt; 6 months ago            | Down-weight                    |
+| Notice period ≤ 30 days                  | Up-weight                      |
+| Interview completion rate                | Up/down by threshold           |
+| Offer acceptance rate                    | Up/down by threshold           |
+| GitHub activity score ≥ 80               | Up-weight                      |
+| Search appearances / saved by recruiters | Mild up-weight                 |
+| Email + phone + LinkedIn verified        | Mild up-weight                 |
+| Profile completeness (≥ 90 / &lt; 40)    | Mild up-weight / down-weight   |
 | Applications submitted in 30d (1–20)     | Mild up-weight (active intent) |
 
 The applications bound is `1 <= applications_submitted_30d <= 20`: below 1 is passive, above 20 in 30 days signals spray-and-pray, so neither extreme earns the availability boost.
