@@ -5,7 +5,7 @@
 
 Avera is a **JD-parameterized candidate ranking engine** that evaluates 100,000 profiles on CPU and outputs an explainable top-100 shortlist. It combines hybrid semantic job understanding with deterministic constraints: `sentence-transformers` for contextual relevance, honeypot filters for adversarial traps, and behavioral signals for hireability — all without LLM calls in the ranking path.
 
-**Sandbox:** https://huggingface.co/spaces/gp5901/avera-ranker
+**Sandbox:** https://huggingface.co/spaces/gp5901/avera-ranker (click the bundled "curated strong candidates" example for a representative run)
 
 ## In plain terms
 

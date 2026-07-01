@@ -35,6 +35,10 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Documentation synced across README, walkthrough, methodology, architecture, deck, ADR-003
 - Health check validates config import and JD must-have skills
 
+### Added (unreleased)
+
+- Curated demo sample (`DataSet/sample_candidates_demo.jsonl`) built from real pool records, plus a one-click Gradio example, so the hosted sandbox shows a strong shortlist instead of a noisy arbitrary slice
+
 ### Reviewer fixes (unreleased)
 
 - Candidate skills are now included in the semantic embedding text so skill-dense, thin-narrative profiles are represented fairly

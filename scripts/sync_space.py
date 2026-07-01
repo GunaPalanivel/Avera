@@ -25,6 +25,7 @@ FILE_COPIES: tuple[tuple[str, str], ...] = (
     ("scripts/download_model.py", "scripts/download_model.py"),
     ("DataSet/job_description.txt", "DataSet/job_description.txt"),
     ("DataSet/job_description_devops.txt", "DataSet/job_description_devops.txt"),
+    ("DataSet/sample_candidates_demo.jsonl", "DataSet/sample_candidates_demo.jsonl"),
 )
 
 RUNTIME_REQUIREMENTS = "pydantic>=2.9,<3\ndefusedcsv>=2.0.0\ngradio>=5.0.0\nopenpyxl>=3.1.0\nsentence-transformers>=3.0.0\ntorch>=2.4.0\n"
