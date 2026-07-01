@@ -2,6 +2,11 @@
 
 from src.models import CandidateModel
 
+# Superlative tier language ("Top-tier", "Strong match") is only honest above this absolute
+# score. Below it, wording stays measured even at a low rank, so a weak pool never yields an
+# over-claimed rank 1. Real full-pool top-100 scores sit well above this (min ~0.80).
+STRONG_FIT_SCORE = 0.70
+
 
 def _concern_fragments(candidate: CandidateModel, matched_skills: list[str], rank_index: int) -> list[str]:
     """Verifiable weaknesses drawn only from parsed profile/signals."""
@@ -82,13 +87,20 @@ def generate_reasoning(
     matched_skills: list[str],
     *,
     must_have_count: int = 0,
+    score: float = 1.0,
 ) -> str:
     """
     Rank-aware reasoning with honest concerns for mid/low ranks.
     Avoids hallucinations by sticking to parsed data only.
+    Wording is also gated by absolute ``score`` so a weak pool never produces an over-claimed top rank.
     """
     strength = _strength_line(candidate, matched_skills)
     concerns = _concern_fragments(candidate, matched_skills, rank_index)
+
+    # Weak absolute fit: stay measured regardless of rank position (avoids "Top-tier" on a poor pool)
+    if score < STRONG_FIT_SCORE:
+        gaps = concerns or ["weak overlap with JD must-have skills"]
+        return f"Best available in this pool but weak absolute fit: {strength}. Gaps: {'; '.join(gaps)}."
 
     if rank_index < 5:
         extra = "Top-tier composite score across career, skills, and availability."

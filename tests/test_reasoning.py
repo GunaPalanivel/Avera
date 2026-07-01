@@ -18,6 +18,21 @@ def test_reasoning_top_rank_has_counterfactual():
     assert "Counterfactual:" in text or "Minor note:" in text
 
 
+def test_reasoning_weak_score_not_overclaimed():
+    c = CandidateModel.model_validate(get_base_candidate())
+    # A low absolute score at rank 1 must not be framed as "Top-tier" / "Strong match"
+    text = generate_reasoning(c, rank_index=0, matched_skills=["Python"], must_have_count=20, score=0.42)
+    assert "Top-tier" not in text
+    assert "Strong match" not in text
+    assert "weak absolute fit" in text.lower()
+
+
+def test_reasoning_strong_score_keeps_top_tier():
+    c = CandidateModel.model_validate(get_base_candidate())
+    text = generate_reasoning(c, rank_index=0, matched_skills=["Python", "Pinecone"], must_have_count=2, score=0.95)
+    assert "Rank 1:" in text
+
+
 def test_reasoning_borderline_tone():
     c = CandidateModel.model_validate(get_base_candidate())
     text = generate_reasoning(c, rank_index=95, matched_skills=[])

@@ -156,6 +156,7 @@ class Ranker:
                 rank_idx,
                 matched_skills,
                 must_have_count=must_have_count,
+                score=score,
             )
             results.append((score, candidate, reasoning))
 
