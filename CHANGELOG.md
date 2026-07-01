@@ -48,6 +48,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Fixed (unreleased)
 
+- Bullet skill extraction now matches tokens on word boundaries, so common substrings (`go` in "going"/"Google", `rust` in "trust") no longer leak into must-have skills and falsely match candidate skills like `MongoDB`, `Django`, or `Go`
 - `scripts/eval.py` honeypot lookup now resolves the exact ranked ids across the full pool instead of only the first 100 rows
 - Reasoning wording is now gated by absolute score (`STRONG_FIT_SCORE = 0.70`): a weak pool no longer yields an over-claimed "Top-tier" or "Strong match" top rank. Full-pool top-100 output is unchanged (all scores are well above the floor).
 - Sandbox UI notes that shortlist quality reflects the uploaded slice; the production shortlist comes from the full 100K pool.
