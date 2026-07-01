@@ -41,10 +41,12 @@ def honeypot_rate_in_submission(submission_csv: Path, candidates_path: Path) -> 
         for row in reader:
             ranked_ids.append(row["candidate_id"])
 
+    wanted = set(ranked_ids)
     by_id: dict[str, CandidateModel] = {}
     for cand in stream_candidates(candidates_path):
-        by_id[cand.candidate_id] = cand
-        if len(by_id) >= max(len(ranked_ids), 100):
+        if cand.candidate_id in wanted:
+            by_id[cand.candidate_id] = cand
+        if len(by_id) >= len(wanted):
             break
 
     traps = 0
