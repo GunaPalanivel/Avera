@@ -39,3 +39,10 @@ def test_semantic_scorer_empty_jd_returns_zero():
     scorer = SemanticScorer(weight=0.15, jd_text="")
     c = CandidateModel.model_validate(get_base_candidate())
     assert scorer.score(c) == 0.0
+
+
+def test_build_candidate_text_includes_skills():
+    c = CandidateModel.model_validate(get_base_candidate())
+    text = SemanticScorer.build_candidate_text(c)
+    for skill in c.skills:
+        assert skill.name in text

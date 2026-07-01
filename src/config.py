@@ -182,16 +182,20 @@ def detect_domain(text_lower: str) -> str:
 
 
 def get_title_tiers(domain: str) -> dict[str, float]:
-    """Title tier table for the JD domain; AI/ML remains the default."""
+    """Title tier table for the JD domain. Generic JDs get no title-tier bias (empty table)."""
     if domain == "devops":
         return DEVOPS_TITLE_TIERS
+    if domain == "generic":
+        return {}
     return AI_TITLE_TIERS
 
 
 def get_skill_taxonomy(domain: str) -> tuple[frozenset[str], frozenset[str]]:
-    """Return (must, nice) skill taxonomies for the JD domain."""
+    """Return (must, nice) skill taxonomies for the JD domain. Generic JDs inject no taxonomy."""
     if domain == "devops":
         return DEVOPS_SKILL_TAXONOMY_MUST, DEVOPS_SKILL_TAXONOMY_NICE
+    if domain == "generic":
+        return frozenset(), frozenset()
     return SKILL_TAXONOMY_MUST, SKILL_TAXONOMY_NICE
 
 

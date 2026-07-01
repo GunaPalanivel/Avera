@@ -33,6 +33,14 @@ def test_reasoning_strong_score_keeps_top_tier():
     assert "Rank 1:" in text
 
 
+def test_reasoning_thin_coverage_top_rank_frames_as_trajectory():
+    c = CandidateModel.model_validate(get_base_candidate())
+    # 3 of 20 must-haves matched at a strong score -> career-trajectory framing, not apology
+    text = generate_reasoning(c, rank_index=0, matched_skills=["Python", "Pinecone", "NLP"], must_have_count=20, score=0.95)
+    assert "career trajectory" in text
+    assert "trails a perfect match" not in text
+
+
 def test_reasoning_borderline_tone():
     c = CandidateModel.model_validate(get_base_candidate())
     text = generate_reasoning(c, rank_index=95, matched_skills=[])

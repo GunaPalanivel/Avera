@@ -82,17 +82,33 @@ def _taxonomy_skills(text_lower: str, domain: str) -> tuple[tuple[str, ...], tup
 
 def _bullet_skills(text: str) -> set[str]:
     found: set[str] = set()
+    # Curated allowlist so bullet extraction captures common stacks beyond DevOps without
+    # injecting arbitrary bullet text as fake must-have skills.
     tech_tokens = (
         "docker",
         "kubernetes",
         "terraform",
         "aws",
+        "gcp",
+        "azure",
         "prometheus",
         "grafana",
         "python",
         "linux",
         "jenkins",
         "gitlab",
+        "java",
+        "scala",
+        "go",
+        "rust",
+        "react",
+        "node",
+        "spring",
+        "spark",
+        "kafka",
+        "sql",
+        "pytorch",
+        "tensorflow",
     )
     text_lower = text.lower()
     for token in tech_tokens:

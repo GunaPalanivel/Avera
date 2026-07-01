@@ -54,6 +54,11 @@ class SemanticScorer(BaseScorer):
         for job in candidate.career_history:
             if job.description:
                 parts.append(job.description)
+        # Skills are the highest-signal field; include them so a thin-narrative but skilled
+        # candidate is not under-represented in the embedding versus verbose job descriptions.
+        skill_names = " ".join(s.name for s in candidate.skills)
+        if skill_names:
+            parts.append(skill_names)
         return " ".join(parts)
 
     def prefill_batch(self, candidates: list[tuple[str, CandidateModel]]) -> int:
