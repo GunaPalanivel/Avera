@@ -7,6 +7,27 @@ Avera is a **JD-parameterized candidate ranking engine** that evaluates 100,000 
 
 **Sandbox:** https://huggingface.co/spaces/gp5901/avera-ranker
 
+## In plain terms
+
+Avera is a tireless expert recruiter that reads every single application properly and hands you a ranked shortlist of the best people for a role, in minutes instead of weeks.
+
+**The problem it solves:** a job post can draw thousands of applicants. Keyword filters ("show everyone who typed Python") reward people who stuff their profile with the right words and miss genuinely strong people who described their work differently. A human recruiter catches the nuance but cannot read 100,000 profiles. Avera does.
+
+**What it does:** you give it a job description and a pile of applicants; it returns a ranked top-100 with a plain-English reason for each placement.
+
+**How it works, in everyday terms:**
+
+| Step | What Avera does | Everyday analogy |
+| ---- | --------------- | ---------------- |
+| 1. Read the job | Understands what the role really needs, not just the buzzwords | Reads the job ad and grasps the intent |
+| 2. Drop the fakes | Removes fake companies and too-good-to-be-true profiles | Spots padded and dishonest resumes |
+| 3. Judge real fit | Weighs career history, real skills, experience, and location, reading the career story not just the keyword list | Reads between the lines like a seasoned recruiter |
+| 4. Check availability | Down-ranks people who never reply to recruiters, went quiet for months, or have a long notice period | Focuses on who you can actually hire now |
+
+**How any company uses it:** it is a reusable engine, not built for one company or one job. Point it at any job description and it adapts. Use the try-it web page for a quick look, or the automated pipeline for the full applicant pool. Standard applicant data goes in; a standard ranked spreadsheet comes out, alongside whatever hiring tools you already use.
+
+**Trust and limits:** every ranking is explained from the person's real profile, it never uses gender, age, or ethnicity, and it is honest when a pool is weak. It supports a hiring decision; a person still makes the final call.
+
 ## Why Avera is built this way
 
 Redrob's Track 1 challenge is not a keyword-matching exercise. The job description explicitly warns that **skill-list density is a trap** — the dataset embeds honeypots (marketing managers with perfect ML skills, fictional companies, behavioral ghosts). Judges evaluate **judgment and operability**, not embedding novelty alone.
@@ -65,17 +86,17 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 
 ## Technical choices
 
-| Choice                              | Rationale                                                                      | Rejected alternative                                                     |
-| ----------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
-| **Hybrid semantic + deterministic** | Career narrative fit (embeddings) + bounded JD constraints (rules)             | Pure BM25/keywords → honeypot traps; end-to-end LLM → unverifiable, slow |
-| **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                | Larger cross-encoders → latency budget on 100K                           |
+| Choice                              | Rationale                                                                                           | Rejected alternative                                                     |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **Hybrid semantic + deterministic** | Career narrative fit (embeddings) + bounded JD constraints (rules)                                  | Pure BM25/keywords → honeypot traps; end-to-end LLM → unverifiable, slow |
+| **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                                     | Larger cross-encoders → latency budget on 100K                           |
 | **Two-stage funnel**                | Heuristic candidate generation then MiniLM rerank on the top-K only — keeps 100K CPU runs tractable | Encode every survivor → ~7× slower with no material top-100 change       |
-| **Behavioral multiplier**           | Availability is hireability, not another additive feature                      | Additive behavioral score → ghosts outrank available candidates          |
-| **Pydantic ingestion boundary**     | One bad field cannot crash a 100K run                                          | Raw dict access → minute-4 `TypeError`                                   |
-| **defusedcsv output**               | OWASP A03 formula injection when judges open CSV in Excel                      | Standard `csv` writer                                                    |
-| **Structured JSON logging**         | `trace_id`, `latency_ms`, `prefill_ms` for ops/debug                           | `print()` — unsearchable at scale                                        |
-| **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                            | Runtime HuggingFace download — flaky in sandbox                          |
-| **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                       | Hope-based correctness                                                   |
+| **Behavioral multiplier**           | Availability is hireability, not another additive feature                                           | Additive behavioral score → ghosts outrank available candidates          |
+| **Pydantic ingestion boundary**     | One bad field cannot crash a 100K run                                                               | Raw dict access → minute-4 `TypeError`                                   |
+| **defusedcsv output**               | OWASP A03 formula injection when judges open CSV in Excel                                           | Standard `csv` writer                                                    |
+| **Structured JSON logging**         | `trace_id`, `latency_ms`, `prefill_ms` for ops/debug                                                | `print()` — unsearchable at scale                                        |
+| **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                                                 | Runtime HuggingFace download — flaky in sandbox                          |
+| **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                                            | Hope-based correctness                                                   |
 
 ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md)
 
@@ -106,44 +127,44 @@ Full architecture: [docs/explanation/architecture.md](docs/explanation/architect
 
 ## System capabilities
 
-| Capability                 | Description                                                                                                                 |
-| -------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **O(N log K) min-heap**    | Processes 100K records in `O(K)` memory, never loading the entire scored list.                                             |
+| Capability                 | Description                                                                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| **O(N log K) min-heap**    | Processes 100K records in `O(K)` memory, never loading the entire scored list.                                                       |
 | **Deep job understanding** | JD parser (skills, cities, seniority, domain) + MiniLM semantic fit on headline, summary, `career_history` descriptions, and skills. |
-| **Two-stage funnel**       | Heuristic candidate generation, then MiniLM rerank on the heuristic top-K only (`SEMANTIC_RERANK_TOPK`).                    |
-| **Defensive boundary**     | Pydantic enforces schema at ingestion, coercing sentinel `-1` values and skipping malformed rows without crashing the run. |
-| **Honeypot detection**     | 4-method detector + fictional-company pre-filter catches impossible timelines, unverified generalists, and ghost profiles. |
-| **Explainable output**     | Deterministic, score-aware rank-tier reasoning via `src/reasoning.py` — no LLM in the output path.                         |
-| **Security hardened**      | `defusedcsv` and `sanitize_cell` on CSV and XLSX prevent OWASP A03 formula injection; path validation; PII-safe logs.      |
-| **Output canary (ADR-16)** | Exactly 100 unique IDs, subset of the input pool, validated before write.                                                  |
+| **Two-stage funnel**       | Heuristic candidate generation, then MiniLM rerank on the heuristic top-K only (`SEMANTIC_RERANK_TOPK`).                             |
+| **Defensive boundary**     | Pydantic enforces schema at ingestion, coercing sentinel `-1` values and skipping malformed rows without crashing the run.           |
+| **Honeypot detection**     | 4-method detector + fictional-company pre-filter catches impossible timelines, unverified generalists, and ghost profiles.           |
+| **Explainable output**     | Deterministic, score-aware rank-tier reasoning via `src/reasoning.py` — no LLM in the output path.                                   |
+| **Security hardened**      | `defusedcsv` and `sanitize_cell` on CSV and XLSX prevent OWASP A03 formula injection; path validation; PII-safe logs.                |
+| **Output canary (ADR-16)** | Exactly 100 unique IDs, subset of the input pool, validated before write.                                                            |
 
 ## Documentation (Diátaxis Framework)
 
 Full index: **[docs/README.md](docs/README.md)**
 
-| Document                                                                | Description                                                           |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Getting started](docs/getting-started.md)                              | Install, health check, smoke rank, validation                         |
-| [Walkthrough & portal checklist](docs/submission/walkthrough.md)        | Reproduction, sandbox, submission artifacts                           |
-| [Portal checklist](docs/submission/portal_checklist.md)                 | Hack2skill + HF Space manual steps                                    |
-| [Slide deck (PDF)](docs/submission/deck.pdf)                            | Portal deck — regenerate with `make export-pdf`                       |
-| [System Architecture](docs/explanation/architecture.md)                 | Pipeline, ADRs, exception hierarchy                                   |
-| [Scoring Methodology](docs/explanation/methodology.md)                  | Hybrid semantic + heuristic weights, honeypots, behavioral multiplier |
-| [SRE Day-2 Runbook](docs/how-to/runbook.md)                             | Local execution, offline model, Docker, troubleshooting               |
-| [ADR 003: Semantic Hybrid Layer](docs/adr/003-semantic-hybrid-layer.md) | Why embeddings sit alongside deterministic scorers                    |
-| [ADR 017: Domain-Branching Taxonomy](docs/adr/017-domain-branching-taxonomy.md) | Per-domain title/skill tables (AI/ML, DevOps, generic)      |
+| Document                                                                        | Description                                                           |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| [Getting started](docs/getting-started.md)                                      | Install, health check, smoke rank, validation                         |
+| [Walkthrough & portal checklist](docs/submission/walkthrough.md)                | Reproduction, sandbox, submission artifacts                           |
+| [Portal checklist](docs/submission/portal_checklist.md)                         | Hack2skill + HF Space manual steps                                    |
+| [Slide deck (PDF)](docs/submission/deck.pdf)                                    | Portal deck — regenerate with `make export-pdf`                       |
+| [System Architecture](docs/explanation/architecture.md)                         | Pipeline, ADRs, exception hierarchy                                   |
+| [Scoring Methodology](docs/explanation/methodology.md)                          | Hybrid semantic + heuristic weights, honeypots, behavioral multiplier |
+| [SRE Day-2 Runbook](docs/how-to/runbook.md)                                     | Local execution, offline model, Docker, troubleshooting               |
+| [ADR 003: Semantic Hybrid Layer](docs/adr/003-semantic-hybrid-layer.md)         | Why embeddings sit alongside deterministic scorers                    |
+| [ADR 017: Domain-Branching Taxonomy](docs/adr/017-domain-branching-taxonomy.md) | Per-domain title/skill tables (AI/ML, DevOps, generic)                |
 
 ## How Avera Meets Track 1 (Intelligent Candidate Discovery)
 
 Redrob's challenge JD is explicit: **keyword matching is a trap**. The dataset contains honeypots with perfect AI skill lists and non-technical titles. Avera is built to match what the JD _means_, not what a substring search returns.
 
-| JD signal                          | Avera response                                                                                                     |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Career trajectory over skill lists | Title & career scorer (35%) + semantic fit on headline, summary, `career_history` descriptions, and skills (15%)   |
+| JD signal                          | Avera response                                                                                                                                                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Career trajectory over skill lists | Title & career scorer (35%) + semantic fit on headline, summary, `career_history` descriptions, and skills (15%)                                              |
 | Behavioral availability            | Multiplicative modifier (0.4×–1.3×) on response rate, activity, notice period, interview/offer rates, GitHub score, profile completeness, recent applications |
-| Honeypot traps                     | Fictional-company pre-filter + 4-method honeypot detector before scoring                                           |
-| Explainable reasoning              | Deterministic `src/reasoning.py` — rank-tier templates with honest concerns for mid/low ranks                      |
-| India-scale throughput             | O(N log K) min-heap, two-pass streaming ingest, structured JSON logs with `trace_id` / `latency_ms`                |
+| Honeypot traps                     | Fictional-company pre-filter + 4-method honeypot detector before scoring                                                                                      |
+| Explainable reasoning              | Deterministic `src/reasoning.py` — rank-tier templates with honest concerns for mid/low ranks                                                                 |
+| India-scale throughput             | O(N log K) min-heap, two-pass streaming ingest, structured JSON logs with `trace_id` / `latency_ms`                                                           |
 
 Scorer weights are centralized in `src/config.py` (`get_scorer_weights` by JD seniority) and validated at import. The JD parser extracts must-have skills, title keywords, seniority, and target cities from any `job_description.txt`; semantic similarity uses the full JD text block.
 
@@ -153,12 +174,12 @@ Scorer weights are centralized in `src/config.py` (`get_scorer_weights` by JD se
 python scripts/test_generalization.py   # bundled AI/ML JD + DevOps alt JD on same fixture
 ```
 
-| What generalizes                                          | What is still a curated taxonomy                          |
-| --------------------------------------------------------- | -------------------------------------------------------- |
-| Semantic cosine similarity on full JD text                | Per-domain skill taxonomy lists in `config.py`           |
-| City catalog, seniority-based weights                     | Title tier tables (AI/ML and DevOps today)               |
-| Domain detection + branching title/skill tables           | Experience scorer keyword heuristics                     |
-| Honeypot + fictional filters (dataset constants)          | New domains beyond AI/ML and DevOps fall back to generic |
+| What generalizes                                 | What is still a curated taxonomy                         |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| Semantic cosine similarity on full JD text       | Per-domain skill taxonomy lists in `config.py`           |
+| City catalog, seniority-based weights            | Title tier tables (AI/ML and DevOps today)               |
+| Domain detection + branching title/skill tables  | Experience scorer keyword heuristics                     |
+| Honeypot + fictional filters (dataset constants) | New domains beyond AI/ML and DevOps fall back to generic |
 
 A DevOps/SRE JD now surfaces infrastructure titles in the shortlist (0 → 97 infra titles in a full-pool top-100 check) via `detect_domain` + `get_title_tiers`/`get_skill_taxonomy`; adding a new domain is a config table, not a code change.
 
@@ -198,7 +219,7 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 | `AVERA_SEMANTIC_MODEL=/path/to/model` | Local MiniLM directory for air-gapped ranking (`has_network_during_ranking: false`) |
 | `AVERA_REFERENCE_DATE`                | Fixed reference date for behavioral recency (default `2026-06-27`)                  |
 | `AVERA_SEMANTIC_RERANK_TOPK`          | Number of heuristic-top candidates to semantically rerank (default `5000`)          |
-| `AVERA_SEMANTIC_BATCH`                | MiniLM encode batch size for host stability (default `128`)                          |
+| `AVERA_SEMANTIC_BATCH`                | MiniLM encode batch size for host stability (default `128`)                         |
 
 ## Submission artifacts
 
