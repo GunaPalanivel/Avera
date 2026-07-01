@@ -4,13 +4,17 @@ from src.scorers.base import BaseScorer
 
 
 class TitleCareerScorer(BaseScorer):
+    def __init__(self, weight: float, title_tiers: dict[str, float] | None = None):
+        super().__init__(weight)
+        self.title_tiers = title_tiers if title_tiers else AI_TITLE_TIERS
+
     def score(self, candidate: CandidateModel) -> float:
         current_title = candidate.profile.current_title.lower()
 
         title_score = 0.0
         if "junior" not in current_title:
             best_tier = 0.0
-            for tier_title, tier_val in sorted(AI_TITLE_TIERS.items(), key=lambda x: len(x[0]), reverse=True):
+            for tier_title, tier_val in sorted(self.title_tiers.items(), key=lambda x: len(x[0]), reverse=True):
                 if tier_title in current_title:
                     best_tier = max(best_tier, tier_val)
             title_score = best_tier * 0.5

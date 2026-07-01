@@ -6,9 +6,9 @@ from pathlib import Path
 
 from src.config import (
     JD_CITY_CATALOG,
-    SKILL_TAXONOMY_MUST,
-    SKILL_TAXONOMY_NICE,
     TITLE_KEYWORDS_DEFAULT,
+    detect_domain,
+    get_skill_taxonomy,
 )
 
 _SENIORITY_PATTERNS: tuple[tuple[str, str], ...] = (
@@ -38,6 +38,7 @@ class JobRequirements:
     target_cities: tuple[str, ...]
     red_flags: tuple[str, ...]
     seniority_level: str = "senior"
+    domain: str = "ai_ml"
 
 
 def _detect_seniority(text_lower: str) -> str:
@@ -72,15 +73,10 @@ def _extract_title_keywords(text: str, text_lower: str) -> tuple[str, ...]:
     return tuple(sorted(keywords)) if keywords else TITLE_KEYWORDS_DEFAULT
 
 
-def _section_flags(text_lower: str) -> tuple[bool, bool]:
-    must_ctx = bool(re.search(r"(must\s*have|required|mandatory|minimum\s*qualifications)", text_lower))
-    nice_ctx = bool(re.search(r"(nice\s*to\s*have|preferred|bonus|good\s*to\s*have)", text_lower))
-    return must_ctx, nice_ctx
-
-
-def _taxonomy_skills(text_lower: str, _must_ctx: bool, _nice_ctx: bool) -> tuple[tuple[str, ...], tuple[str, ...]]:
-    must = {sk for sk in SKILL_TAXONOMY_MUST if sk in text_lower}
-    nice = {sk for sk in SKILL_TAXONOMY_NICE if sk in text_lower}
+def _taxonomy_skills(text_lower: str, domain: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    must_taxonomy, nice_taxonomy = get_skill_taxonomy(domain)
+    must = {sk for sk in must_taxonomy if sk in text_lower}
+    nice = {sk for sk in nice_taxonomy if sk in text_lower}
     return tuple(sorted(must)), tuple(sorted(nice))
 
 
@@ -121,8 +117,8 @@ def load_job_requirements(jd_path: Path | str | None = None) -> JobRequirements:
 
     text_lower = text.lower()
     seniority = _detect_seniority(text_lower)
-    must_ctx, nice_ctx = _section_flags(text_lower)
-    must_have, nice_to_have = _taxonomy_skills(text_lower, must_ctx, nice_ctx)
+    domain = detect_domain(text_lower)
+    must_have, nice_to_have = _taxonomy_skills(text_lower, domain)
 
     bullet = _bullet_skills(text)
     if bullet:
@@ -139,4 +135,5 @@ def load_job_requirements(jd_path: Path | str | None = None) -> JobRequirements:
         target_cities=target_cities,
         red_flags=("fictional", "consulting only"),
         seniority_level=seniority,
+        domain=domain,
     )

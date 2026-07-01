@@ -36,6 +36,30 @@ def _concern_fragments(candidate: CandidateModel, matched_skills: list[str], ran
     return concerns[:3]
 
 
+def _top_rank_counterfactual(candidate: CandidateModel, matched_skills: list[str], must_have_count: int) -> str:
+    """Data-derived 'why not perfect' note so top ranks are not uniformly positive."""
+    sigs = candidate.redrob_signals
+
+    if must_have_count and 0 < len(matched_skills) < must_have_count:
+        uncovered = must_have_count - len(matched_skills)
+        return f"trails a perfect match on {uncovered} uncovered JD must-have skill(s)"
+
+    notice = sigs.notice_period_days
+    if 30 < notice <= 60:
+        return f"{notice}-day notice keeps this below the immediate-start tier"
+
+    if 0.20 <= sigs.recruiter_response_rate < 0.50:
+        return f"recruiter response rate {sigs.recruiter_response_rate:.0%} is mid-band, not elite"
+
+    if sigs.github_activity_score is None:
+        return "no GitHub activity signal to corroborate hands-on depth"
+
+    if notice > 0:
+        return f"{notice}-day notice is the main lever versus an instant-join peer"
+
+    return "separation from the next ranks is narrow on secondary signals"
+
+
 def _strength_line(candidate: CandidateModel, matched_skills: list[str]) -> str:
     top_skills = sorted(candidate.skills, key=lambda s: s.duration_months or 0, reverse=True)
     skill_names = [s.name for s in top_skills]
@@ -70,7 +94,8 @@ def generate_reasoning(
         extra = "Top-tier composite score across career, skills, and availability."
         if concerns:
             return f"Rank {rank_index + 1}: {strength}. {extra} Minor note: {'; '.join(concerns)}."
-        return f"Rank {rank_index + 1}: {strength}. {extra}"
+        counterfactual = _top_rank_counterfactual(candidate, matched_skills, must_have_count)
+        return f"Rank {rank_index + 1}: {strength}. {extra} Counterfactual: {counterfactual}."
 
     if rank_index < 20:
         concern_txt = f" Watch: {'; '.join(concerns)}." if concerns else ""

@@ -24,3 +24,11 @@ def test_devops_jd_extracts_infra_skills():
     assert "devops" in req.title_keywords
     assert "kubernetes" in req.title_keywords or "aws" in req.title_keywords
     assert req.seniority_level == "senior"
+
+
+def test_jd_domain_detection():
+    ai_req = load_job_requirements(Path("DataSet/job_description.txt"))
+    assert ai_req.domain == "ai_ml"
+
+    devops_req = load_job_requirements(Path("DataSet/job_description_devops.txt"))
+    assert devops_req.domain == "devops"

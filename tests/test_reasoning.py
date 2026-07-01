@@ -11,6 +11,13 @@ def test_reasoning_top_five_tone():
     assert "Strong fit" not in text
 
 
+def test_reasoning_top_rank_has_counterfactual():
+    c = CandidateModel.model_validate(get_base_candidate())
+    # Full coverage, clean signals -> no hard concern, so a counterfactual must still appear
+    text = generate_reasoning(c, rank_index=0, matched_skills=["Python", "Pinecone"], must_have_count=2)
+    assert "Counterfactual:" in text or "Minor note:" in text
+
+
 def test_reasoning_borderline_tone():
     c = CandidateModel.model_validate(get_base_candidate())
     text = generate_reasoning(c, rank_index=95, matched_skills=[])

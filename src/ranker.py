@@ -2,7 +2,14 @@ import heapq
 import time
 from collections.abc import Iterable
 
-from src.config import FICTIONAL_COMPANIES, SEMANTIC_MIN_HEURISTIC_SCORE, expand_skill_keyword, get_scorer_weights
+from src.config import (
+    FICTIONAL_COMPANIES,
+    SEMANTIC_MIN_HEURISTIC_SCORE,
+    SEMANTIC_RERANK_TOPK,
+    expand_skill_keyword,
+    get_scorer_weights,
+    get_title_tiers,
+)
 from src.detectors.honeypot_detector import is_honeypot
 from src.models import CandidateModel
 from src.output_writer import EXPECTED_SUBMISSION_ROWS
@@ -21,7 +28,7 @@ class Ranker:
         self.job_reqs = job_reqs
         weights = get_scorer_weights(job_reqs.seniority_level)
         self.scorers = [
-            TitleCareerScorer(weight=weights["title_career"]),
+            TitleCareerScorer(weight=weights["title_career"], title_tiers=get_title_tiers(job_reqs.domain)),
             SkillsScorer(
                 weight=weights["skills"],
                 must_have=job_reqs.must_have_skills,
@@ -50,21 +57,28 @@ class Ranker:
         return total
 
     def prefill_semantic_stream(self, candidates: Iterable[CandidateModel]) -> int:
-        """First pass: batch-encode semantic scores for candidates clearing the heuristic gate."""
+        """First pass of the funnel: heuristic candidate generation, then embed the top-K only."""
         semantic_scorer = self._semantic_scorer()
         if semantic_scorer is None:
             return 0
 
-        queue: list[tuple[str, CandidateModel]] = []
+        survivors: list[tuple[float, str, CandidateModel]] = []
         for candidate in candidates:
             if candidate.profile.current_company in FICTIONAL_COMPANIES:
                 continue
             if is_honeypot(candidate):
                 continue
-            if self._heuristic_score(candidate) >= SEMANTIC_MIN_HEURISTIC_SCORE:
-                queue.append((candidate.candidate_id, candidate))
+            heuristic = self._heuristic_score(candidate)
+            if heuristic >= SEMANTIC_MIN_HEURISTIC_SCORE:
+                survivors.append((heuristic, candidate.candidate_id, candidate))
 
-        return semantic_scorer.prefill_batch(queue)
+        # Deterministic selection of the strongest heuristic candidates for semantic rerank
+        top_k = heapq.nlargest(SEMANTIC_RERANK_TOPK, survivors, key=lambda item: (item[0], item[1]))
+        queue = [(cid, candidate) for _heuristic, cid, candidate in top_k]
+
+        encoded = semantic_scorer.prefill_batch(queue)
+        semantic_scorer.mark_prefill_complete()
+        return encoded
 
     def _matched_skill_names(self, candidate: CandidateModel) -> list[str]:
         matched: list[str] = []

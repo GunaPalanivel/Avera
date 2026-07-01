@@ -1,4 +1,4 @@
-from src.config import SCORER_WEIGHTS
+from src.config import DEVOPS_TITLE_TIERS, SCORER_WEIGHTS
 from src.models import CandidateModel
 from src.scorers.behavioral_scorer import BehavioralScorer
 from src.scorers.experience_scorer import ExperienceScorer
@@ -94,6 +94,19 @@ def test_title_career_scorer():
     assert abs(score - (0.8 * weight)) < 0.001
 
 
+def test_title_career_scorer_devops_domain():
+    weight = SCORER_WEIGHTS["title_career"]
+    ai_scorer = TitleCareerScorer(weight=weight)
+    devops_scorer = TitleCareerScorer(weight=weight, title_tiers=DEVOPS_TITLE_TIERS)
+
+    c_dict = get_base_candidate()
+    c_dict["profile"]["current_title"] = "Site Reliability Engineer"
+    c = CandidateModel.model_validate(c_dict)
+
+    # An SRE title should score higher under the DevOps taxonomy than under the AI/ML one
+    assert devops_scorer(c) > ai_scorer(c)
+
+
 def test_skills_scorer():
     scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("python", "machine learning"), nice_to_have=("xgboost",))
     c_dict = get_base_candidate()
@@ -112,7 +125,25 @@ def test_behavioral_scorer():
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)
     score = scorer.score(c)
-    assert abs(score - 1.273) < 0.01
+    # Base positives plus completeness (100) and active applications (1) push to the clamp ceiling
+    assert abs(score - 1.3) < 0.01
+
+
+def test_behavioral_scorer_completeness_and_applications():
+    scorer = BehavioralScorer(weight=1.0)
+
+    low = get_base_candidate()
+    low["redrob_signals"]["profile_completeness_score"] = 20
+    low["redrob_signals"]["applications_submitted_30d"] = 0
+    low_score = scorer.score(CandidateModel.model_validate(low))
+
+    high = get_base_candidate()
+    high["redrob_signals"]["profile_completeness_score"] = 95
+    high["redrob_signals"]["applications_submitted_30d"] = 5
+    high_score = scorer.score(CandidateModel.model_validate(high))
+
+    # A complete, actively-applying profile should never rank below a sparse, inactive one
+    assert high_score > low_score
 
 
 def test_experience_scorer():

@@ -18,11 +18,11 @@ We designed Avera as a **product-shaped PoC**, not a one-off script:
 | **Match what the JD means**                    | Semantic cosine on full JD text + career narratives — not skills-section keyword density                         |
 | **Enforce hard constraints deterministically** | YOE bands, must-have skills, cities, honeypots — auditable, no hallucination                                     |
 | **Separate fit from hireability**              | Base score (5 scorers) × behavioral multiplier — a ghost profile cannot outrank an available one on skills alone |
-| **Stay inside CPU / no-network budget**        | Batch semantic prefill behind a heuristic gate (`≥ 0.11`); O(N log K) streaming heap                             |
+| **Stay inside CPU / no-network budget**        | Two-stage funnel: heuristic gate (`≥ 0.11`) then semantic rerank on the top-K only; O(N log K) streaming heap    |
 | **Prove generalization**                       | Same `rank.py` on AI/ML and DevOps JD files — zero code edits (`scripts/test_generalization.py`)                 |
 | **Ship what you can operate**                  | Docker offline model, structured JSON logs, CI (lint/test/mypy/security/docker), runbook                         |
 
-This mirrors how Redrob's production stack is evolving: **BM25 + rules today → hybrid retrieval tomorrow**. Avera demonstrates the retrieval/ranking layer a founding engineer would own — with honest scope claims about what generalizes (semantic + JD parser) vs what is domain-tuned (AI/ML skill taxonomy).
+This mirrors how Redrob's production stack is evolving: **BM25 + rules today → hybrid retrieval tomorrow**. Avera demonstrates the retrieval/ranking layer a founding engineer would own — with honest scope claims about what generalizes (semantic + JD parser + domain-branching taxonomy) vs what stays a curated taxonomy per domain.
 
 ## Methodology
 
@@ -31,7 +31,7 @@ End-to-end flow from raw data to submission:
 ```
 job_description.txt ──► jd_parser ──► JobRequirements (skills, cities, seniority, title keywords)
                                               │
-candidates.jsonl ──► stream ──────────────────┼──► Pass 1: batch semantic prefill (gate ≥ 0.11)
+candidates.jsonl ──► stream ──────────────────┼──► Pass 1: heuristic gen + semantic rerank on top-K (gate ≥ 0.11)
                                               │
                                               └──► Pass 2: Ranker
                                                      ├─ fictional filter + honeypot detector
@@ -48,8 +48,8 @@ candidates.jsonl ──► stream ───────────────�
 1. **Ingest & validate** — Pydantic boundary; malformed rows skipped, pipeline continues.
 2. **Adversarial filters** — ~60% fictional companies dropped; ~1,600 honeypots removed (title/skill mismatch, expert-with-zero-months, impossible seniority, unverified generalist).
 3. **Base score** — Weighted sum of title/career, skills, semantic, experience, location. Weights adjust by JD seniority (`get_scorer_weights` in `src/config.py`).
-4. **Semantic gate** — MiniLM encoding runs only when heuristic base (title + skills + experience + location) ≥ `0.11`. Weak candidates skip embeddings; survivors use cached batch vectors.
-5. **Behavioral multiplier** — Response rate, activity recency (`AVERA_REFERENCE_DATE`), notice period, interview/offer rates, GitHub score, verifications — clamped to `[0.4, 1.3]`.
+4. **Semantic funnel** — MiniLM encoding runs only for candidates above the heuristic gate (`0.11`), and only the strongest `SEMANTIC_RERANK_TOPK` (default 5000) of those are encoded. Everyone else receives semantic `0.0`; no on-demand encoding after prefill.
+5. **Behavioral multiplier** — Response rate, activity recency (`AVERA_REFERENCE_DATE`), notice period, interview/offer rates, GitHub score, verifications, profile completeness, recent applications — clamped to `[0.4, 1.3]`.
 6. **Explainable output** — Rank-tier reasoning in `src/reasoning.py`: top ranks highlight strengths; ranks 20–99 include verifiable concerns (skill gaps, low response rate, notice period). No LLM in the output path.
 
 **Evaluation hooks**
@@ -159,11 +159,14 @@ Scorer weights are centralized in `src/config.py` (`get_scorer_weights` by JD se
 python scripts/test_generalization.py   # bundled AI/ML JD + DevOps alt JD on same fixture
 ```
 
-| What generalizes                                 | What is still domain-tuned                   |
-| ------------------------------------------------ | -------------------------------------------- |
-| Semantic cosine similarity on full JD text       | Skill taxonomy fallback lists in `config.py` |
-| City catalog, seniority-based weights            | Title tier table for AI/ML titles            |
-| Honeypot + fictional filters (dataset constants) | Experience scorer ML-keyword heuristics      |
+| What generalizes                                          | What is still a curated taxonomy                          |
+| --------------------------------------------------------- | -------------------------------------------------------- |
+| Semantic cosine similarity on full JD text                | Per-domain skill taxonomy lists in `config.py`           |
+| City catalog, seniority-based weights                     | Title tier tables (AI/ML and DevOps today)               |
+| Domain detection + branching title/skill tables           | Experience scorer keyword heuristics                     |
+| Honeypot + fictional filters (dataset constants)          | New domains beyond AI/ML and DevOps fall back to generic |
+
+A DevOps/SRE JD now surfaces infrastructure titles in the shortlist (0 → 97 infra titles in a full-pool top-100 check) via `detect_domain` + `get_title_tiers`/`get_skill_taxonomy`; adding a new domain is a config table, not a code change.
 
 ### Compliance posture
 
@@ -200,6 +203,8 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 | `AVERA_SKIP_SEMANTIC=1`               | Skip model load in unit tests (default in `tests/conftest.py`)                      |
 | `AVERA_SEMANTIC_MODEL=/path/to/model` | Local MiniLM directory for air-gapped ranking (`has_network_during_ranking: false`) |
 | `AVERA_REFERENCE_DATE`                | Fixed reference date for behavioral recency (default `2026-06-27`)                  |
+| `AVERA_SEMANTIC_RERANK_TOPK`          | Number of heuristic-top candidates to semantically rerank (default `5000`)          |
+| `AVERA_SEMANTIC_BATCH`                | MiniLM encode batch size for host stability (default `128`)                          |
 
 ## Submission artifacts
 

@@ -25,7 +25,7 @@ graph TD
     C -->|Real| E{Honeypot Detector}
     E -->|Trap| D
     E -->|Verified| F[Heuristic gate ≥ 0.11]
-    F -->|Survivor| G[Batch semantic prefill Pass 1]
+    F -->|Top-K survivors| G[Semantic rerank prefill Pass 1]
     F --> H[Rank pass Pass 2]
     G --> H
   JP --> H
@@ -58,7 +58,8 @@ graph TD
 | Decision                                    | Rationale                                                                                                                                                                    | Alternatives Rejected                                                                                           |
 | ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | **Hybrid Semantic + Deterministic Scoring** | Job constraints (YOE, skills) are evaluated deterministically, combined with an embedding-based Semantic Scorer (`all-MiniLM-L6-v2`) for deep JD contextual fit.             | **Generative LLMs/LambdaMART**: Unverifiable hallucinations, exceeds CPU budget, unpredictable latency.         |
-| **Two-pass stream + batch prefill**         | Batch encode gate survivors once; rank pass stays O(N) streaming with O(K) heap memory.                                                                                      | **Materialize all candidates then sort**: ~5× latency regression observed in PoC.                               |
+| **Two-stage funnel (gen then rerank)**      | Batch encode only the heuristic top-K (`SEMANTIC_RERANK_TOPK`, default 5000); rank pass stays O(N) streaming with O(K) heap memory. Cut a 100K CPU run from ~43 min to ~6 min. | **Encode every survivor**: ~7x slower with no material top-100 change.                                          |
+| **Domain-branching taxonomy (ADR-17)**      | `detect_domain` selects DevOps or AI/ML title and skill tables so non-AI/ML JDs rank on the right signals.                                                                    | **Single hardcoded AI/ML taxonomy**: 0 DevOps titles in a DevOps-JD top-100.                                    |
 | **Heuristic semantic gate (0.11)**          | Skip embeddings for weak heuristic matches; preserves CPU budget on 100K.                                                                                                    | **Encode all 100K**: violates hackathon time budget.                                                            |
 | **Behavioral Multiplier**                   | Availability and GitHub activity act as a multiplier (0.4× to 1.3×) rather than a base additive score. A ghost candidate with a perfect profile is functionally un-hireable. | **Additive Behavioral Score**: Allows unresponsive candidates to outrank available ones based purely on skills. |
 | **Seniority-aware weights**                 | Junior JDs weight skills higher; senior JDs weight title/career trajectory higher — parsed from JD text.                                                                     | **Fixed weights for all JDs**: misaligned when role level changes.                                              |

@@ -8,7 +8,8 @@ from src.scorers.base import BaseScorer
 
 logger = logging.getLogger(__name__)
 
-_BATCH_SIZE = 512
+# Configurable for host stability; smaller batches avoid CPU/BLAS crashes on some platforms
+_BATCH_SIZE = int(os.environ.get("AVERA_SEMANTIC_BATCH", "128"))
 
 
 class SemanticScorer(BaseScorer):
@@ -19,6 +20,11 @@ class SemanticScorer(BaseScorer):
         self._jd_embedding: Any = None
         self._util: Any = None
         self._score_cache: dict[str, float] = {}
+        self._prefill_complete = False
+
+    def mark_prefill_complete(self) -> None:
+        """After funnel prefill, candidates outside the reranked top-K contribute no semantic signal."""
+        self._prefill_complete = True
 
     def _ensure_model(self) -> bool:
         if self._model is not None:
@@ -109,6 +115,10 @@ class SemanticScorer(BaseScorer):
         cached = self._score_cache.get(candidate.candidate_id)
         if cached is not None:
             return cached
+
+        # Funnel invariant: never encode on-demand once batch prefill has run
+        if self._prefill_complete:
+            return 0.0
 
         if not self._ensure_model():
             return 0.0
