@@ -69,7 +69,7 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 | ----------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
 | **Hybrid semantic + deterministic** | Career narrative fit (embeddings) + bounded JD constraints (rules)             | Pure BM25/keywords → honeypot traps; end-to-end LLM → unverifiable, slow |
 | **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                | Larger cross-encoders → latency budget on 100K                           |
-| **Two-pass stream**                 | Batch prefill then single-pass rank — avoids materializing 100K scored objects | Full in-memory sort → memory and ~5× latency regression                  |
+| **Two-stage funnel**                | Heuristic candidate generation then MiniLM rerank on the top-K only — keeps 100K CPU runs tractable | Encode every survivor → ~7× slower with no material top-100 change       |
 | **Behavioral multiplier**           | Availability is hireability, not another additive feature                      | Additive behavioral score → ghosts outrank available candidates          |
 | **Pydantic ingestion boundary**     | One bad field cannot crash a 100K run                                          | Raw dict access → minute-4 `TypeError`                                   |
 | **defusedcsv output**               | OWASP A03 formula injection when judges open CSV in Excel                      | Standard `csv` writer                                                    |
@@ -77,7 +77,7 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 | **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                            | Runtime HuggingFace download — flaky in sandbox                          |
 | **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                       | Hope-based correctness                                                   |
 
-ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md)
+ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md)
 
 ## System architecture
 
@@ -102,29 +102,20 @@ ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 hon
                     app.py (Gradio sandbox) · Docker · HF Space
 ```
 
-| Capability                 | Description                                                            |
-| -------------------------- | ---------------------------------------------------------------------- |
-| **O(N log K) min-heap**    | O(K) memory; never loads full scored list                              |
-| **Deep job understanding** | JD parser + MiniLM on headline, summary, `career_history` descriptions |
-| **Defensive boundary**     | Pydantic schema; sentinel `-1` coercion                                |
-| **Honeypot detection**     | 4-method detector + fictional pre-filter                               |
-| **Explainable output**     | Deterministic rank-tier reasoning — no LLM                             |
-| **Security hardened**      | defusedcsv, path validation, PII-safe logs                             |
-| **Output canary (ADR-16)** | Exactly 100 unique IDs, subset of input pool                           |
-
 Full architecture: [docs/explanation/architecture.md](docs/explanation/architecture.md)
 
-## System Capabilities
+## System capabilities
 
 | Capability                 | Description                                                                                                                 |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| **O(N log K) Min-Heap**    | Processes 100K records in memory-efficient `O(K)` space, never loading the entire scored list into memory.                  |
-| **Deep Job Understanding** | Uses `sentence-transformers` (`all-MiniLM-L6-v2`) for semantic cosine-similarity matching against the Job Description.      |
-| **Defensive Boundary**     | Pydantic enforces schema constraints at the ingestion layer, catching missing bounds (`-1` logic) and structural anomalies. |
-| **Honeypot Detection**     | Detects mathematically impossible timelines, unverified generalists, and ghost candidates.                                  |
-| **Explainable Output**     | Deterministic (non-LLM) reasoning via `src/reasoning.py` — transparent _why_ for every ranked candidate.                    |
-| **Security Hardened**      | Employs `defusedcsv` to prevent OWASP A03 (Formula Injection) during CSV/Excel generation.                                  |
-| **Output Canary (ADR-16)** | Exactly 100 unique IDs, subset of input pool, validated before write.                                                       |
+| **O(N log K) min-heap**    | Processes 100K records in `O(K)` memory, never loading the entire scored list.                                             |
+| **Deep job understanding** | JD parser (skills, cities, seniority, domain) + MiniLM semantic fit on headline, summary, `career_history` descriptions, and skills. |
+| **Two-stage funnel**       | Heuristic candidate generation, then MiniLM rerank on the heuristic top-K only (`SEMANTIC_RERANK_TOPK`).                    |
+| **Defensive boundary**     | Pydantic enforces schema at ingestion, coercing sentinel `-1` values and skipping malformed rows without crashing the run. |
+| **Honeypot detection**     | 4-method detector + fictional-company pre-filter catches impossible timelines, unverified generalists, and ghost profiles. |
+| **Explainable output**     | Deterministic, score-aware rank-tier reasoning via `src/reasoning.py` — no LLM in the output path.                         |
+| **Security hardened**      | `defusedcsv` and `sanitize_cell` on CSV and XLSX prevent OWASP A03 formula injection; path validation; PII-safe logs.      |
+| **Output canary (ADR-16)** | Exactly 100 unique IDs, subset of the input pool, validated before write.                                                  |
 
 ## Documentation (Diátaxis Framework)
 
@@ -140,6 +131,7 @@ Full index: **[docs/README.md](docs/README.md)**
 | [Scoring Methodology](docs/explanation/methodology.md)                  | Hybrid semantic + heuristic weights, honeypots, behavioral multiplier |
 | [SRE Day-2 Runbook](docs/how-to/runbook.md)                             | Local execution, offline model, Docker, troubleshooting               |
 | [ADR 003: Semantic Hybrid Layer](docs/adr/003-semantic-hybrid-layer.md) | Why embeddings sit alongside deterministic scorers                    |
+| [ADR 017: Domain-Branching Taxonomy](docs/adr/017-domain-branching-taxonomy.md) | Per-domain title/skill tables (AI/ML, DevOps, generic)      |
 
 ## How Avera Meets Track 1 (Intelligent Candidate Discovery)
 
@@ -147,8 +139,8 @@ Redrob's challenge JD is explicit: **keyword matching is a trap**. The dataset c
 
 | JD signal                          | Avera response                                                                                                     |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Career trajectory over skill lists | Title & career scorer (35%) + semantic fit on headline, summary, and `career_history` descriptions (15%)           |
-| Behavioral availability            | Multiplicative modifier (0.4×–1.3×) on response rate, activity, notice period, interview/offer rates, GitHub score |
+| Career trajectory over skill lists | Title & career scorer (35%) + semantic fit on headline, summary, `career_history` descriptions, and skills (15%)   |
+| Behavioral availability            | Multiplicative modifier (0.4×–1.3×) on response rate, activity, notice period, interview/offer rates, GitHub score, profile completeness, recent applications |
 | Honeypot traps                     | Fictional-company pre-filter + 4-method honeypot detector before scoring                                           |
 | Explainable reasoning              | Deterministic `src/reasoning.py` — rank-tier templates with honest concerns for mid/low ranks                      |
 | India-scale throughput             | O(N log K) min-heap, two-pass streaming ingest, structured JSON logs with `trace_id` / `latency_ms`                |
@@ -226,7 +218,7 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 ├── app.py                   # Gradio sandbox (HuggingFace Space)
 ├── DataSet/                 # candidates.jsonl (LFS), job_description.txt, validate_submission.py
 ├── docs/                    # Diátaxis docs — see docs/README.md
-├── scripts/                 # eval.py, test_generalization.py, download_model.py, export_deck_pdf.py
+├── scripts/                 # eval.py, test_generalization.py, download_model.py, export_deck_pdf.py, sync_space.py
 ├── src/                     # Core engine
 │   ├── config.py            # Weights, taxonomies, behavioral bounds, seniority profiles
 │   ├── ranker.py            # Min-heap O(N log K) orchestration + semantic prefill
@@ -235,7 +227,7 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 │   ├── parsers/             # jd_parser, candidate_parser
 │   ├── scorers/             # Title, skills, semantic, experience, location, behavioral
 │   └── detectors/           # Honeypot detection
-├── tests/                   # Pytest suite (47 tests)
+├── tests/                   # Pytest suite (56 tests)
 ├── Dockerfile               # Runtime + baked MiniLM for offline ranking
 ├── docker-compose.yml       # Sandbox and CLI services
 ├── rank.py                  # CLI entrypoint (two-pass stream)
