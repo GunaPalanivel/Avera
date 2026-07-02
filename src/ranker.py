@@ -16,6 +16,7 @@ from src.output_writer import EXPECTED_SUBMISSION_ROWS
 from src.parsers.jd_parser import JobRequirements
 from src.reasoning import generate_reasoning
 from src.scorers.behavioral_scorer import BehavioralScorer
+from src.scorers.education_scorer import EducationScorer
 from src.scorers.experience_scorer import ExperienceScorer
 from src.scorers.location_scorer import LocationScorer
 from src.scorers.semantic_scorer import SemanticScorer
@@ -40,6 +41,7 @@ class Ranker:
             ),
             ExperienceScorer(weight=weights["experience"], title_keywords=job_reqs.title_keywords),
             LocationScorer(weight=weights["location"], target_cities=job_reqs.target_cities),
+            EducationScorer(weight=weights["education"]),
             SemanticScorer(weight=weights["semantic"], jd_text=job_reqs.raw_text),
         ]
         self.behavioral_scorer = BehavioralScorer(weight=1.0)

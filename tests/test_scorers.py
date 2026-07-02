@@ -1,6 +1,7 @@
 from src.config import DEVOPS_TITLE_TIERS, SCORER_WEIGHTS
 from src.models import CandidateModel
 from src.scorers.behavioral_scorer import BehavioralScorer
+from src.scorers.education_scorer import EducationScorer
 from src.scorers.experience_scorer import ExperienceScorer
 from src.scorers.location_scorer import LocationScorer
 from src.scorers.skills_scorer import SkillsScorer
@@ -121,6 +122,38 @@ def test_title_career_anti_requirement_penalty():
 
     # A CV-only candidate is penalized when the JD says it does not want CV-without-NLP
     assert penalized(c) < base_scorer(c)
+
+
+def test_education_scorer_tiers_and_relevance():
+    scorer = EducationScorer(weight=SCORER_WEIGHTS["education"])
+
+    t1 = get_base_candidate()
+    t1["education"] = [
+        {
+            "institution": "IIT Bombay",
+            "degree": "B.Tech",
+            "field_of_study": "Computer Science",
+            "start_year": 2014,
+            "end_year": 2018,
+            "tier": "tier_1",
+        }
+    ]
+    t3 = get_base_candidate()
+    t3["education"] = [
+        {
+            "institution": "Local College",
+            "degree": "B.E.",
+            "field_of_study": "Mechanical",
+            "start_year": 2014,
+            "end_year": 2018,
+            "tier": "tier_3",
+        }
+    ]
+    assert scorer(CandidateModel.model_validate(t1)) > scorer(CandidateModel.model_validate(t3))
+
+    missing = get_base_candidate()
+    missing["education"] = []
+    assert scorer(CandidateModel.model_validate(missing)) > 0.0
 
 
 def test_skills_scorer():

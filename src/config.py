@@ -6,11 +6,12 @@ from src.exceptions import ConfigError
 
 # Base scorer weights; behavioral is a multiplicative modifier (ADR-03)
 SCORER_WEIGHTS: dict[str, float] = {
-    "title_career": 0.35,
-    "skills": 0.25,
-    "experience": 0.15,
-    "location": 0.10,
+    "title_career": 0.30,
+    "skills": 0.22,
+    "experience": 0.13,
+    "location": 0.08,
     "semantic": 0.15,
+    "education": 0.12,
 }
 
 BEHAVIORAL_MODIFIER_MIN = 0.4
@@ -276,26 +277,29 @@ def get_scorer_weights(seniority_level: str) -> dict[str, float]:
     level = (seniority_level or "mid").lower()
     if level in ("senior", "staff", "principal", "lead"):
         return {
-            "title_career": 0.35,
-            "skills": 0.25,
-            "experience": 0.15,
-            "location": 0.10,
+            "title_career": 0.30,
+            "skills": 0.22,
+            "experience": 0.13,
+            "location": 0.08,
             "semantic": 0.15,
+            "education": 0.12,
         }
     if level in ("junior", "entry", "associate"):
         return {
-            "title_career": 0.20,
-            "skills": 0.35,
-            "experience": 0.15,
-            "location": 0.10,
-            "semantic": 0.20,
+            "title_career": 0.16,
+            "skills": 0.32,
+            "experience": 0.13,
+            "location": 0.08,
+            "semantic": 0.19,
+            "education": 0.12,
         }
     return {
-        "title_career": 0.30,
-        "skills": 0.30,
-        "experience": 0.15,
-        "location": 0.10,
+        "title_career": 0.26,
+        "skills": 0.26,
+        "experience": 0.13,
+        "location": 0.08,
         "semantic": 0.15,
+        "education": 0.12,
     }
 
 
