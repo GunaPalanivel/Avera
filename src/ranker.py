@@ -28,7 +28,11 @@ class Ranker:
         self.job_reqs = job_reqs
         weights = get_scorer_weights(job_reqs.seniority_level)
         self.scorers = [
-            TitleCareerScorer(weight=weights["title_career"], title_tiers=get_title_tiers(job_reqs.domain)),
+            TitleCareerScorer(
+                weight=weights["title_career"],
+                title_tiers=get_title_tiers(job_reqs.domain),
+                anti_requirements=job_reqs.anti_requirements,
+            ),
             SkillsScorer(
                 weight=weights["skills"],
                 must_have=job_reqs.must_have_skills,

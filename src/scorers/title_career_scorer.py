@@ -1,14 +1,43 @@
-from src.config import AI_TITLE_TIERS, CONSULTING_FIRMS
+from src.config import AI_TITLE_TIERS, CONSULTING_FIRMS, CV_SPEECH_ROBOTICS_TERMS, NLP_IR_TERMS
 from src.models import CandidateModel
 from src.scorers.base import BaseScorer
 
+_SENIOR_TITLE_TOKENS = ("senior", "lead", "principal", "staff")
+
 
 class TitleCareerScorer(BaseScorer):
-    def __init__(self, weight: float, title_tiers: dict[str, float] | None = None):
+    def __init__(
+        self,
+        weight: float,
+        title_tiers: dict[str, float] | None = None,
+        anti_requirements: tuple[str, ...] = (),
+    ):
         super().__init__(weight)
         # None means "caller did not specify" -> default to AI/ML. An explicit empty dict
         # (generic domain) is respected as "no title-tier bias".
         self.title_tiers = AI_TITLE_TIERS if title_tiers is None else title_tiers
+        self.anti_requirements = anti_requirements
+
+    def _anti_requirement_penalty(self, candidate: CandidateModel) -> float:
+        """Bounded penalty when a JD-named anti-requirement matches the candidate."""
+        penalty = 0.0
+
+        if "title_chaser" in self.anti_requirements:
+            career = candidate.career_history
+            if len(career) >= 3:
+                avg_months = sum(c.duration_months for c in career) / len(career)
+                escalates = any(any(t in c.title.lower() for t in _SENIOR_TITLE_TOKENS) for c in career)
+                if avg_months < 18 and escalates:
+                    penalty += 0.15
+
+        if "cv_speech_robotics_without_nlp" in self.anti_requirements:
+            skill_text = " ".join(s.name.lower() for s in candidate.skills)
+            has_cv = any(term in skill_text for term in CV_SPEECH_ROBOTICS_TERMS)
+            has_nlp = any(term in skill_text for term in NLP_IR_TERMS)
+            if has_cv and not has_nlp:
+                penalty += 0.15
+
+        return penalty
 
     def score(self, candidate: CandidateModel) -> float:
         current_title = candidate.profile.current_title.lower()
@@ -40,4 +69,5 @@ class TitleCareerScorer(BaseScorer):
             elif avg_months < 24:
                 hopping_score = 0.1
 
-        return title_score + company_score + hopping_score
+        raw = title_score + company_score + hopping_score
+        return max(0.0, raw - self._anti_requirement_penalty(candidate))

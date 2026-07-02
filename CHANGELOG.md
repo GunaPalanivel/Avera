@@ -37,6 +37,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added (unreleased)
 
+- Section-aware JD anti-requirement detection (`anti_requirements` on `JobRequirements`) with bounded penalties for title-chasers and CV/speech/robotics-without-NLP profiles the JD explicitly does not want
 - Curated demo sample (`DataSet/sample_candidates_demo.jsonl`) built from real pool records, plus a one-click Gradio example, so the hosted sandbox shows a strong shortlist instead of a noisy arbitrary slice
 
 ### Reviewer fixes (unreleased)

@@ -50,6 +50,46 @@ FICTIONAL_COMPANIES: frozenset[str] = frozenset(
 
 CONSULTING_FIRMS: frozenset[str] = frozenset({"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini", "ibm"})
 
+# Anti-requirement detection: the JD's "Things we explicitly do NOT want" section names
+# candidates whose primary expertise is CV/speech/robotics without NLP/IR exposure.
+CV_SPEECH_ROBOTICS_TERMS: frozenset[str] = frozenset(
+    {
+        "computer vision",
+        "opencv",
+        "image classification",
+        "object detection",
+        "yolo",
+        "cnn",
+        "segmentation",
+        "image segmentation",
+        "speech recognition",
+        "asr",
+        "tts",
+        "robotics",
+        "slam",
+        "diffusion models",
+        "gans",
+    }
+)
+
+NLP_IR_TERMS: frozenset[str] = frozenset(
+    {
+        "nlp",
+        "llm",
+        "llms",
+        "embeddings",
+        "retrieval",
+        "information retrieval",
+        "semantic search",
+        "vector search",
+        "rag",
+        "sentence transformers",
+        "bert",
+        "transformers",
+        "fine-tuning llms",
+    }
+)
+
 JD_CITY_CATALOG: tuple[str, ...] = (
     "hyderabad",
     "pune",

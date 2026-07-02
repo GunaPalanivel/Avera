@@ -107,6 +107,22 @@ def test_title_career_scorer_devops_domain():
     assert devops_scorer(c) > ai_scorer(c)
 
 
+def test_title_career_anti_requirement_penalty():
+    weight = SCORER_WEIGHTS["title_career"]
+    base_scorer = TitleCareerScorer(weight=weight)
+    penalized = TitleCareerScorer(weight=weight, anti_requirements=("cv_speech_robotics_without_nlp",))
+
+    c_dict = get_base_candidate()
+    c_dict["skills"] = [
+        {"name": "OpenCV", "proficiency": "expert", "endorsements": 10, "duration_months": 40},
+        {"name": "Object Detection", "proficiency": "advanced", "endorsements": 5, "duration_months": 30},
+    ]
+    c = CandidateModel.model_validate(c_dict)
+
+    # A CV-only candidate is penalized when the JD says it does not want CV-without-NLP
+    assert penalized(c) < base_scorer(c)
+
+
 def test_skills_scorer():
     scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("python", "machine learning"), nice_to_have=("xgboost",))
     c_dict = get_base_candidate()

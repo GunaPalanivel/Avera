@@ -58,3 +58,18 @@ def test_bullet_skills_real_token_still_extracted(tmp_path):
     assert "go" in found
     assert "rust" in found
     assert "kubernetes" in found
+
+
+def test_ai_jd_flags_anti_requirements():
+    req = load_job_requirements(Path("DataSet/job_description.txt"))
+    # The Senior AI JD explicitly names title-chasers, consulting-only, proprietary-only,
+    # and CV/speech/robotics without NLP in its "do NOT want" section.
+    assert "title_chaser" in req.anti_requirements
+    assert "consulting_only" in req.anti_requirements
+    assert "cv_speech_robotics_without_nlp" in req.anti_requirements
+
+
+def test_jd_without_anti_section_has_no_flags():
+    from src.parsers.jd_parser import _extract_anti_requirements
+
+    assert _extract_anti_requirements("we need a senior engineer with python and aws") == ()
