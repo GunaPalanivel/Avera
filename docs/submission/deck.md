@@ -41,7 +41,7 @@
 ```
 100K JSONL → validate → filter fiction → detect honeypots
 → Pass 1: batch semantic prefill (gate ≥ 0.11)
-→ Pass 2: score (5 dimensions) → behavioral × → heap top-100 → reasoning → CSV
+→ Pass 2: score (7 dimensions) → behavioral × → heap → cross-encoder rerank → reasoning → CSV
 ```
 
 O(N log K) memory · Two-pass streaming · CPU-only
@@ -50,11 +50,13 @@ O(N log K) memory · Two-pass streaming · CPU-only
 
 ## Scorer weights (JD-backed, senior profile)
 
-| Title & career | **35%** |
-| Skills | **25%** |
-| Semantic (MiniLM) | **15%** |
-| Experience | **15%** |
-| Location | **10%** |
+| Semantic (MiniLM) | **25%** |
+| Title & career | **18%** |
+| Skills | **14%** |
+| Career trajectory | **14%** |
+| Education | **12%** |
+| Experience | **11%** |
+| Location | **6%** |
 | Behavioral | **×0.4–×1.3** |
 
 Seniority-aware via `get_scorer_weights()` — shifts emphasis for junior vs senior JDs.

@@ -35,15 +35,16 @@ Full blueprint: [README.md](../../README.md) · [architecture.md](../explanation
 JD file → jd_parser → JobRequirements (skills, cities, seniority)
 JSONL stream → validate → fictional filter → honeypot detector
     → Pass 1: batch semantic prefill (heuristic gate ≥ 0.11)
-    → Pass 2: 5 scorers + behavioral × → min-heap top-100 → rank-tier reasoning → CSV
+    → Pass 2: 7 scorers + behavioral × → min-heap → cross-encoder rerank → rank-tier reasoning → CSV
 ```
 
 | Stage         | Purpose                                                                                            |
 | ------------- | -------------------------------------------------------------------------------------------------- |
 | **Stage 1**   | Drop ~60% fictional companies (`Dunder Mifflin`, `Globex Inc`, …)                                  |
 | **Stage 1.5** | Drop ~1,603 honeypot traps (title/skill mismatch, expert anomaly, …)                               |
-| **Stage 2**   | Weighted base score: title 35%, skills 25%, semantic 15%, experience 15%, location 10% (senior JD) |
-| **Stage 3**   | Behavioral multiplier 0.4×–1.3× (availability, GitHub, interviews, verifications)                  |
+| **Stage 2**   | Weighted base score: semantic 25%, title/career 18%, skills 14%, trajectory 14%, education 12%, experience 11%, location 6% (senior JD) |
+| **Stage 2.5** | Behavioral multiplier 0.4×–1.3× (availability, GitHub, interviews, verifications)                |
+| **Stage 3**   | Min-heap top-100, then cross-encoder rerank on shortlist pool (ADR-018)                          |
 | **Output**    | ADR-16 canary: exactly 100 unique IDs, subset of input pool, defused CSV                           |
 
 Deep dive: [architecture.md](../explanation/architecture.md) · [methodology.md](../explanation/methodology.md) · [ADR-003](../adr/003-semantic-hybrid-layer.md)
@@ -58,7 +59,7 @@ We use **`sentence-transformers` (`all-MiniLM-L6-v2`)** to compare the full JD t
 
 Deterministic scorers enforce bounded constraints (YOE bands, JD cities, must-have skills with synonym expansion). Behavioral signals are a **multiplier**, not additive — a ghost profile with perfect skills still ranks down.
 
-**Performance:** Semantic encoding runs in **Pass 1** as batch prefill (`batch_size=512`) only when the heuristic base score (title + skills + experience + location) exceeds `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11** in `src/config.py`). Weak candidates skip embeddings; survivors use a cached vector in Pass 2.
+**Performance:** Semantic encoding runs in **Pass 1** as batch prefill only when the heuristic base score (all scorers except semantic) exceeds `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11** in `src/config.py`). Weak candidates skip embeddings; survivors use a cached vector in Pass 2. Batch size defaults to 128 (`AVERA_SEMANTIC_BATCH`).
 
 ---
 
@@ -145,14 +146,16 @@ make docker-build && make docker-sandbox
 
 Senior/staff JD profile (default for bundled `job_description.txt`):
 
-| Component      | Weight    | JD anchor                                                  |
-| -------------- | --------- | ---------------------------------------------------------- |
-| Title & career | 35%       | "Career trajectory > skill lists"; anti title-chaser       |
-| Skills         | 25%       | Embeddings, vector DB, Python, evaluation frameworks       |
-| Semantic       | 15%       | "Read between the lines" — production retrieval experience |
-| Experience     | 15%       | 5–9 year band; applied ML tenure                           |
-| Location       | 10%       | Pune, Hyderabad, Mumbai, Delhi NCR                         |
-| Behavioral     | ×0.4–×1.3 | Down-weight unavailable / low response candidates          |
+| Component        | Weight    | JD anchor                                                  |
+| ---------------- | --------- | ---------------------------------------------------------- |
+| Semantic fit     | 25%       | "Read between the lines" — production retrieval experience |
+| Title & career   | 18%       | Career trajectory; anti title-chaser; consulting penalty   |
+| Skills           | 14%       | Embeddings, vector DB, Python, evaluation frameworks       |
+| Career trajectory| 14%       | IC-to-lead progression; product-company experience         |
+| Education        | 12%       | Institution tier and degree-field relevance                |
+| Experience       | 11%       | 5–9 year band; applied ML tenure                           |
+| Location         | 6%        | Pune, Hyderabad, Mumbai, Delhi NCR                         |
+| Behavioral       | ×0.4–×1.3 | Down-weight unavailable / low response candidates          |
 
 Weights adjust by JD seniority via `get_scorer_weights()` in `src/config.py` (validated at import).
 

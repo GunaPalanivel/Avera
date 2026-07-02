@@ -32,7 +32,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Semantic batch size default lowered to 128 and made configurable for host stability
 - Semantic scorer no longer encodes on-demand after prefill (funnel invariant)
 - Semantic gate tuned to `SEMANTIC_MIN_HEURISTIC_SCORE = 0.11`
-- Documentation synced across README, walkthrough, methodology, architecture, deck, ADR-003
+- Documentation synced across README, walkthrough, methodology, architecture, deck, ADR-003 — scorer weights now reflect semantic 25%, education, trajectory, and cross-encoder rerank (ADR-018)
 - Health check validates config import and JD must-have skills
 
 ### Added (unreleased)

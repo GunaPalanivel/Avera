@@ -38,7 +38,7 @@ We designed Avera as a **product-shaped PoC**, not a one-off script:
 | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Match what the JD means**                    | Semantic cosine on full JD text + career narratives — not skills-section keyword density                         |
 | **Enforce hard constraints deterministically** | YOE bands, must-have skills, cities, honeypots — auditable, no hallucination                                     |
-| **Separate fit from hireability**              | Base score (5 scorers) × behavioral multiplier — a ghost profile cannot outrank an available one on skills alone |
+| **Separate fit from hireability**              | Base score (7 scorers) × behavioral multiplier — a ghost profile cannot outrank an available one on skills alone |
 | **Stay inside CPU / no-network budget**        | Two-stage funnel: heuristic gate (`≥ 0.11`) then semantic rerank on the top-K only; O(N log K) streaming heap    |
 | **Prove generalization**                       | Same `rank.py` on AI/ML and DevOps JD files — zero code edits (`scripts/test_generalization.py`)                 |
 | **Ship what you can operate**                  | Docker offline model, structured JSON logs, CI (lint/test/mypy/security/docker), runbook                         |
@@ -56,7 +56,8 @@ candidates.jsonl ──► stream ───────────────�
                                               │
                                               └──► Pass 2: Ranker
                                                      ├─ fictional filter + honeypot detector
-                                                     ├─ 5 weighted scorers (seniority-aware weights)
+                                                     ├─ 7 weighted scorers (seniority-aware weights)
+                                                     ├─ cross-encoder rerank on shortlist pool (ADR-018)
                                                      ├─ behavioral multiplier (0.4×–1.3×)
                                                      └─ min-heap top-100
                                                             │
@@ -89,7 +90,8 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 | Choice                              | Rationale                                                                                           | Rejected alternative                                                     |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | **Hybrid semantic + deterministic** | Career narrative fit (embeddings) + bounded JD constraints (rules)                                  | Pure BM25/keywords → honeypot traps; end-to-end LLM → unverifiable, slow |
-| **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                                     | Larger cross-encoders → latency budget on 100K                           |
+| **Cross-encoder rerank** | `cross-encoder/ms-marco-MiniLM-L-6-v2` on the shortlist pool for precision (ADR-018)                 | Larger cross-encoders on full pool → latency budget on 100K                           |
+| **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                                     | Larger bi-encoders → latency budget on 100K                                           |
 | **Two-stage funnel**                | Heuristic candidate generation then MiniLM rerank on the top-K only — keeps 100K CPU runs tractable | Encode every survivor → ~7× slower with no material top-100 change       |
 | **Behavioral multiplier**           | Availability is hireability, not another additive feature                                           | Additive behavioral score → ghosts outrank available candidates          |
 | **Pydantic ingestion boundary**     | One bad field cannot crash a 100K run                                                               | Raw dict access → minute-4 `TypeError`                                   |
@@ -114,7 +116,9 @@ ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 hon
    src/parsers/         src/scorers/          src/detectors/
    candidate_parser     title, skills,        honeypot_detector
    jd_parser             semantic, exp, loc    + fictional filter
-                         behavioral_scorer
+                         education, trajectory
+                         behavioral
+   src/rerank.py        cross-encoder (ADR-018)
          │                    │                    │
          └────────────────────┴────────────────────┘
                               ▼
@@ -160,7 +164,7 @@ Redrob's challenge JD is explicit: **keyword matching is a trap**. The dataset c
 
 | JD signal                          | Avera response                                                                                                                                                |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Career trajectory over skill lists | Title & career scorer (35%) + semantic fit on headline, summary, `career_history` descriptions, and skills (15%)                                              |
+| Career trajectory over skill lists | Semantic fit (25%) + career trajectory (14%) + title/career (18%) on headline, summary, `career_history` descriptions, and skills — keyword scorers (32%) sit below |
 | Behavioral availability            | Multiplicative modifier (0.4×–1.3×) on response rate, activity, notice period, interview/offer rates, GitHub score, profile completeness, recent applications |
 | Honeypot traps                     | Fictional-company pre-filter + 4-method honeypot detector before scoring                                                                                      |
 | Explainable reasoning              | Deterministic `src/reasoning.py` — rank-tier templates with honest concerns for mid/low ranks                                                                 |
@@ -257,9 +261,10 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 │   ├── reasoning.py         # Deterministic rank-tier explanation strings
 │   ├── logging_config.py    # Structured JSON observability
 │   ├── parsers/             # jd_parser, candidate_parser
-│   ├── scorers/             # Title, skills, semantic, experience, location, behavioral
+│   ├── scorers/             # Title, skills, semantic, experience, location, education, trajectory, behavioral
+│   ├── rerank.py            # Cross-encoder shortlist rerank (ADR-018)
 │   └── detectors/           # Honeypot detection
-├── tests/                   # Pytest suite (56 tests)
+├── tests/                   # Pytest suite (65 tests)
 ├── Dockerfile               # Runtime + baked MiniLM for offline ranking
 ├── docker-compose.yml       # Sandbox and CLI services
 ├── rank.py                  # CLI entrypoint (two-pass stream)
