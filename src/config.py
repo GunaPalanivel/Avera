@@ -27,6 +27,13 @@ SEMANTIC_MIN_HEURISTIC_SCORE = 0.11
 # the encode workload from all survivors to K. Override with AVERA_SEMANTIC_RERANK_TOPK.
 SEMANTIC_RERANK_TOPK = int(os.environ.get("AVERA_SEMANTIC_RERANK_TOPK", "5000"))
 
+# Cross-encoder rerank: after the heap yields a shortlist pool, a cross-encoder re-scores the
+# pool and nudges the final order. The blend is additive and bounded (final = base + alpha * ce),
+# so monotonicity and the reasoning floor are preserved. Only runs on full ranking passes.
+RERANK_POOL_SIZE = int(os.environ.get("AVERA_RERANK_POOL", "300"))
+RERANK_ALPHA = float(os.environ.get("AVERA_RERANK_ALPHA", "0.15"))
+CROSS_ENCODER_MODEL_NAME = os.environ.get("AVERA_CROSS_ENCODER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+
 # Offline-friendly: set AVERA_SEMANTIC_MODEL to a local directory path after `make download-model`
 SEMANTIC_MODEL_NAME = os.environ.get("AVERA_SEMANTIC_MODEL", "all-MiniLM-L6-v2")
 

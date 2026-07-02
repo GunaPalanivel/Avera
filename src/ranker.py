@@ -4,6 +4,7 @@ from collections.abc import Iterable
 
 from src.config import (
     FICTIONAL_COMPANIES,
+    RERANK_POOL_SIZE,
     SEMANTIC_MIN_HEURISTIC_SCORE,
     SEMANTIC_RERANK_TOPK,
     expand_skill_keyword,
@@ -15,6 +16,7 @@ from src.models import CandidateModel
 from src.output_writer import EXPECTED_SUBMISSION_ROWS
 from src.parsers.jd_parser import JobRequirements
 from src.reasoning import generate_reasoning
+from src.rerank import CrossEncoderReranker
 from src.scorers.behavioral_scorer import BehavioralScorer
 from src.scorers.education_scorer import EducationScorer
 from src.scorers.experience_scorer import ExperienceScorer
@@ -125,6 +127,9 @@ class Ranker:
         require_exact_count: bool = True,
     ) -> list[tuple[float, CandidateModel, str]]:
         t0 = time.perf_counter()
+        # On full passes, keep a larger pool so the cross-encoder has room to rerank.
+        rerank_enabled = require_exact_count
+        heap_k = max(top_k, RERANK_POOL_SIZE) if rerank_enabled else top_k
         heap: list[tuple[float, int, CandidateModel, str]] = []
         scored = 0
         filtered_zero = 0
@@ -147,7 +152,7 @@ class Ranker:
 
             item = (score, tie_breaker, candidate, matched_skills_csv)
 
-            if len(heap) < top_k:
+            if len(heap) < heap_k:
                 heapq.heappush(heap, item)
             else:
                 heapq.heappushpop(heap, item)
@@ -155,9 +160,15 @@ class Ranker:
         score_ms = int((time.perf_counter() - t0) * 1000)
         heap.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
+        pool: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _t, c, m in heap]
+        if rerank_enabled:
+            pool = CrossEncoderReranker(self.job_reqs.raw_text).rerank(pool, top_k)
+        else:
+            pool = pool[:top_k]
+
         results: list[tuple[float, CandidateModel, str]] = []
         must_have_count = len(self.job_reqs.must_have_skills)
-        for rank_idx, (score, _tie, candidate, matched_skills_csv) in enumerate(heap):
+        for rank_idx, (score, candidate, matched_skills_csv) in enumerate(pool):
             matched_skills = [s for s in matched_skills_csv.split(",") if s]
             reasoning = generate_reasoning(
                 candidate,

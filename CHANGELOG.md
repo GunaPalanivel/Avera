@@ -37,6 +37,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added (unreleased)
 
+- Cross-encoder rerank stage (ADR-018, `src/rerank.py`) that re-scores the shortlist pool with `cross-encoder/ms-marco-MiniLM-L-6-v2` on full ranking passes; bounded additive blend keeps output monotonic and above the reasoning floor, baked for offline runs, skipped in the sandbox and CI
 - Career-trajectory scorer (`src/scorers/trajectory_scorer.py`) rewarding IC-to-lead progression and product-company experience while down-weighting consulting-only or research-only paths
 - Education tier scorer (`src/scorers/education_scorer.py`) using institution tier and field relevance, wired into the seniority weight profiles
 - Section-aware JD anti-requirement detection (`anti_requirements` on `JobRequirements`) with bounded penalties for title-chasers and CV/speech/robotics-without-NLP profiles the JD explicitly does not want
