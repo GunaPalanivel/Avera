@@ -29,10 +29,11 @@ graph TD
     F --> H[Rank pass Pass 2]
     G --> H
   JP --> H
-    H --> I[5 scorers + cached semantic]
+    H --> I[7 scorers + cached semantic]
     I --> J[Behavioral Multiplier]
     J --> K[Min-Heap O N log K]
-    K --> L[Rank-tier Reasoning]
+    K --> CE[Cross-encoder rerank ADR-018]
+    CE --> L[Rank-tier Reasoning]
     L --> M[defusedcsv + ADR-16 canary]
     M --> N[submission.csv]
 ```

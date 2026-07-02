@@ -25,16 +25,16 @@ Skill synonyms (e.g. `vector database` → `vector db`, `faiss`) expand matching
 
 Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a **multiplier** after the base sum.
 
-| Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                                             |
-| ------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                                                                             |
+| ------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Semantic Fit**         | 25%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
-| **Title & Career**       | 18%                    | Domain-appropriate title tiers (AI/ML or DevOps); consulting-only careers penalized; bounded penalties for JD-named anti-requirements (title-chasers, CV/speech/robotics without NLP). |
-| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                                                  |
-| **Career Trajectory**    | 14%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                    |
-| **Education**            | 12%                    | Institution tier (tier_1..tier_4) and degree-field relevance.                                                                                           |
-| **Experience Fit**       | 11%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                        |
-| **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities.                                                                                                            |
-| **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                                                   |
+| **Title & Career**       | 18%                    | Domain-appropriate title tiers (AI/ML or DevOps); consulting-only careers penalized; bounded penalties for JD-named anti-requirements (title-chasers, CV/speech/robotics without NLP).  |
+| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                                                                                  |
+| **Career Trajectory**    | 14%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                                                    |
+| **Education**            | 12%                    | Institution tier (tier_1..tier_4) and degree-field relevance.                                                                                                                           |
+| **Experience Fit**       | 11%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                                                        |
+| **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities.                                                                                                                                            |
+| **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                                                                                   |
 
 Weights are the senior/staff profile in `get_scorer_weights`; junior and mid profiles shift emphasis but keep the same scorers. Pure keyword scorers (title + skills = 32%) now sit below the semantic, trajectory, and education signals combined.
 
@@ -46,10 +46,10 @@ On a full ranking pass, after the heap yields a shortlist pool (`RERANK_POOL_SIZ
 
 MiniLM encoding is expensive at 100K scale. Avera uses a **two-stage funnel**:
 
-1. **Pass 1 — heuristic candidate generation + prefill** (`prefill_semantic_stream`): every candidate is scored on the heuristic base (title + skills + experience + location, no semantic). Candidates clearing `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11**) are the survivor set; only the strongest **`SEMANTIC_RERANK_TOPK`** of them (default **5000**, deterministic selection) are batch-encoded. Batch size is configurable via `AVERA_SEMANTIC_BATCH` (default 128) for host stability.
+1. **Pass 1 — heuristic candidate generation + prefill** (`prefill_semantic_stream`): every candidate is scored on the heuristic base (all scorers except semantic). Candidates clearing `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11**) are the survivor set; only the strongest **`SEMANTIC_RERANK_TOPK`** of them (default **5000**, deterministic selection) are batch-encoded. Batch size is configurable via `AVERA_SEMANTIC_BATCH` (default 128) for host stability.
 2. **Pass 2 — rank**: streaming single pass applies cached semantic vectors to the reranked top-K; everyone else receives semantic score `0.0`. After prefill the scorer never encodes on-demand (funnel invariant).
 
-This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top-K only. Encoding roughly 5000 documents instead of every survivor cuts a full 100K CPU run from about 43 minutes to about 6 minutes. A candidate below the heuristic top-K cannot realistically reach the final top-100 because semantic contributes at most 15% of the base score, so the shortlist is effectively unchanged. Raise `AVERA_SEMANTIC_RERANK_TOPK` to trade latency for recall margin.
+This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top-K only. Encoding roughly 5000 documents instead of every survivor cuts a full 100K CPU run from about 43 minutes to about 6 minutes. A candidate below the heuristic top-K cannot realistically reach the final top-100 because semantic contributes at most 25% of the base score, so the shortlist is effectively unchanged. Raise `AVERA_SEMANTIC_RERANK_TOPK` to trade latency for recall margin.
 
 ## 3. Behavioral Multiplier
 
@@ -76,7 +76,7 @@ Recency calculations use `AVERA_REFERENCE_DATE` (default `2026-06-27`) for deter
 
 ### Score scale
 
-The base score sums to `[0, 1]` (title/career 0.35 + skills 0.25 + semantic 0.15 + experience 0.15 + location 0.10, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
+The base score sums to `[0, 1]` (semantic 0.25 + title/career 0.18 + skills 0.14 + trajectory 0.14 + education 0.12 + experience 0.11 + location 0.06, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
 
 ## 4. Honeypot Detection Engine
 

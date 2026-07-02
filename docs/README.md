@@ -40,6 +40,8 @@ Diátaxis layout for the Track 1 ranking engine. The **[README](../README.md)** 
 | [adr/001-deterministic-min-heap-ranking.md](adr/001-deterministic-min-heap-ranking.md) | O(N log K) heap, streaming ingest          |
 | [adr/002-honeypot-threat-modeling.md](adr/002-honeypot-threat-modeling.md)             | Adversarial dataset traps                  |
 | [adr/003-semantic-hybrid-layer.md](adr/003-semantic-hybrid-layer.md)                   | MiniLM semantic layer + deterministic core |
+| [adr/017-domain-branching-taxonomy.md](adr/017-domain-branching-taxonomy.md)             | Per-domain title/skill tables                |
+| [adr/018-cross-encoder-rerank.md](adr/018-cross-encoder-rerank.md)                     | Cross-encoder shortlist rerank               |
 
 ## External
 
