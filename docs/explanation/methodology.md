@@ -27,12 +27,20 @@ Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a *
 
 | Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                                             |
 | ------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Title & Career**       | 35%                    | Domain-appropriate title tiers (AI/ML or DevOps) and product-company trajectory over title-chasers; consulting-only careers penalized per JD red flags. |
-| **Skills Credibility**   | 25%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                                                  |
-| **Semantic Fit**         | 15%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills.                   |
-| **Experience Fit**       | 15%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                        |
-| **Location & Logistics** | 10%                    | Favors candidates in JD-named Indian cities.                                                                                                            |
+| **Semantic Fit**         | 25%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
+| **Title & Career**       | 18%                    | Domain-appropriate title tiers (AI/ML or DevOps); consulting-only careers penalized; bounded penalties for JD-named anti-requirements (title-chasers, CV/speech/robotics without NLP). |
+| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                                                  |
+| **Career Trajectory**    | 14%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                    |
+| **Education**            | 12%                    | Institution tier (tier_1..tier_4) and degree-field relevance.                                                                                           |
+| **Experience Fit**       | 11%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                        |
+| **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities.                                                                                                            |
 | **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                                                   |
+
+Weights are the senior/staff profile in `get_scorer_weights`; junior and mid profiles shift emphasis but keep the same scorers. Pure keyword scorers (title + skills = 32%) now sit below the semantic, trajectory, and education signals combined.
+
+### Cross-encoder rerank (ADR-018)
+
+On a full ranking pass, after the heap yields a shortlist pool (`RERANK_POOL_SIZE`, default 300), a cross-encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`) re-scores JD vs candidate and nudges the order with a bounded additive blend (`final = base + 0.15 * ce`). This preserves monotonicity and the reasoning floor, is baked for offline runs, and is skipped in the sandbox and CI.
 
 ### Semantic performance gate and funnel
 
