@@ -37,7 +37,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added (unreleased)
 
+- Cross-encoder rerank stage (ADR-018, `src/rerank.py`) that re-scores the shortlist pool with `cross-encoder/ms-marco-MiniLM-L-6-v2` on full ranking passes; bounded additive blend keeps output monotonic and above the reasoning floor, baked for offline runs, skipped in the sandbox and CI
+- Career-trajectory scorer (`src/scorers/trajectory_scorer.py`) rewarding IC-to-lead progression and product-company experience while down-weighting consulting-only or research-only paths
+- Education tier scorer (`src/scorers/education_scorer.py`) using institution tier and field relevance, wired into the seniority weight profiles
+- Section-aware JD anti-requirement detection (`anti_requirements` on `JobRequirements`) with bounded penalties for title-chasers and CV/speech/robotics-without-NLP profiles the JD explicitly does not want
 - Curated demo sample (`DataSet/sample_candidates_demo.jsonl`) built from real pool records, plus a one-click Gradio example, so the hosted sandbox shows a strong shortlist instead of a noisy arbitrary slice
+
+### Changed (unreleased)
+
+- Rebalanced scorer weights toward semantic fit (senior profile semantic 15 to 25 percent, pure keyword title plus skills reduced from 42 to 32 percent) to honor the JD's beyond-keywords mandate; full 100K stays honeypot-free with the top-100 minimum above the reasoning floor
 
 ### Reviewer fixes (unreleased)
 

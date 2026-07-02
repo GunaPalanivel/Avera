@@ -1,10 +1,12 @@
 from src.config import DEVOPS_TITLE_TIERS, SCORER_WEIGHTS
 from src.models import CandidateModel
 from src.scorers.behavioral_scorer import BehavioralScorer
+from src.scorers.education_scorer import EducationScorer
 from src.scorers.experience_scorer import ExperienceScorer
 from src.scorers.location_scorer import LocationScorer
 from src.scorers.skills_scorer import SkillsScorer
 from src.scorers.title_career_scorer import TitleCareerScorer
+from src.scorers.trajectory_scorer import TrajectoryScorer
 
 
 def get_base_candidate() -> dict:
@@ -105,6 +107,96 @@ def test_title_career_scorer_devops_domain():
 
     # An SRE title should score higher under the DevOps taxonomy than under the AI/ML one
     assert devops_scorer(c) > ai_scorer(c)
+
+
+def test_title_career_anti_requirement_penalty():
+    weight = SCORER_WEIGHTS["title_career"]
+    base_scorer = TitleCareerScorer(weight=weight)
+    penalized = TitleCareerScorer(weight=weight, anti_requirements=("cv_speech_robotics_without_nlp",))
+
+    c_dict = get_base_candidate()
+    c_dict["skills"] = [
+        {"name": "OpenCV", "proficiency": "expert", "endorsements": 10, "duration_months": 40},
+        {"name": "Object Detection", "proficiency": "advanced", "endorsements": 5, "duration_months": 30},
+    ]
+    c = CandidateModel.model_validate(c_dict)
+
+    # A CV-only candidate is penalized when the JD says it does not want CV-without-NLP
+    assert penalized(c) < base_scorer(c)
+
+
+def test_education_scorer_tiers_and_relevance():
+    scorer = EducationScorer(weight=SCORER_WEIGHTS["education"])
+
+    t1 = get_base_candidate()
+    t1["education"] = [
+        {
+            "institution": "IIT Bombay",
+            "degree": "B.Tech",
+            "field_of_study": "Computer Science",
+            "start_year": 2014,
+            "end_year": 2018,
+            "tier": "tier_1",
+        }
+    ]
+    t3 = get_base_candidate()
+    t3["education"] = [
+        {
+            "institution": "Local College",
+            "degree": "B.E.",
+            "field_of_study": "Mechanical",
+            "start_year": 2014,
+            "end_year": 2018,
+            "tier": "tier_3",
+        }
+    ]
+    assert scorer(CandidateModel.model_validate(t1)) > scorer(CandidateModel.model_validate(t3))
+
+    missing = get_base_candidate()
+    missing["education"] = []
+    assert scorer(CandidateModel.model_validate(missing)) > 0.0
+
+
+def test_trajectory_scorer_rewards_progression_over_consulting():
+    scorer = TrajectoryScorer(weight=SCORER_WEIGHTS["trajectory"])
+
+    progressing = get_base_candidate()
+    progressing["career_history"] = [
+        {
+            "company": "Product Corp",
+            "title": "Lead AI Engineer",
+            "start_date": "2023-01-01",
+            "duration_months": 18,
+            "is_current": True,
+            "industry": "Tech",
+            "company_size": "100-500",
+            "description": "Lead",
+        },
+        {
+            "company": "Product Corp",
+            "title": "AI Engineer",
+            "start_date": "2019-01-01",
+            "duration_months": 48,
+            "is_current": False,
+            "industry": "Tech",
+            "company_size": "100-500",
+            "description": "IC",
+        },
+    ]
+    consulting = get_base_candidate()
+    consulting["career_history"] = [
+        {
+            "company": "TCS",
+            "title": "Engineer",
+            "start_date": "2019-01-01",
+            "duration_months": 60,
+            "is_current": True,
+            "industry": "IT Services",
+            "company_size": "10001+",
+            "description": "Consulting",
+        }
+    ]
+    assert scorer(CandidateModel.model_validate(progressing)) > scorer(CandidateModel.model_validate(consulting))
 
 
 def test_skills_scorer():

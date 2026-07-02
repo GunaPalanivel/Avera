@@ -39,6 +39,38 @@ class JobRequirements:
     red_flags: tuple[str, ...]
     seniority_level: str = "senior"
     domain: str = "ai_ml"
+    anti_requirements: tuple[str, ...] = ()
+
+
+# Markers for the JD's "Things we explicitly do NOT want" style section.
+_ANTI_SECTION_MARKERS: tuple[str, ...] = (
+    "do not want",
+    "do NOT want",
+    "explicitly do not want",
+    "not a fit",
+    "disqualifier",
+)
+
+
+def _extract_anti_requirements(text_lower: str) -> tuple[str, ...]:
+    """Detect anti-requirements the JD names in its 'do NOT want' guidance.
+
+    Only flags are returned; candidate-side matching and penalties live in the scorer.
+    """
+    flags: set[str] = set()
+    if not any(marker.lower() in text_lower for marker in _ANTI_SECTION_MARKERS):
+        return ()
+    if "title-chaser" in text_lower or "title chaser" in text_lower or "chasing" in text_lower:
+        flags.add("title_chaser")
+    if "framework enthusiast" in text_lower or "framework-enthusiast" in text_lower:
+        flags.add("framework_enthusiast")
+    if "consulting" in text_lower:
+        flags.add("consulting_only")
+    if "proprietary" in text_lower or "closed-source" in text_lower:
+        flags.add("proprietary_only")
+    if ("computer vision" in text_lower or "speech" in text_lower or "robotics" in text_lower) and "nlp" in text_lower:
+        flags.add("cv_speech_robotics_without_nlp")
+    return tuple(sorted(flags))
 
 
 def _detect_seniority(text_lower: str) -> str:
@@ -144,6 +176,7 @@ def load_job_requirements(jd_path: Path | str | None = None) -> JobRequirements:
 
     target_cities = tuple(c for c in JD_CITY_CATALOG if c in text_lower)
     title_keywords = _extract_title_keywords(text, text_lower)
+    anti_requirements = _extract_anti_requirements(text_lower)
 
     return JobRequirements(
         raw_text=text,
@@ -154,4 +187,5 @@ def load_job_requirements(jd_path: Path | str | None = None) -> JobRequirements:
         red_flags=("fictional", "consulting only"),
         seniority_level=seniority,
         domain=domain,
+        anti_requirements=anti_requirements,
     )

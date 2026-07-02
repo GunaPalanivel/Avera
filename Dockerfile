@@ -29,11 +29,13 @@ COPY scripts/download_model.py ./scripts/
 COPY rank.py DataSet/validate_submission.py DataSet/job_description.txt app.py ./
 
 ENV AVERA_MODEL_OUT=/app/models/all-MiniLM-L6-v2
+ENV AVERA_CROSS_ENCODER_OUT=/app/models/ms-marco-MiniLM-L-6-v2
 RUN python scripts/download_model.py \
     && mkdir -p /app/.sandbox \
     && chown -R avera_user:avera_user /app/models /app/.sandbox /app/src /app/scripts /app/rank.py /app/app.py
 
 ENV AVERA_SEMANTIC_MODEL=/app/models/all-MiniLM-L6-v2
+ENV AVERA_CROSS_ENCODER_MODEL=/app/models/ms-marco-MiniLM-L-6-v2
 
 USER avera_user
 

@@ -6,11 +6,13 @@ from src.exceptions import ConfigError
 
 # Base scorer weights; behavioral is a multiplicative modifier (ADR-03)
 SCORER_WEIGHTS: dict[str, float] = {
-    "title_career": 0.35,
-    "skills": 0.25,
-    "experience": 0.15,
-    "location": 0.10,
-    "semantic": 0.15,
+    "title_career": 0.18,
+    "skills": 0.14,
+    "experience": 0.11,
+    "location": 0.06,
+    "semantic": 0.25,
+    "education": 0.12,
+    "trajectory": 0.14,
 }
 
 BEHAVIORAL_MODIFIER_MIN = 0.4
@@ -24,6 +26,13 @@ SEMANTIC_MIN_HEURISTIC_SCORE = 0.11
 # semantic rerank). Generous default keeps the top-100 effectively unchanged while cutting
 # the encode workload from all survivors to K. Override with AVERA_SEMANTIC_RERANK_TOPK.
 SEMANTIC_RERANK_TOPK = int(os.environ.get("AVERA_SEMANTIC_RERANK_TOPK", "5000"))
+
+# Cross-encoder rerank: after the heap yields a shortlist pool, a cross-encoder re-scores the
+# pool and nudges the final order. The blend is additive and bounded (final = base + alpha * ce),
+# so monotonicity and the reasoning floor are preserved. Only runs on full ranking passes.
+RERANK_POOL_SIZE = int(os.environ.get("AVERA_RERANK_POOL", "300"))
+RERANK_ALPHA = float(os.environ.get("AVERA_RERANK_ALPHA", "0.15"))
+CROSS_ENCODER_MODEL_NAME = os.environ.get("AVERA_CROSS_ENCODER_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
 
 # Offline-friendly: set AVERA_SEMANTIC_MODEL to a local directory path after `make download-model`
 SEMANTIC_MODEL_NAME = os.environ.get("AVERA_SEMANTIC_MODEL", "all-MiniLM-L6-v2")
@@ -49,6 +58,46 @@ FICTIONAL_COMPANIES: frozenset[str] = frozenset(
 )
 
 CONSULTING_FIRMS: frozenset[str] = frozenset({"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini", "ibm"})
+
+# Anti-requirement detection: the JD's "Things we explicitly do NOT want" section names
+# candidates whose primary expertise is CV/speech/robotics without NLP/IR exposure.
+CV_SPEECH_ROBOTICS_TERMS: frozenset[str] = frozenset(
+    {
+        "computer vision",
+        "opencv",
+        "image classification",
+        "object detection",
+        "yolo",
+        "cnn",
+        "segmentation",
+        "image segmentation",
+        "speech recognition",
+        "asr",
+        "tts",
+        "robotics",
+        "slam",
+        "diffusion models",
+        "gans",
+    }
+)
+
+NLP_IR_TERMS: frozenset[str] = frozenset(
+    {
+        "nlp",
+        "llm",
+        "llms",
+        "embeddings",
+        "retrieval",
+        "information retrieval",
+        "semantic search",
+        "vector search",
+        "rag",
+        "sentence transformers",
+        "bert",
+        "transformers",
+        "fine-tuning llms",
+    }
+)
 
 JD_CITY_CATALOG: tuple[str, ...] = (
     "hyderabad",
@@ -236,26 +285,32 @@ def get_scorer_weights(seniority_level: str) -> dict[str, float]:
     level = (seniority_level or "mid").lower()
     if level in ("senior", "staff", "principal", "lead"):
         return {
-            "title_career": 0.35,
-            "skills": 0.25,
-            "experience": 0.15,
-            "location": 0.10,
-            "semantic": 0.15,
+            "title_career": 0.18,
+            "skills": 0.14,
+            "experience": 0.11,
+            "location": 0.06,
+            "semantic": 0.25,
+            "education": 0.12,
+            "trajectory": 0.14,
         }
     if level in ("junior", "entry", "associate"):
         return {
-            "title_career": 0.20,
-            "skills": 0.35,
-            "experience": 0.15,
-            "location": 0.10,
-            "semantic": 0.20,
+            "title_career": 0.10,
+            "skills": 0.22,
+            "experience": 0.11,
+            "location": 0.06,
+            "semantic": 0.25,
+            "education": 0.12,
+            "trajectory": 0.14,
         }
     return {
-        "title_career": 0.30,
-        "skills": 0.30,
-        "experience": 0.15,
-        "location": 0.10,
-        "semantic": 0.15,
+        "title_career": 0.16,
+        "skills": 0.16,
+        "experience": 0.11,
+        "location": 0.06,
+        "semantic": 0.25,
+        "education": 0.12,
+        "trajectory": 0.14,
     }
 
 

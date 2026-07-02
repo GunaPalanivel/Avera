@@ -68,7 +68,7 @@ candidates.jsonl ──► stream ───────────────�
 
 1. **Ingest & validate** — Pydantic boundary; malformed rows skipped, pipeline continues.
 2. **Adversarial filters** — ~60% fictional companies dropped; ~1,600 honeypots removed (title/skill mismatch, expert-with-zero-months, impossible seniority, unverified generalist).
-3. **Base score** — Weighted sum of title/career, skills, semantic, experience, location. Weights adjust by JD seniority (`get_scorer_weights` in `src/config.py`).
+3. **Base score** — Weighted sum of semantic (25%), title/career, skills, career trajectory, education, experience, location. Weights adjust by JD seniority (`get_scorer_weights` in `src/config.py`); pure keyword scorers sit below the semantic and career signals.
 4. **Semantic funnel** — MiniLM encoding runs only for candidates above the heuristic gate (`0.11`), and only the strongest `SEMANTIC_RERANK_TOPK` (default 5000) of those are encoded. Everyone else receives semantic `0.0`; no on-demand encoding after prefill.
 5. **Behavioral multiplier** — Response rate, activity recency (`AVERA_REFERENCE_DATE`), notice period, interview/offer rates, GitHub score, verifications, profile completeness, recent applications — clamped to `[0.4, 1.3]`.
 6. **Explainable output** — Rank-tier reasoning in `src/reasoning.py`: top ranks highlight strengths; ranks 20–99 include verifiable concerns (skill gaps, low response rate, notice period). No LLM in the output path.
@@ -98,7 +98,7 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 | **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                                                 | Runtime HuggingFace download — flaky in sandbox                          |
 | **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                                            | Hope-based correctness                                                   |
 
-ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md)
+ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md) · [018 cross-encoder rerank](docs/adr/018-cross-encoder-rerank.md)
 
 ## System architecture
 
@@ -182,6 +182,17 @@ python scripts/test_generalization.py   # bundled AI/ML JD + DevOps alt JD on sa
 | Honeypot + fictional filters (dataset constants) | New domains beyond AI/ML and DevOps fall back to generic |
 
 A DevOps/SRE JD now surfaces infrastructure titles in the shortlist (0 → 97 infra titles in a full-pool top-100 check) via `detect_domain` + `get_title_tiers`/`get_skill_taxonomy`; adding a new domain is a config table, not a code change.
+
+### Roadmap (deliberately deferred)
+
+Reviewer-suggested items we scoped out on purpose, to avoid over-engineering a CPU PoC and destabilizing a validated submission. Documented here as honest scope, not oversight:
+
+| Item | Why deferred |
+| ---- | ------------ |
+| BM25 + RRF hybrid retrieval | The keyword skills scorer already covers lexical matches; sparse retrieval adds real complexity for marginal gain at this scale |
+| BGE-small embedding swap | Re-bakes the offline model and re-scores everything; the cross-encoder (ADR-018) delivers the precision lift with less blast radius |
+| Learned-to-rank weights | No recruiter click data to train on; hand-tuned weights are auditable and defensible for a PoC |
+| Learned skill-adjacency graph | A 1.4M-skill graph is out of scope for a CPU PoC; curated synonyms + semantic fit cover adjacency today |
 
 ### Compliance posture
 
