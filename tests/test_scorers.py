@@ -6,6 +6,7 @@ from src.scorers.experience_scorer import ExperienceScorer
 from src.scorers.location_scorer import LocationScorer
 from src.scorers.skills_scorer import SkillsScorer
 from src.scorers.title_career_scorer import TitleCareerScorer
+from src.scorers.trajectory_scorer import TrajectoryScorer
 
 
 def get_base_candidate() -> dict:
@@ -154,6 +155,48 @@ def test_education_scorer_tiers_and_relevance():
     missing = get_base_candidate()
     missing["education"] = []
     assert scorer(CandidateModel.model_validate(missing)) > 0.0
+
+
+def test_trajectory_scorer_rewards_progression_over_consulting():
+    scorer = TrajectoryScorer(weight=SCORER_WEIGHTS["trajectory"])
+
+    progressing = get_base_candidate()
+    progressing["career_history"] = [
+        {
+            "company": "Product Corp",
+            "title": "Lead AI Engineer",
+            "start_date": "2023-01-01",
+            "duration_months": 18,
+            "is_current": True,
+            "industry": "Tech",
+            "company_size": "100-500",
+            "description": "Lead",
+        },
+        {
+            "company": "Product Corp",
+            "title": "AI Engineer",
+            "start_date": "2019-01-01",
+            "duration_months": 48,
+            "is_current": False,
+            "industry": "Tech",
+            "company_size": "100-500",
+            "description": "IC",
+        },
+    ]
+    consulting = get_base_candidate()
+    consulting["career_history"] = [
+        {
+            "company": "TCS",
+            "title": "Engineer",
+            "start_date": "2019-01-01",
+            "duration_months": 60,
+            "is_current": True,
+            "industry": "IT Services",
+            "company_size": "10001+",
+            "description": "Consulting",
+        }
+    ]
+    assert scorer(CandidateModel.model_validate(progressing)) > scorer(CandidateModel.model_validate(consulting))
 
 
 def test_skills_scorer():

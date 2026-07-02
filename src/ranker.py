@@ -22,6 +22,7 @@ from src.scorers.location_scorer import LocationScorer
 from src.scorers.semantic_scorer import SemanticScorer
 from src.scorers.skills_scorer import SkillsScorer
 from src.scorers.title_career_scorer import TitleCareerScorer
+from src.scorers.trajectory_scorer import TrajectoryScorer
 
 
 class Ranker:
@@ -42,6 +43,7 @@ class Ranker:
             ExperienceScorer(weight=weights["experience"], title_keywords=job_reqs.title_keywords),
             LocationScorer(weight=weights["location"], target_cities=job_reqs.target_cities),
             EducationScorer(weight=weights["education"]),
+            TrajectoryScorer(weight=weights["trajectory"]),
             SemanticScorer(weight=weights["semantic"], jd_text=job_reqs.raw_text),
         ]
         self.behavioral_scorer = BehavioralScorer(weight=1.0)
