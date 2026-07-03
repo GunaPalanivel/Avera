@@ -20,25 +20,33 @@ def _pool_matches_adjacency(keyword: str, pool: set[str]) -> bool:
     return False
 
 
+def _self_reported_credit(duration_months: int | None) -> float:
+    if duration_months is None or duration_months <= 0:
+        return 0.25
+    return min(1.0, duration_months / 24.0) * 0.5
+
+
 class SkillsScorer(BaseScorer):
     def __init__(self, weight: float, must_have: tuple[str, ...], nice_to_have: tuple[str, ...]):
         super().__init__(weight)
         self.must_have = must_have
         self.nice_to_have = nice_to_have
 
-    def _keyword_credit(self, keyword: str, assessed: set[str], self_reported: set[str]) -> float:
+    def _keyword_credit(self, keyword: str, assessed: set[str], self_reported: dict[str, int | None]) -> float:
         if _pool_matches_keyword(keyword, assessed):
             return 1.0
-        if _pool_matches_keyword(keyword, self_reported):
-            return 0.5
+        for name, duration in self_reported.items():
+            if any(v in name for v in expand_skill_keyword(keyword)):
+                return _self_reported_credit(duration)
         if _pool_matches_adjacency(keyword, assessed):
             return ADJACENCY_ASSESSED_CREDIT
-        if _pool_matches_adjacency(keyword, self_reported):
-            return ADJACENCY_SELF_CREDIT
+        for name, duration in self_reported.items():
+            if any(v in name for v in expand_skill_adjacency(keyword)):
+                return ADJACENCY_SELF_CREDIT * max(0.5, _self_reported_credit(duration) / 0.5)
         return 0.0
 
     def score(self, candidate: CandidateModel) -> float:
-        self_reported = {s.name.lower() for s in candidate.skills}
+        self_reported = {s.name.lower(): s.duration_months for s in candidate.skills}
         assessed_skills = {k.lower() for k in candidate.redrob_signals.skill_assessment_scores}
 
         must_have_count = 0.0

@@ -199,6 +199,28 @@ def test_trajectory_scorer_rewards_progression_over_consulting():
     assert scorer(CandidateModel.model_validate(progressing)) > scorer(CandidateModel.model_validate(consulting))
 
 
+def test_skills_scorer_recency_weighting():
+    scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("python",), nice_to_have=())
+    fresh = get_base_candidate()
+    fresh["skills"] = [{"name": "Python", "proficiency": "advanced", "endorsements": 5, "duration_months": 24}]
+    fresh["redrob_signals"]["skill_assessment_scores"] = {}
+    stale = get_base_candidate()
+    stale["skills"] = [{"name": "Python", "proficiency": "advanced", "endorsements": 5, "duration_months": 0}]
+    stale["redrob_signals"]["skill_assessment_scores"] = {}
+    assert scorer(CandidateModel.model_validate(fresh)) > scorer(CandidateModel.model_validate(stale))
+
+
+def test_location_scorer_remote_hybrid():
+    scorer = LocationScorer(weight=SCORER_WEIGHTS["location"], target_cities=("pune",))
+    c_dict = get_base_candidate()
+    c_dict["profile"]["location"] = "Kochi"
+    c_dict["profile"]["country"] = "India"
+    c_dict["redrob_signals"]["willing_to_relocate"] = False
+    c_dict["redrob_signals"]["preferred_work_mode"] = "remote"
+    score = scorer(CandidateModel.model_validate(c_dict))
+    assert score >= 0.85 * SCORER_WEIGHTS["location"]
+
+
 def test_skills_scorer_synonym_embeddings():
     scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("embeddings",), nice_to_have=())
     c_dict = get_base_candidate()
