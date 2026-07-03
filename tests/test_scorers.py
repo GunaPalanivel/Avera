@@ -199,6 +199,29 @@ def test_trajectory_scorer_rewards_progression_over_consulting():
     assert scorer(CandidateModel.model_validate(progressing)) > scorer(CandidateModel.model_validate(consulting))
 
 
+def test_skills_scorer_synonym_embeddings():
+    scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("embeddings",), nice_to_have=())
+    c_dict = get_base_candidate()
+    c_dict["skills"] = [
+        {"name": "Vector Representations", "proficiency": "advanced", "endorsements": 5, "duration_months": 24},
+    ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {}
+    score = scorer(CandidateModel.model_validate(c_dict))
+    assert score > 0.0
+
+
+def test_skills_scorer_adjacency_partial_credit():
+    scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("pinecone",), nice_to_have=())
+    c_dict = get_base_candidate()
+    c_dict["skills"] = [
+        {"name": "Weaviate", "proficiency": "advanced", "endorsements": 5, "duration_months": 24},
+    ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {"Weaviate": 80.0}
+    direct = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("weaviate",), nice_to_have=())
+    assert scorer(CandidateModel.model_validate(c_dict)) < direct(CandidateModel.model_validate(c_dict))
+    assert scorer(CandidateModel.model_validate(c_dict)) > 0.0
+
+
 def test_skills_scorer():
     scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("python", "machine learning"), nice_to_have=("xgboost",))
     c_dict = get_base_candidate()

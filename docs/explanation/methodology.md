@@ -15,7 +15,7 @@ The pipeline begins with **`jd_parser.py`**, which ingests raw job description t
 | **Title keywords**      | Dynamic tokens from JD headings and role lines                                        |
 | **Raw text**            | Preserved for semantic embedding (full JD block)                                      |
 
-Skill synonyms (e.g. `vector database` → `vector db`, `faiss`) expand matching without scoring on raw substring stuffing alone.
+Skill synonyms (e.g. `embeddings` → `vector representations`, `vector database` → `pgvector`) and curated **skill adjacencies** (e.g. `pinecone` ↔ `weaviate`, `milvus`) expand matching without scoring on raw substring stuffing alone. Adjacent skills earn partial credit (0.7× assessed, 0.35× self-reported).
 
 **Seniority-aware weights** — `get_scorer_weights(seniority_level)` in `src/config.py` shifts emphasis between title/career and skills for junior vs senior JDs. Behavioral scoring remains a separate multiplier in all profiles.
 
@@ -29,7 +29,7 @@ Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a *
 | ------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Semantic Fit**         | 25%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
 | **Title & Career**       | 18%                    | Domain-appropriate title tiers (AI/ML or DevOps); consulting-only careers penalized; bounded penalties for JD-named anti-requirements (title-chasers, CV/speech/robotics without NLP).  |
-| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                                                                                  |
+| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym and adjacency expansion; assessment scores weighted over self-reported proficiency.                                                                                  |
 | **Career Trajectory**    | 14%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                                                    |
 | **Education**            | 12%                    | Institution tier (tier_1..tier_4) and degree-field relevance.                                                                                                                           |
 | **Experience Fit**       | 11%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                                                        |

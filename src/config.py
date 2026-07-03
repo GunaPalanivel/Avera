@@ -138,6 +138,9 @@ SKILL_TAXONOMY_MUST: frozenset[str] = frozenset(
         "elasticsearch",
         "faiss",
         "vector database",
+        "pgvector",
+        "haystack",
+        "information retrieval",
         "python",
         "ndcg",
         "mrr",
@@ -249,11 +252,26 @@ def get_skill_taxonomy(domain: str) -> tuple[frozenset[str], frozenset[str]]:
 
 
 SKILL_SYNONYMS: dict[str, tuple[str, ...]] = {
-    "vector database": ("vector db", "vector search", "vector store", "ann index"),
+    "vector database": ("vector db", "vector search", "vector store", "ann index", "pgvector"),
     "sentence-transformers": ("sentence transformers", "sbert", "minilm"),
     "machine learning": ("ml", "applied ml"),
     "llm": ("large language model", "language model"),
     "faiss": ("facebook ai similarity search",),
+    "embeddings": ("vector representations", "text encoders", "embedding model"),
+    "nlp": ("natural language processing", "information retrieval"),
+    "haystack": ("deepset haystack",),
+}
+
+SKILL_ADJACENCIES: dict[str, tuple[str, ...]] = {
+    "pinecone": ("weaviate", "milvus", "qdrant", "faiss", "pgvector", "opensearch", "elasticsearch"),
+    "weaviate": ("pinecone", "milvus", "qdrant", "faiss", "pgvector"),
+    "qdrant": ("pinecone", "weaviate", "milvus", "faiss", "pgvector"),
+    "milvus": ("pinecone", "weaviate", "qdrant", "faiss", "pgvector"),
+    "faiss": ("pinecone", "weaviate", "qdrant", "milvus", "pgvector"),
+    "pgvector": ("pinecone", "weaviate", "milvus", "qdrant", "faiss"),
+    "opensearch": ("elasticsearch", "pinecone", "weaviate"),
+    "elasticsearch": ("opensearch", "pinecone", "weaviate"),
+    "vector database": ("pgvector", "pinecone", "weaviate", "milvus", "qdrant", "faiss"),
 }
 
 TITLE_KEYWORDS_DEFAULT: tuple[str, ...] = (
@@ -322,4 +340,19 @@ def expand_skill_keyword(keyword: str) -> frozenset[str]:
         if kw == canonical or kw in syns:
             variants.add(canonical)
             variants.update(syns)
+    return frozenset(variants)
+
+
+def expand_skill_adjacency(keyword: str) -> frozenset[str]:
+    """Return adjacent skill tokens for partial must-have credit."""
+    kw = keyword.lower().strip()
+    adj_keys: set[str] = set()
+    for canonical in SKILL_ADJACENCIES:
+        if kw == canonical or kw in expand_skill_keyword(canonical):
+            adj_keys.add(canonical)
+    variants: set[str] = set()
+    for key in adj_keys:
+        for adj in SKILL_ADJACENCIES[key]:
+            variants.add(adj)
+            variants.update(expand_skill_keyword(adj))
     return frozenset(variants)
