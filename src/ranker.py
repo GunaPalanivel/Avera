@@ -165,13 +165,9 @@ class Ranker:
         score_ms = int((time.perf_counter() - t0) * 1000)
         heap.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
-        pool: list[tuple[float, float, CandidateModel, str]] = [
-            (s, jp, c, m) for s, _t, jp, c, m in heap
-        ]
+        pool: list[tuple[float, float, CandidateModel, str]] = [(s, jp, c, m) for s, _t, jp, c, m in heap]
         if rerank_enabled:
-            reranked: list[tuple[float, CandidateModel, str]] = [
-                (s, c, m) for s, _jp, c, m in pool
-            ]
+            reranked: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _jp, c, m in pool]
             reranked = CrossEncoderReranker(self.job_reqs.raw_text).rerank(reranked, top_k)
             join_by_id = {c.candidate_id: jp for _s, jp, c, _m in pool}
             pool = [(s, join_by_id[c.candidate_id], c, m) for s, c, m in reranked]
@@ -210,9 +206,6 @@ class Ranker:
                 len(results),
             )
             if top_k >= EXPECTED_SUBMISSION_ROWS:
-                raise RuntimeError(
-                    f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. "
-                    "Dataset is too small or filters are too strict."
-                )
+                raise RuntimeError(f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. Dataset is too small or filters are too strict.")
 
         return results

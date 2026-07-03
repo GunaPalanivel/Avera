@@ -33,15 +33,9 @@ class TitleCareerScorer(BaseScorer):
         if "cv_speech_robotics_without_nlp" in self.anti_requirements:
             skill_text = " ".join(s.name.lower() for s in candidate.skills)
             has_cv = any(term in skill_text for term in CV_SPEECH_ROBOTICS_TERMS)
-            has_nlp = any(
-                term in skill_text or any(v in skill_text for v in expand_skill_keyword(term))
-                for term in NLP_IR_TERMS
-            )
+            has_nlp = any(term in skill_text or any(v in skill_text for v in expand_skill_keyword(term)) for term in NLP_IR_TERMS)
             assessed = " ".join(k.lower() for k in candidate.redrob_signals.skill_assessment_scores)
-            has_nlp = has_nlp or any(
-                term in assessed or any(v in assessed for v in expand_skill_keyword(term))
-                for term in NLP_IR_TERMS
-            )
+            has_nlp = has_nlp or any(term in assessed or any(v in assessed for v in expand_skill_keyword(term)) for term in NLP_IR_TERMS)
             if has_cv and not has_nlp:
                 penalty += 0.15
 
