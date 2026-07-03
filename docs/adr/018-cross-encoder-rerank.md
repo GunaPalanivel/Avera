@@ -9,8 +9,8 @@ The bi-encoder semantic scorer (ADR-003) gives fast, pool-independent similarity
 Add a cross-encoder rerank stage that runs only on full ranking passes, after the heap produces a shortlist pool.
 
 1. On a full pass the heap keeps a pool of `RERANK_POOL_SIZE` (default 300) instead of just the top 100.
-2. `CrossEncoderReranker` (`src/rerank.py`) scores each pool candidate against the JD with `cross-encoder/ms-marco-MiniLM-L-6-v2` and squashes the logit to `[0,1]`.
-3. The blend is additive and bounded: `final = base + RERANK_ALPHA * ce` (default alpha 0.15). Because the cross-encoder term is non-negative and small, the output stays monotonic when re-sorted, tie-breaks by ascending `candidate_id`, and never drops a candidate below the reasoning floor.
+2. `CrossEncoderReranker` (`src/rerank.py`) scores each pool candidate against the JD with `cross-encoder/ms-marco-MiniLM-L-6-v2` and **min-max normalizes** logits to `[0,1]` (no sigmoid: sigmoid re-compresses already-clustered logits into a narrow band).
+3. The blend is additive and bounded: `final = base + RERANK_ALPHA * ce_norm` (default alpha 0.15). Because the cross-encoder term is non-negative and small, the output stays monotonic when re-sorted, tie-breaks by ascending `candidate_id`, and never drops a candidate below the reasoning floor.
 4. The final top 100 is taken from the reranked pool.
 
 ## Operational constraints

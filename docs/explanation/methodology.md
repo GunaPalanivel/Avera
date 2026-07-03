@@ -40,7 +40,7 @@ Weights are the senior/staff profile in `get_scorer_weights`; junior and mid pro
 
 ### Cross-encoder rerank (ADR-018)
 
-On a full ranking pass, after the heap yields a shortlist pool (`RERANK_POOL_SIZE`, default 300), a cross-encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`) re-scores JD vs candidate and nudges the order with a bounded additive blend (`final = base + 0.15 * ce`). This preserves monotonicity and the reasoning floor, is baked for offline runs, and is skipped in the sandbox and CI.
+On a full ranking pass, after the heap yields a shortlist pool (`RERANK_POOL_SIZE`, default 300), a cross-encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`) re-scores JD vs candidate and nudges the order with a bounded additive blend (`final = base + 0.15 * ce_norm`). Logits are min-max normalized to `[0,1]` without sigmoid recompression (ADR-018). This preserves monotonicity and the reasoning floor, is baked for offline runs, and is skipped in the sandbox and CI.
 
 ### Semantic performance gate and funnel
 
