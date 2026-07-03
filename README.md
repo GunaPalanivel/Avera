@@ -17,12 +17,12 @@ Avera is a tireless expert recruiter that reads every single application properl
 
 **How it works, in everyday terms:**
 
-| Step | What Avera does | Everyday analogy |
-| ---- | --------------- | ---------------- |
-| 1. Read the job | Understands what the role really needs, not just the buzzwords | Reads the job ad and grasps the intent |
-| 2. Drop the fakes | Removes fake companies and too-good-to-be-true profiles | Spots padded and dishonest resumes |
-| 3. Judge real fit | Weighs career history, real skills, experience, and location, reading the career story not just the keyword list | Reads between the lines like a seasoned recruiter |
-| 4. Check availability | Down-ranks people who never reply to recruiters, went quiet for months, or have a long notice period | Focuses on who you can actually hire now |
+| Step                  | What Avera does                                                                                                  | Everyday analogy                                  |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 1. Read the job       | Understands what the role really needs, not just the buzzwords                                                   | Reads the job ad and grasps the intent            |
+| 2. Drop the fakes     | Removes fake companies and too-good-to-be-true profiles                                                          | Spots padded and dishonest resumes                |
+| 3. Judge real fit     | Weighs career history, real skills, experience, and location, reading the career story not just the keyword list | Reads between the lines like a seasoned recruiter |
+| 4. Check availability | Down-ranks people who never reply to recruiters, went quiet for months, or have a long notice period             | Focuses on who you can actually hire now          |
 
 **How any company uses it:** it is a reusable engine, not built for one company or one job. Point it at any job description and it adapts. Use the try-it web page for a quick look, or the automated pipeline for the full applicant pool. Standard applicant data goes in; a standard ranked spreadsheet comes out, alongside whatever hiring tools you already use.
 
@@ -87,19 +87,19 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 
 ## Technical choices
 
-| Choice                              | Rationale                                                                                           | Rejected alternative                                                     |
-| ----------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| **Hybrid semantic + deterministic** | Career narrative fit (embeddings) + bounded JD constraints (rules)                                  | Pure BM25/keywords → honeypot traps; end-to-end LLM → unverifiable, slow |
-| **Cross-encoder rerank** | `cross-encoder/ms-marco-MiniLM-L-6-v2` on shortlist pool; **min-max** logits (no sigmoid) for precision (ADR-018) | Sigmoid on logits → score clustering; larger CE on full pool → latency |
-| **Skill adjacencies** | Curated synonyms + vector-DB cousins for narrative-fit without keyword stuffing | 1.4M skill graph → out of scope for CPU PoC |
-| **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                                     | Larger bi-encoders → latency budget on 100K                                           |
-| **Two-stage funnel**                | Heuristic candidate generation then MiniLM rerank on the top-K only — keeps 100K CPU runs tractable | Encode every survivor → ~7× slower with no material top-100 change       |
-| **Behavioral multiplier**           | Availability is hireability, not another additive feature                                           | Additive behavioral score → ghosts outrank available candidates          |
-| **Pydantic ingestion boundary**     | One bad field cannot crash a 100K run                                                               | Raw dict access → minute-4 `TypeError`                                   |
-| **defusedcsv output**               | OWASP A03 formula injection when judges open CSV in Excel                                           | Standard `csv` writer                                                    |
-| **Structured JSON logging**         | `trace_id`, `latency_ms`, `prefill_ms` for ops/debug                                                | `print()` — unsearchable at scale                                        |
-| **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                                                 | Runtime HuggingFace download — flaky in sandbox                          |
-| **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                                            | Hope-based correctness                                                   |
+| Choice                              | Rationale                                                                                                         | Rejected alternative                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| **Hybrid semantic + deterministic** | Career narrative fit (embeddings) + bounded JD constraints (rules)                                                | Pure BM25/keywords → honeypot traps; end-to-end LLM → unverifiable, slow |
+| **Cross-encoder rerank**            | `cross-encoder/ms-marco-MiniLM-L-6-v2` on shortlist pool; **min-max** logits (no sigmoid) for precision (ADR-018) | Sigmoid on logits → score clustering; larger CE on full pool → latency   |
+| **Skill adjacencies**               | Curated synonyms + vector-DB cousins for narrative-fit without keyword stuffing                                   | 1.4M skill graph → out of scope for CPU PoC                              |
+| **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                                                   | Larger bi-encoders → latency budget on 100K                              |
+| **Two-stage funnel**                | Heuristic candidate generation then MiniLM rerank on the top-K only — keeps 100K CPU runs tractable               | Encode every survivor → ~7× slower with no material top-100 change       |
+| **Behavioral multiplier**           | Availability is hireability, not another additive feature                                                         | Additive behavioral score → ghosts outrank available candidates          |
+| **Pydantic ingestion boundary**     | One bad field cannot crash a 100K run                                                                             | Raw dict access → minute-4 `TypeError`                                   |
+| **defusedcsv output**               | OWASP A03 formula injection when judges open CSV in Excel                                                         | Standard `csv` writer                                                    |
+| **Structured JSON logging**         | `trace_id`, `latency_ms`, `prefill_ms` for ops/debug                                                              | `print()` — unsearchable at scale                                        |
+| **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                                                               | Runtime HuggingFace download — flaky in sandbox                          |
+| **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                                                          | Hope-based correctness                                                   |
 
 ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md) · [018 cross-encoder rerank](docs/adr/018-cross-encoder-rerank.md) · [019 education weight](docs/adr/019-education-scorer-rationale.md)
 
@@ -138,8 +138,8 @@ Full architecture: [docs/explanation/architecture.md](docs/explanation/architect
 | **Deep job understanding** | JD parser (skills, cities, seniority, domain) + MiniLM semantic fit on headline, summary, `career_history` descriptions, and skills. |
 | **Two-stage funnel**       | Heuristic candidate generation, then MiniLM rerank on the heuristic top-K only (`SEMANTIC_RERANK_TOPK`).                             |
 | **Defensive boundary**     | Pydantic enforces schema at ingestion, coercing sentinel `-1` values and skipping malformed rows without crashing the run.           |
-| **Honeypot detection**     | Five-method detector + fictional-company pre-filter catches traps, multi-domain experts, and ghost profiles.           |
-| **Join probability**       | Informational hireability score in XLSX and reasoning (CSV stays 4 columns for portal validation).                      |
+| **Honeypot detection**     | Five-method detector + fictional-company pre-filter catches traps, multi-domain experts, and ghost profiles.                         |
+| **Join probability**       | Informational hireability score in XLSX and reasoning (CSV stays 4 columns for portal validation).                                   |
 | **Explainable output**     | Deterministic, score-aware rank-tier reasoning via `src/reasoning.py` — no LLM in the output path.                                   |
 | **Security hardened**      | `defusedcsv` and `sanitize_cell` on CSV and XLSX prevent OWASP A03 formula injection; path validation; PII-safe logs.                |
 | **Output canary (ADR-16)** | Exactly 100 unique IDs, subset of the input pool, validated before write.                                                            |
@@ -148,29 +148,29 @@ Full architecture: [docs/explanation/architecture.md](docs/explanation/architect
 
 Full index: **[docs/README.md](docs/README.md)**
 
-| Document                                                                        | Description                                                           |
-| ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
-| [Getting started](docs/getting-started.md)                                      | Install, health check, smoke rank, validation                         |
-| [Developer walkthrough](docs/submission/walkthrough.md)                         | Pipeline, reproduction, evaluation, output contract                   |
-| [System Architecture](docs/explanation/architecture.md)                         | Pipeline, ADRs, exception hierarchy                                   |
-| [Scoring Methodology](docs/explanation/methodology.md)                          | Hybrid semantic + heuristic weights, honeypots, join probability      |
-| [SRE Day-2 Runbook](docs/how-to/runbook.md)                                     | Local execution, offline model, Docker, troubleshooting               |
-| [ADR 003: Semantic Hybrid Layer](docs/adr/003-semantic-hybrid-layer.md)         | Why embeddings sit alongside deterministic scorers                    |
-| [ADR 017: Domain-Branching Taxonomy](docs/adr/017-domain-branching-taxonomy.md) | Per-domain title/skill tables (AI/ML, DevOps, generic)                |
-| [ADR 019: Education Weight](docs/adr/019-education-scorer-rationale.md)          | Education reduced to 8%; semantic 27%, trajectory 16%                   |
+| Document                                                                        | Description                                                      |
+| ------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [Getting started](docs/getting-started.md)                                      | Install, health check, smoke rank, validation                    |
+| [Developer walkthrough](docs/submission/walkthrough.md)                         | Pipeline, reproduction, evaluation, output contract              |
+| [System Architecture](docs/explanation/architecture.md)                         | Pipeline, ADRs, exception hierarchy                              |
+| [Scoring Methodology](docs/explanation/methodology.md)                          | Hybrid semantic + heuristic weights, honeypots, join probability |
+| [SRE Day-2 Runbook](docs/how-to/runbook.md)                                     | Local execution, offline model, Docker, troubleshooting          |
+| [ADR 003: Semantic Hybrid Layer](docs/adr/003-semantic-hybrid-layer.md)         | Why embeddings sit alongside deterministic scorers               |
+| [ADR 017: Domain-Branching Taxonomy](docs/adr/017-domain-branching-taxonomy.md) | Per-domain title/skill tables (AI/ML, DevOps, generic)           |
+| [ADR 019: Education Weight](docs/adr/019-education-scorer-rationale.md)         | Education reduced to 8%; semantic 27%, trajectory 16%            |
 
 ## How Avera Meets Track 1 (Intelligent Candidate Discovery)
 
 Redrob's challenge JD is explicit: **keyword matching is a trap**. The dataset contains honeypots with perfect AI skill lists and non-technical titles. Avera is built to match what the JD _means_, not what a substring search returns.
 
-| JD signal                          | Avera response                                                                                                                                                |
-| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| JD signal                          | Avera response                                                                                                                                                      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Career trajectory over skill lists | Semantic fit (27%) + career trajectory (16%) + title/career (18%) on headline, summary, `career_history` descriptions, and skills — keyword scorers (32%) sit below |
-| Behavioral availability            | Multiplicative modifier (0.4×–1.3×) on response rate, activity, notice period, interview/offer rates, GitHub score, profile completeness, recent applications |
-| India hireability                  | Join probability in XLSX + reasoning (offer acceptance, response time, work mode, relocation); excluded from rank score |
-| Honeypot traps                     | Fictional-company pre-filter + five-method honeypot detector before scoring                                                                                      |
-| Explainable reasoning              | Deterministic `src/reasoning.py` — rank-tier templates with honest concerns for mid/low ranks                                                                 |
-| India-scale throughput             | O(N log K) min-heap, two-pass streaming ingest, structured JSON logs with `trace_id` / `latency_ms`                                                           |
+| Behavioral availability            | Multiplicative modifier (0.4×–1.3×) on response rate, activity, notice period, interview/offer rates, GitHub score, profile completeness, recent applications       |
+| India hireability                  | Join probability in XLSX + reasoning (offer acceptance, response time, work mode, relocation); excluded from rank score                                             |
+| Honeypot traps                     | Fictional-company pre-filter + five-method honeypot detector before scoring                                                                                         |
+| Explainable reasoning              | Deterministic `src/reasoning.py` — rank-tier templates with honest concerns for mid/low ranks                                                                       |
+| India-scale throughput             | O(N log K) min-heap, two-pass streaming ingest, structured JSON logs with `trace_id` / `latency_ms`                                                                 |
 
 Scorer weights are centralized in `src/config.py` (`get_scorer_weights` by JD seniority) and validated at import. The JD parser extracts must-have skills, title keywords, seniority, and target cities from any `job_description.txt`; semantic similarity uses the full JD text block.
 
@@ -193,12 +193,12 @@ A DevOps/SRE JD now surfaces infrastructure titles in the shortlist (0 → 97 in
 
 Reviewer-suggested items we scoped out on purpose, to avoid over-engineering a CPU PoC and destabilizing a validated submission. Documented here as honest scope, not oversight:
 
-| Item | Why deferred |
-| ---- | ------------ |
-| BM25 + RRF hybrid retrieval | The keyword skills scorer already covers lexical matches; sparse retrieval adds real complexity for marginal gain at this scale |
-| BGE-small embedding swap | Re-bakes the offline model and re-scores everything; the cross-encoder (ADR-018) delivers the precision lift with less blast radius |
-| Learned-to-rank weights | No recruiter click data to train on; hand-tuned weights are auditable and defensible for a PoC |
-| Learned skill-adjacency graph | Curated synonyms + adjacencies + semantic fit cover narrative-fit recovery today (post-review upgrade) |
+| Item                          | Why deferred                                                                                                                        |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| BM25 + RRF hybrid retrieval   | The keyword skills scorer already covers lexical matches; sparse retrieval adds real complexity for marginal gain at this scale     |
+| BGE-small embedding swap      | Re-bakes the offline model and re-scores everything; the cross-encoder (ADR-018) delivers the precision lift with less blast radius |
+| Learned-to-rank weights       | No recruiter click data to train on; hand-tuned weights are auditable and defensible for a PoC                                      |
+| Learned skill-adjacency graph | Curated synonyms + adjacencies + semantic fit cover narrative-fit recovery today (post-review upgrade)                              |
 
 ### Compliance posture
 
@@ -232,7 +232,7 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 | Variable                              | Purpose                                                                             |
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
 | `AVERA_SKIP_SEMANTIC=1`               | Skip bi-encoder load in unit tests (default in `tests/conftest.py`)                 |
-| `AVERA_SKIP_RERANK=1`                   | Skip cross-encoder rerank (CI / sandbox fast path)                                  |
+| `AVERA_SKIP_RERANK=1`                 | Skip cross-encoder rerank (CI / sandbox fast path)                                  |
 | `AVERA_SEMANTIC_MODEL=/path/to/model` | Local MiniLM directory for air-gapped ranking (`has_network_during_ranking: false`) |
 | `AVERA_REFERENCE_DATE`                | Fixed reference date for behavioral recency (default `2026-06-27`)                  |
 | `AVERA_SEMANTIC_RERANK_TOPK`          | Number of heuristic-top candidates to semantically rerank (default `5000`)          |
@@ -240,12 +240,12 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 
 ## Submission artifacts
 
-| Artifact    | Path                               |
-| ----------- | ---------------------------------- |
-| CSV         | `submission.csv` (4 columns)       |
+| Artifact    | Path                                            |
+| ----------- | ----------------------------------------------- |
+| CSV         | `submission.csv` (4 columns)                    |
 | XLSX        | `submission.xlsx` (includes `join_probability`) |
-| Metadata    | `submission_metadata.yaml`         |
-| Walkthrough | `docs/submission/walkthrough.md`   |
+| Metadata    | `submission_metadata.yaml`                      |
+| Walkthrough | `docs/submission/walkthrough.md`                |
 
 ## Repository Structure
 

@@ -25,14 +25,14 @@ JSONL stream → validate → fictional filter → honeypot detector (5 methods)
     → join probability (informational) + rank-tier reasoning → CSV + XLSX
 ```
 
-| Stage | Purpose |
-| ----- | ------- |
-| **Stage 1** | Drop ~60% fictional companies |
-| **Stage 1.5** | Drop honeypots (title/skill mismatch, expert anomaly, impossible seniority, multi-domain expert trap, unverified generalist) |
-| **Stage 2** | Base score (senior JD): semantic **27%**, title/career 18%, trajectory **16%**, skills 14%, experience 11%, education **8%**, location 6% |
-| **Stage 2.5** | Behavioral multiplier 0.4×–1.3× |
-| **Stage 3** | Min-heap top-100, cross-encoder rerank on shortlist pool (ADR-018, min-max logits) |
-| **Output** | CSV (4 cols) + XLSX (5 cols with `join_probability`); ADR-16 canary validation |
+| Stage         | Purpose                                                                                                                                   |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stage 1**   | Drop ~60% fictional companies                                                                                                             |
+| **Stage 1.5** | Drop honeypots (title/skill mismatch, expert anomaly, impossible seniority, multi-domain expert trap, unverified generalist)              |
+| **Stage 2**   | Base score (senior JD): semantic **27%**, title/career 18%, trajectory **16%**, skills 14%, experience 11%, education **8%**, location 6% |
+| **Stage 2.5** | Behavioral multiplier 0.4×–1.3×                                                                                                           |
+| **Stage 3**   | Min-heap top-100, cross-encoder rerank on shortlist pool (ADR-018, min-max logits)                                                        |
+| **Output**    | CSV (4 cols) + XLSX (5 cols with `join_probability`); ADR-16 canary validation                                                            |
 
 ---
 
@@ -63,10 +63,10 @@ Calibration fixture: `tests/fixtures/calibration_batch.json` (4 real ideal candi
 
 ## 4. Output contract
 
-| File | Columns | Notes |
-| ---- | ------- | ----- |
-| `submission.csv` | `candidate_id`, `rank`, `score`, `reasoning` | Organizer validator expects exactly 4 columns |
-| `submission.xlsx` | above + `join_probability` | Informational hireability score; also embedded in reasoning for top-20 ranks |
+| File              | Columns                                      | Notes                                                                        |
+| ----------------- | -------------------------------------------- | ---------------------------------------------------------------------------- |
+| `submission.csv`  | `candidate_id`, `rank`, `score`, `reasoning` | Organizer validator expects exactly 4 columns                                |
+| `submission.xlsx` | above + `join_probability`                   | Informational hireability score; also embedded in reasoning for top-20 ranks |
 
 Join probability uses offer acceptance, interview completion, notice period, open-to-work, response rate, response time, work mode, and relocation — not profile views or endorsements.
 
@@ -90,16 +90,16 @@ make docker-sandbox
 
 ## 6. Scoring weights (senior JD)
 
-| Component | Weight | Notes |
-| --------- | ------ | ----- |
-| Semantic fit | 27% | MiniLM + narrative cosine floor; see ADR-003 |
-| Title & career | 18% | Domain title tiers; anti-requirement penalties |
-| Career trajectory | 16% | Progression and product-company paths |
-| Skills | 14% | Synonyms, adjacencies, recency-weighted self-report |
-| Experience | 11% | YOE and ML tenure bands |
-| Education | 8% | Weak prior; unknown tier neutral (ADR-019) |
-| Location | 6% | JD cities; remote/hybrid floor boost |
-| Behavioral | ×0.4–×1.3 | Separate from join probability |
+| Component         | Weight    | Notes                                               |
+| ----------------- | --------- | --------------------------------------------------- |
+| Semantic fit      | 27%       | MiniLM + narrative cosine floor; see ADR-003        |
+| Title & career    | 18%       | Domain title tiers; anti-requirement penalties      |
+| Career trajectory | 16%       | Progression and product-company paths               |
+| Skills            | 14%       | Synonyms, adjacencies, recency-weighted self-report |
+| Experience        | 11%       | YOE and ML tenure bands                             |
+| Education         | 8%        | Weak prior; unknown tier neutral (ADR-019)          |
+| Location          | 6%        | JD cities; remote/hybrid floor boost                |
+| Behavioral        | ×0.4–×1.3 | Separate from join probability                      |
 
 Weights live in `src/config.py` (`get_scorer_weights`) and adjust by JD seniority.
 
@@ -109,24 +109,24 @@ Weights live in `src/config.py` (`get_scorer_weights`) and adjust by JD seniorit
 
 See [`.env.example`](../../.env.example) and [runbook.md](../how-to/runbook.md).
 
-| Variable | Purpose |
-| -------- | ------- |
-| `AVERA_SKIP_SEMANTIC` / `AVERA_SKIP_RERANK` | Fast path for tests and sandbox slices |
-| `AVERA_SEMANTIC_MODEL` | Local MiniLM directory for offline ranking |
-| `AVERA_SEMANTIC_RERANK_TOPK` | Heuristic top-K to embed (default 5000) |
-| `AVERA_REFERENCE_DATE` | Deterministic behavioral recency anchor |
+| Variable                                    | Purpose                                    |
+| ------------------------------------------- | ------------------------------------------ |
+| `AVERA_SKIP_SEMANTIC` / `AVERA_SKIP_RERANK` | Fast path for tests and sandbox slices     |
+| `AVERA_SEMANTIC_MODEL`                      | Local MiniLM directory for offline ranking |
+| `AVERA_SEMANTIC_RERANK_TOPK`                | Heuristic top-K to embed (default 5000)    |
+| `AVERA_REFERENCE_DATE`                      | Deterministic behavioral recency anchor    |
 
 ---
 
 ## 8. Extending the engine
 
-| Task | Where to look |
-| ---- | ------------- |
-| New skill synonyms / adjacencies | `src/config.py` (`SKILL_SYNONYMS`, `SKILL_ADJACENCIES`) |
-| New JD domain | `detect_domain`, `get_title_tiers`, `get_skill_taxonomy` (ADR-017) |
-| Honeypot rules | `src/detectors/honeypot_detector.py` |
-| Scorer weights | `get_scorer_weights()` in `src/config.py` |
-| Reasoning templates | `src/reasoning.py` |
+| Task                             | Where to look                                                      |
+| -------------------------------- | ------------------------------------------------------------------ |
+| New skill synonyms / adjacencies | `src/config.py` (`SKILL_SYNONYMS`, `SKILL_ADJACENCIES`)            |
+| New JD domain                    | `detect_domain`, `get_title_tiers`, `get_skill_taxonomy` (ADR-017) |
+| Honeypot rules                   | `src/detectors/honeypot_detector.py`                               |
+| Scorer weights                   | `get_scorer_weights()` in `src/config.py`                          |
+| Reasoning templates              | `src/reasoning.py`                                                 |
 
 ---
 
