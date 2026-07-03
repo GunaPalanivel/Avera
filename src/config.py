@@ -10,9 +10,9 @@ SCORER_WEIGHTS: dict[str, float] = {
     "skills": 0.14,
     "experience": 0.11,
     "location": 0.06,
-    "semantic": 0.25,
-    "education": 0.12,
-    "trajectory": 0.14,
+    "semantic": 0.27,
+    "education": 0.08,
+    "trajectory": 0.16,
 }
 
 BEHAVIORAL_MODIFIER_MIN = 0.4
@@ -307,9 +307,9 @@ def get_scorer_weights(seniority_level: str) -> dict[str, float]:
             "skills": 0.14,
             "experience": 0.11,
             "location": 0.06,
-            "semantic": 0.25,
-            "education": 0.12,
-            "trajectory": 0.14,
+            "semantic": 0.27,
+            "education": 0.08,
+            "trajectory": 0.16,
         }
     if level in ("junior", "entry", "associate"):
         return {
@@ -317,18 +317,18 @@ def get_scorer_weights(seniority_level: str) -> dict[str, float]:
             "skills": 0.22,
             "experience": 0.11,
             "location": 0.06,
-            "semantic": 0.25,
-            "education": 0.12,
-            "trajectory": 0.14,
+            "semantic": 0.27,
+            "education": 0.08,
+            "trajectory": 0.16,
         }
     return {
         "title_career": 0.16,
         "skills": 0.16,
         "experience": 0.11,
         "location": 0.06,
-        "semantic": 0.25,
-        "education": 0.12,
-        "trajectory": 0.14,
+        "semantic": 0.27,
+        "education": 0.08,
+        "trajectory": 0.16,
     }
 
 

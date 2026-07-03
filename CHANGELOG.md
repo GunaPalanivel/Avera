@@ -43,6 +43,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Cross-encoder rerank uses min-max normalization instead of sigmoid to avoid logit clustering
 - Join probability for India hireability (XLSX column + reasoning); excluded from rank score
 - Clean calibration fixture (4 real ideal IDs); Precision@5/10 and Recovery@10 in eval.py
+- Education weight reduced to 8% (ADR-019); semantic 27%, trajectory 16%
 
 - Cross-encoder rerank stage (ADR-018, `src/rerank.py`) that re-scores the shortlist pool with `cross-encoder/ms-marco-MiniLM-L-6-v2` on full ranking passes; bounded additive blend keeps output monotonic and above the reasoning floor, baked for offline runs, skipped in the sandbox and CI
 - Career-trajectory scorer (`src/scorers/trajectory_scorer.py`) rewarding IC-to-lead progression and product-company experience while down-weighting consulting-only or research-only paths

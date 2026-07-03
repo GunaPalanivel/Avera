@@ -27,11 +27,11 @@ Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a *
 
 | Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                                                                             |
 | ------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Semantic Fit**         | 25%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
+| **Semantic Fit**         | 27%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
 | **Title & Career**       | 18%                    | Domain-appropriate title tiers (AI/ML or DevOps); consulting-only careers penalized; bounded penalties for JD-named anti-requirements (title-chasers, CV/speech/robotics without NLP).  |
 | **Skills Credibility**   | 14%                    | Must-have JD skills with synonym and adjacency expansion; assessment scores weighted over self-reported proficiency with recency decay on duration.                                                                                  |
-| **Career Trajectory**    | 14%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                                                    |
-| **Education**            | 12%                    | Institution tier (tier_1..tier_4) and degree-field relevance.                                                                                                                           |
+| **Career Trajectory**    | 16%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                                                    |
+| **Education**            | 8%                     | Weak prior: institution tier (tier_1..tier_4) and degree-field relevance; unknown tier neutral (ADR-019).                                                                                                                           |
 | **Experience Fit**       | 11%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                                                        |
 | **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities; remote/hybrid work mode earns a floor boost for flexible tier-2 talent.                                                                                                                                            |
 | **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                                                                                   |
@@ -78,7 +78,7 @@ Recency calculations use `AVERA_REFERENCE_DATE` (default `2026-06-27`) for deter
 
 ### Score scale
 
-The base score sums to `[0, 1]` (semantic 0.25 + title/career 0.18 + skills 0.14 + trajectory 0.14 + education 0.12 + experience 0.11 + location 0.06, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
+The base score sums to `[0, 1]` (semantic 0.27 + title/career 0.18 + skills 0.14 + trajectory 0.16 + education 0.08 + experience 0.11 + location 0.06, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
 
 ## 4. Honeypot Detection Engine
 
