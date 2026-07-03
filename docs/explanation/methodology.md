@@ -88,7 +88,8 @@ The dataset contains honeypots designed to trick keyword-based matching. The eng
 | **Method 1: Title/Skill Mismatch**  | Non-technical titles claiming many core AI skills.                       | Honeypot (dropped)            |
 | **Method 2: Expert Anomaly**        | Expert proficiency on 3+ skills with 0 months duration.                  | Honeypot (dropped)            |
 | **Method 3: Impossible Seniority**  | Senior title with &lt; 2 YOE, or junior title with &gt; 10 YOE.          | Honeypot (dropped)            |
-| **Method 4: Unverified Generalist** | &gt; 15 skills, zero assessment scores (senior YOE exempt).              | Honeypot (dropped)            |
+| **Method 4: Multi-Domain Expert**   | Expert/advanced in 3+ disjoint domains (CV, NLP, speech, robotics) with thin duration and no assessment backing; exempt senior YOE with NLP/IR exposure. | Honeypot (dropped)            |
+| **Method 5: Unverified Generalist** | &gt; 15 skills, zero assessment scores (senior YOE exempt).              | Honeypot (dropped)            |
 
 Honeypot keywords in `honeypot_detector.py` are **trap detection**, not positive scoring features.
 

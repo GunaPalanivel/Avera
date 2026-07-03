@@ -38,6 +38,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added (unreleased)
 
 - Skill adjacencies and expanded synonyms (`embeddings`, `nlp`, `pgvector`, `haystack`) for narrative-fit recovery without keyword stuffing
+- Honeypot Method 4: multi-domain expert trap; ranker tie-break handles malformed IDs and partial small-pool results
 
 - Cross-encoder rerank stage (ADR-018, `src/rerank.py`) that re-scores the shortlist pool with `cross-encoder/ms-marco-MiniLM-L-6-v2` on full ranking passes; bounded additive blend keeps output monotonic and above the reasoning floor, baked for offline runs, skipped in the sandbox and CI
 - Career-trajectory scorer (`src/scorers/trajectory_scorer.py`) rewarding IC-to-lead progression and product-company experience while down-weighting consulting-only or research-only paths

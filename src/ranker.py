@@ -1,4 +1,5 @@
 import heapq
+import logging
 import time
 from collections.abc import Iterable
 
@@ -25,6 +26,8 @@ from src.scorers.semantic_scorer import SemanticScorer
 from src.scorers.skills_scorer import SkillsScorer
 from src.scorers.title_career_scorer import TitleCareerScorer
 from src.scorers.trajectory_scorer import TrajectoryScorer
+
+logger = logging.getLogger(__name__)
 
 
 class Ranker:
@@ -147,7 +150,8 @@ class Ranker:
             try:
                 id_num = int(candidate.candidate_id.split("_")[1])
                 tie_breaker = -id_num
-            except Exception:
+            except (ValueError, IndexError):
+                logger.warning("Malformed candidate_id for tie-break: %s", candidate.candidate_id)
                 tie_breaker = 0
 
             item = (score, tie_breaker, candidate, matched_skills_csv)
@@ -190,7 +194,16 @@ class Ranker:
             "total_ms": total_ms,
         }
 
-        if require_exact_count and top_k >= EXPECTED_SUBMISSION_ROWS and len(results) < top_k:
-            raise RuntimeError(f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. Dataset is too small or filters are too strict.")
+        if require_exact_count and len(results) < top_k:
+            logger.warning(
+                "Expected %d candidates after filtering, got %d",
+                top_k,
+                len(results),
+            )
+            if top_k >= EXPECTED_SUBMISSION_ROWS:
+                raise RuntimeError(
+                    f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. "
+                    "Dataset is too small or filters are too strict."
+                )
 
         return results
