@@ -29,11 +29,11 @@ Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a *
 | ------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Semantic Fit**         | 27%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
 | **Title & Career**       | 18%                    | Domain-appropriate title tiers (AI/ML or DevOps); consulting-only careers penalized; bounded penalties for JD-named anti-requirements (title-chasers, CV/speech/robotics without NLP).  |
-| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym and adjacency expansion; assessment scores weighted over self-reported proficiency with recency decay on duration.                                                                                  |
+| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym and adjacency expansion; assessment scores weighted over self-reported proficiency with recency decay on duration.                                     |
 | **Career Trajectory**    | 16%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                                                    |
-| **Education**            | 8%                     | Weak prior: institution tier (tier_1..tier_4) and degree-field relevance; unknown tier neutral (ADR-019).                                                                                                                           |
+| **Education**            | 8%                     | Weak prior: institution tier (tier_1..tier_4) and degree-field relevance; unknown tier neutral (ADR-019).                                                                               |
 | **Experience Fit**       | 11%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                                                        |
-| **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities; remote/hybrid work mode earns a floor boost for flexible tier-2 talent.                                                                                                                                            |
+| **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities; remote/hybrid work mode earns a floor boost for flexible tier-2 talent.                                                                    |
 | **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                                                                                   |
 
 Weights are the senior/staff profile in `get_scorer_weights`; junior and mid profiles shift emphasis but keep the same scorers. Pure keyword scorers (title + skills = 32%) now sit below the semantic, trajectory, and education signals combined.
@@ -49,7 +49,7 @@ MiniLM encoding is expensive at 100K scale. Avera uses a **two-stage funnel**:
 1. **Pass 1 — heuristic candidate generation + prefill** (`prefill_semantic_stream`): every candidate is scored on the heuristic base (all scorers except semantic). Candidates clearing `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11**) are the survivor set; only the strongest **`SEMANTIC_RERANK_TOPK`** of them (default **5000**, deterministic selection) are batch-encoded. Batch size is configurable via `AVERA_SEMANTIC_BATCH` (default 128) for host stability.
 2. **Pass 2 — rank**: streaming single pass applies cached semantic vectors to the reranked top-K; everyone else receives semantic score `0.0`. After prefill the scorer never encodes on-demand (funnel invariant).
 
-This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top-K only. Encoding roughly 5000 documents instead of every survivor cuts a full 100K CPU run from about 43 minutes to about 6 minutes. A candidate below the heuristic top-K cannot realistically reach the final top-100 because semantic contributes at most 25% of the base score, so the shortlist is effectively unchanged. Raise `AVERA_SEMANTIC_RERANK_TOPK` to trade latency for recall margin.
+This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top-K only. Encoding roughly 5000 documents instead of every survivor cuts a full 100K CPU run from about 43 minutes to about 6 minutes. A candidate below the heuristic top-K cannot realistically reach the final top-100 because semantic contributes at most 27% of the base score, so the shortlist is effectively unchanged. Raise `AVERA_SEMANTIC_RERANK_TOPK` to trade latency for recall margin.
 
 ## 3. Behavioral Multiplier
 
@@ -84,14 +84,14 @@ The base score sums to `[0, 1]` (semantic 0.27 + title/career 0.18 + skills 0.14
 
 The dataset contains honeypots designed to trick keyword-based matching. The engine applies filters **before** scoring:
 
-| Method                              | Detection Logic                                                          | Result                        |
-| ----------------------------------- | ------------------------------------------------------------------------ | ----------------------------- |
-| **Fictional Companies**             | Companies like `Dunder Mifflin`, `Globex Inc`, `Acme Corp` at ingestion. | Pre-filter (score 0, skipped) |
-| **Method 1: Title/Skill Mismatch**  | Non-technical titles claiming many core AI skills.                       | Honeypot (dropped)            |
-| **Method 2: Expert Anomaly**        | Expert proficiency on 3+ skills with 0 months duration.                  | Honeypot (dropped)            |
-| **Method 3: Impossible Seniority**  | Senior title with &lt; 2 YOE, or junior title with &gt; 10 YOE.          | Honeypot (dropped)            |
+| Method                              | Detection Logic                                                                                                                                          | Result                        |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| **Fictional Companies**             | Companies like `Dunder Mifflin`, `Globex Inc`, `Acme Corp` at ingestion.                                                                                 | Pre-filter (score 0, skipped) |
+| **Method 1: Title/Skill Mismatch**  | Non-technical titles claiming many core AI skills.                                                                                                       | Honeypot (dropped)            |
+| **Method 2: Expert Anomaly**        | Expert proficiency on 3+ skills with 0 months duration.                                                                                                  | Honeypot (dropped)            |
+| **Method 3: Impossible Seniority**  | Senior title with &lt; 2 YOE, or junior title with &gt; 10 YOE.                                                                                          | Honeypot (dropped)            |
 | **Method 4: Multi-Domain Expert**   | Expert/advanced in 3+ disjoint domains (CV, NLP, speech, robotics) with thin duration and no assessment backing; exempt senior YOE with NLP/IR exposure. | Honeypot (dropped)            |
-| **Method 5: Unverified Generalist** | &gt; 15 skills, zero assessment scores (senior YOE exempt).              | Honeypot (dropped)            |
+| **Method 5: Unverified Generalist** | &gt; 15 skills, zero assessment scores (senior YOE exempt).                                                                                              | Honeypot (dropped)            |
 
 Honeypot keywords in `honeypot_detector.py` are **trap detection**, not positive scoring features.
 

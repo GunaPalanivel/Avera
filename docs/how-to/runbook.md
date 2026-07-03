@@ -26,22 +26,23 @@ python DataSet/validate_submission.py submission.csv
 make validate        # health check + smoke rank + pytest
 make validate-full   # full 100K rank + organizer validation
 make ci              # lint + test + security + integration smoke
-make eval            # honeypot rate + NDCG@10 on calibration fixture
+make eval            # honeypot rate, NDCG@10, P@5/P@10, Recovery@10 on calibration fixture
 make generalization  # AI/ML + DevOps JD, zero code edits
 make mypy            # static type check (src + rank.py)
-make download-model  # pre-download MiniLM for offline ranking
-make export-pdf      # regenerate docs/submission/deck.pdf
+make download-model  # pre-download MiniLM + cross-encoder for offline ranking
 make docker-build    # build image with baked semantic model
 make docker-sandbox  # Gradio on http://localhost:7860
 ```
 
 ### Environment variables
 
-| Variable               | Default            | Purpose                                                         |
-| ---------------------- | ------------------ | --------------------------------------------------------------- |
-| `AVERA_SKIP_SEMANTIC`  | unset (load model) | Set to `1` in tests to skip `sentence-transformers` load        |
-| `AVERA_SEMANTIC_MODEL` | `all-MiniLM-L6-v2` | HuggingFace model id or **local directory** for offline ranking |
-| `AVERA_REFERENCE_DATE` | `2026-06-27`       | Fixed date for behavioral recency — deterministic replay        |
+| Variable                     | Default            | Purpose                                                         |
+| ---------------------------- | ------------------ | --------------------------------------------------------------- |
+| `AVERA_SKIP_SEMANTIC`        | unset (load model) | Set to `1` in tests to skip `sentence-transformers` load        |
+| `AVERA_SKIP_RERANK`          | unset              | Set to `1` to skip cross-encoder rerank                         |
+| `AVERA_SEMANTIC_MODEL`       | `all-MiniLM-L6-v2` | HuggingFace model id or **local directory** for offline ranking |
+| `AVERA_SEMANTIC_RERANK_TOPK` | `5000`             | Heuristic top-K candidates to embed in pass 1                   |
+| `AVERA_REFERENCE_DATE`       | `2026-06-27`       | Fixed date for behavioral recency — deterministic replay        |
 
 For sandbox/Docker with `has_network_during_ranking: false`, pre-download the model once:
 
