@@ -1,7 +1,7 @@
-.PHONY: help install lint test security validate validate-full ci download-model export-pdf docker-build docker-run docker-sandbox eval generalization mypy
+.PHONY: help install lint test security validate validate-full ci download-model docker-build docker-run docker-sandbox eval generalization mypy
 
 help:
-	@echo "Targets: install lint test security validate validate-full ci download-model export-pdf docker-build docker-run docker-sandbox eval generalization mypy"
+	@echo "Targets: install lint test security validate validate-full ci download-model docker-build docker-run docker-sandbox eval generalization mypy"
 
 install:
 	pip install -r requirements.txt
@@ -33,9 +33,6 @@ ci: lint test security
 
 download-model:
 	python scripts/download_model.py
-
-export-pdf:
-	python scripts/export_deck_pdf.py
 
 eval:
 	python scripts/eval.py

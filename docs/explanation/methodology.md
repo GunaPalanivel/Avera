@@ -49,7 +49,7 @@ MiniLM encoding is expensive at 100K scale. Avera uses a **two-stage funnel**:
 1. **Pass 1 — heuristic candidate generation + prefill** (`prefill_semantic_stream`): every candidate is scored on the heuristic base (all scorers except semantic). Candidates clearing `SEMANTIC_MIN_HEURISTIC_SCORE` (**0.11**) are the survivor set; only the strongest **`SEMANTIC_RERANK_TOPK`** of them (default **5000**, deterministic selection) are batch-encoded. Batch size is configurable via `AVERA_SEMANTIC_BATCH` (default 128) for host stability.
 2. **Pass 2 — rank**: streaming single pass applies cached semantic vectors to the reranked top-K; everyone else receives semantic score `0.0`. After prefill the scorer never encodes on-demand (funnel invariant).
 
-This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top-K only. Encoding roughly 5000 documents instead of every survivor cuts a full 100K CPU run from about 43 minutes to about 6 minutes. A candidate below the heuristic top-K cannot realistically reach the final top-100 because semantic contributes at most 25% of the base score, so the shortlist is effectively unchanged. Raise `AVERA_SEMANTIC_RERANK_TOPK` to trade latency for recall margin.
+This is hybrid RAG-style retrieval: heuristic recall, semantic rerank on the top-K only. Encoding roughly 5000 documents instead of every survivor cuts a full 100K CPU run from about 43 minutes to about 6 minutes. A candidate below the heuristic top-K cannot realistically reach the final top-100 because semantic contributes at most 27% of the base score, so the shortlist is effectively unchanged. Raise `AVERA_SEMANTIC_RERANK_TOPK` to trade latency for recall margin.
 
 ## 3. Behavioral Multiplier
 

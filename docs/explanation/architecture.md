@@ -48,11 +48,12 @@ graph TD
 | `src/ranker.py`                      | Filter → score → heap; `prefill_semantic_stream()` for Pass 1                               |
 | `src/scorers/*`                      | Title/career, skills, semantic, experience, location, education, trajectory, behavioral      |
 | `src/rerank.py`                      | Cross-encoder rerank on the shortlist pool (ADR-018)                                         |
-| `src/detectors/honeypot_detector.py` | Four-method adversarial trap detection                                                      |
+| `src/detectors/honeypot_detector.py` | Five-method adversarial trap detection (incl. multi-domain expert trap)                       |
+| `src/scorers/behavioral_scorer.py`   | Behavioral multiplier + `join_probability()` (informational, not in rank score)              |
 | `src/reasoning.py`                   | Deterministic rank-tier explanation strings                                                 |
 | `src/output_writer.py`               | defusedcsv write + output canary                                                            |
 | `app.py`                             | Gradio sandbox (HF Space)                                                                   |
-| `scripts/eval.py`                    | Honeypot rate, NDCG@10, optional benchmark                                                  |
+| `scripts/eval.py`                    | Honeypot rate, NDCG@10, Precision@5/10, Recovery@10, optional benchmark                     |
 | `scripts/test_generalization.py`     | Two-JD zero-edit generalization proof                                                       |
 
 ## Architecture Decision Records (ADRs)
@@ -62,7 +63,9 @@ graph TD
 | **Hybrid Semantic + Deterministic Scoring** | Job constraints (YOE, skills) are evaluated deterministically, combined with an embedding-based Semantic Scorer (`all-MiniLM-L6-v2`) for deep JD contextual fit.             | **Generative LLMs/LambdaMART**: Unverifiable hallucinations, exceeds CPU budget, unpredictable latency.         |
 | **Two-stage funnel (gen then rerank)**      | Batch encode only the heuristic top-K (`SEMANTIC_RERANK_TOPK`, default 5000); rank pass stays O(N) streaming with O(K) heap memory. Cut a 100K CPU run from ~43 min to ~6 min. | **Encode every survivor**: ~7x slower with no material top-100 change.                                          |
 | **Domain-branching taxonomy (ADR-17)**      | `detect_domain` selects DevOps or AI/ML title and skill tables so non-AI/ML JDs rank on the right signals.                                                                    | **Single hardcoded AI/ML taxonomy**: 0 DevOps titles in a DevOps-JD top-100.                                    |
-| **Cross-encoder rerank (ADR-18)**           | Bounded additive blend on the shortlist pool for a precision lift, offline-baked, skipped in sandbox and CI.                                                                  | **Rerank the whole pool** or **skip reranking**: too slow, or leaves precision on the table.                     |
+| **Cross-encoder rerank (ADR-18)**           | Min-max normalized logits (no sigmoid); bounded additive blend on shortlist pool.             | **Sigmoid on logits** or **rerank whole pool**: clustering bug or latency blow-up.              |
+| **Skill adjacencies + synonyms**            | Curated partial credit for vector-DB cousins and narrative skill names (e.g. embeddings).      | **1.4M skill graph**: out of scope for CPU PoC.                                                 |
+| **Join probability (informational)**        | India hireability signals in XLSX + reasoning; CSV stays 4 columns for organizer validation.   | **Fifth CSV column**: breaks portal validator.                                                    |
 | **Heuristic semantic gate (0.11)**          | Skip embeddings for weak heuristic matches; preserves CPU budget on 100K.                                                                                                    | **Encode all 100K**: violates hackathon time budget.                                                            |
 | **Behavioral Multiplier**                   | Availability and GitHub activity act as a multiplier (0.4× to 1.3×) rather than a base additive score. A ghost candidate with a perfect profile is functionally un-hireable. | **Additive Behavioral Score**: Allows unresponsive candidates to outrank available ones based purely on skills. |
 | **Seniority-aware weights**                 | Junior JDs weight skills higher; senior JDs weight title/career trajectory higher — parsed from JD text.                                                                     | **Fixed weights for all JDs**: misaligned when role level changes.                                              |

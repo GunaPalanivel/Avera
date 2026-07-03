@@ -68,18 +68,18 @@ candidates.jsonl ──► stream ───────────────�
 **Scoring stages**
 
 1. **Ingest & validate** — Pydantic boundary; malformed rows skipped, pipeline continues.
-2. **Adversarial filters** — ~60% fictional companies dropped; ~1,600 honeypots removed (title/skill mismatch, expert-with-zero-months, impossible seniority, unverified generalist).
+2. **Adversarial filters** — ~60% fictional companies dropped; honeypots removed (title/skill mismatch, expert-with-zero-months, impossible seniority, multi-domain expert trap, unverified generalist).
 3. **Base score** — Weighted sum of semantic (27%), title/career (18%), career trajectory (16%), skills (14%), experience (11%), education (8%), location (6%). Weights adjust by JD seniority (`get_scorer_weights` in `src/config.py`); pure keyword scorers sit below the semantic and career signals.
 4. **Semantic funnel** — MiniLM encoding runs only for candidates above the heuristic gate (`0.11`), and only the strongest `SEMANTIC_RERANK_TOPK` (default 5000) of those are encoded. Everyone else receives semantic `0.0`; no on-demand encoding after prefill.
-5. **Behavioral multiplier** — Response rate, activity recency (`AVERA_REFERENCE_DATE`), notice period, interview/offer rates, GitHub score, verifications, profile completeness, recent applications — clamped to `[0.4, 1.3]`.
-6. **Explainable output** — Rank-tier reasoning in `src/reasoning.py`: top ranks highlight strengths; ranks 20–99 include verifiable concerns (skill gaps, low response rate, notice period). No LLM in the output path.
+5. **Behavioral multiplier** — Response rate, activity recency (`AVERA_REFERENCE_DATE`), notice period, interview/offer rates, GitHub score, verifications, profile completeness, recent applications — clamped to `[0.4, 1.3]`. **Join probability** (informational, XLSX + reasoning) surfaces India hireability without changing rank order.
+6. **Explainable output** — Rank-tier reasoning in `src/reasoning.py`: top ranks highlight strengths and join probability; ranks 20–99 include verifiable concerns. No LLM in the output path.
 
 **Score scale:** the base score is bounded to `[0, 1]` and the behavioral multiplier to `[0.4, 1.3]`, so the written `score` lies in `[0, 1.3]`. A score above 1.0 means a strong base fit lifted by strong availability signals; scores are a ranking order, not a percentage.
 
 **Evaluation hooks**
 
 ```bash
-python scripts/eval.py              # honeypot rate in top-100, NDCG@10 on calibration fixture
+python scripts/eval.py              # honeypot rate, NDCG@10, P@5/P@10, Recovery@10
 python scripts/test_generalization.py   # AI/ML JD + DevOps alt JD, same pipeline
 ```
 
@@ -90,7 +90,8 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 | Choice                              | Rationale                                                                                           | Rejected alternative                                                     |
 | ----------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
 | **Hybrid semantic + deterministic** | Career narrative fit (embeddings) + bounded JD constraints (rules)                                  | Pure BM25/keywords → honeypot traps; end-to-end LLM → unverifiable, slow |
-| **Cross-encoder rerank** | `cross-encoder/ms-marco-MiniLM-L-6-v2` on the shortlist pool for precision (ADR-018)                 | Larger cross-encoders on full pool → latency budget on 100K                           |
+| **Cross-encoder rerank** | `cross-encoder/ms-marco-MiniLM-L-6-v2` on shortlist pool; **min-max** logits (no sigmoid) for precision (ADR-018) | Sigmoid on logits → score clustering; larger CE on full pool → latency |
+| **Skill adjacencies** | Curated synonyms + vector-DB cousins for narrative-fit without keyword stuffing | 1.4M skill graph → out of scope for CPU PoC |
 | **`all-MiniLM-L6-v2`**              | 90 MB, CPU-friendly, strong sentence similarity                                                     | Larger bi-encoders → latency budget on 100K                                           |
 | **Two-stage funnel**                | Heuristic candidate generation then MiniLM rerank on the top-K only — keeps 100K CPU runs tractable | Encode every survivor → ~7× slower with no material top-100 change       |
 | **Behavioral multiplier**           | Availability is hireability, not another additive feature                                           | Additive behavioral score → ghosts outrank available candidates          |
@@ -100,7 +101,7 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 | **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                                                 | Runtime HuggingFace download — flaky in sandbox                          |
 | **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                                            | Hope-based correctness                                                   |
 
-ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md) · [018 cross-encoder rerank](docs/adr/018-cross-encoder-rerank.md)
+ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md) · [018 cross-encoder rerank](docs/adr/018-cross-encoder-rerank.md) · [019 education weight](docs/adr/019-education-scorer-rationale.md)
 
 ## System architecture
 
@@ -122,7 +123,7 @@ ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 hon
          │                    │                    │
          └────────────────────┴────────────────────┘
                               ▼
-                    src/output_writer.py (defusedcsv + ADR-16 canary)
+                    src/output_writer.py (defusedcsv + ADR-16 canary; XLSX join_probability)
                               ▼
                     app.py (Gradio sandbox) · Docker · HF Space
 ```
@@ -137,7 +138,8 @@ Full architecture: [docs/explanation/architecture.md](docs/explanation/architect
 | **Deep job understanding** | JD parser (skills, cities, seniority, domain) + MiniLM semantic fit on headline, summary, `career_history` descriptions, and skills. |
 | **Two-stage funnel**       | Heuristic candidate generation, then MiniLM rerank on the heuristic top-K only (`SEMANTIC_RERANK_TOPK`).                             |
 | **Defensive boundary**     | Pydantic enforces schema at ingestion, coercing sentinel `-1` values and skipping malformed rows without crashing the run.           |
-| **Honeypot detection**     | 4-method detector + fictional-company pre-filter catches impossible timelines, unverified generalists, and ghost profiles.           |
+| **Honeypot detection**     | Five-method detector + fictional-company pre-filter catches traps, multi-domain experts, and ghost profiles.           |
+| **Join probability**       | Informational hireability score in XLSX and reasoning (CSV stays 4 columns for portal validation).                      |
 | **Explainable output**     | Deterministic, score-aware rank-tier reasoning via `src/reasoning.py` — no LLM in the output path.                                   |
 | **Security hardened**      | `defusedcsv` and `sanitize_cell` on CSV and XLSX prevent OWASP A03 formula injection; path validation; PII-safe logs.                |
 | **Output canary (ADR-16)** | Exactly 100 unique IDs, subset of the input pool, validated before write.                                                            |
@@ -149,14 +151,13 @@ Full index: **[docs/README.md](docs/README.md)**
 | Document                                                                        | Description                                                           |
 | ------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | [Getting started](docs/getting-started.md)                                      | Install, health check, smoke rank, validation                         |
-| [Walkthrough & portal checklist](docs/submission/walkthrough.md)                | Reproduction, sandbox, submission artifacts                           |
-| [Portal checklist](docs/submission/portal_checklist.md)                         | Hack2skill + HF Space manual steps                                    |
-| [Slide deck (PDF)](docs/submission/deck.pdf)                                    | Portal deck — regenerate with `make export-pdf`                       |
+| [Developer walkthrough](docs/submission/walkthrough.md)                         | Pipeline, reproduction, evaluation, output contract                   |
 | [System Architecture](docs/explanation/architecture.md)                         | Pipeline, ADRs, exception hierarchy                                   |
-| [Scoring Methodology](docs/explanation/methodology.md)                          | Hybrid semantic + heuristic weights, honeypots, behavioral multiplier |
+| [Scoring Methodology](docs/explanation/methodology.md)                          | Hybrid semantic + heuristic weights, honeypots, join probability      |
 | [SRE Day-2 Runbook](docs/how-to/runbook.md)                                     | Local execution, offline model, Docker, troubleshooting               |
 | [ADR 003: Semantic Hybrid Layer](docs/adr/003-semantic-hybrid-layer.md)         | Why embeddings sit alongside deterministic scorers                    |
 | [ADR 017: Domain-Branching Taxonomy](docs/adr/017-domain-branching-taxonomy.md) | Per-domain title/skill tables (AI/ML, DevOps, generic)                |
+| [ADR 019: Education Weight](docs/adr/019-education-scorer-rationale.md)          | Education reduced to 8%; semantic 27%, trajectory 16%                   |
 
 ## How Avera Meets Track 1 (Intelligent Candidate Discovery)
 
@@ -164,9 +165,10 @@ Redrob's challenge JD is explicit: **keyword matching is a trap**. The dataset c
 
 | JD signal                          | Avera response                                                                                                                                                |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Career trajectory over skill lists | Semantic fit (25%) + career trajectory (14%) + title/career (18%) on headline, summary, `career_history` descriptions, and skills — keyword scorers (32%) sit below |
+| Career trajectory over skill lists | Semantic fit (27%) + career trajectory (16%) + title/career (18%) on headline, summary, `career_history` descriptions, and skills — keyword scorers (32%) sit below |
 | Behavioral availability            | Multiplicative modifier (0.4×–1.3×) on response rate, activity, notice period, interview/offer rates, GitHub score, profile completeness, recent applications |
-| Honeypot traps                     | Fictional-company pre-filter + 4-method honeypot detector before scoring                                                                                      |
+| India hireability                  | Join probability in XLSX + reasoning (offer acceptance, response time, work mode, relocation); excluded from rank score |
+| Honeypot traps                     | Fictional-company pre-filter + five-method honeypot detector before scoring                                                                                      |
 | Explainable reasoning              | Deterministic `src/reasoning.py` — rank-tier templates with honest concerns for mid/low ranks                                                                 |
 | India-scale throughput             | O(N log K) min-heap, two-pass streaming ingest, structured JSON logs with `trace_id` / `latency_ms`                                                           |
 
@@ -196,7 +198,7 @@ Reviewer-suggested items we scoped out on purpose, to avoid over-engineering a C
 | BM25 + RRF hybrid retrieval | The keyword skills scorer already covers lexical matches; sparse retrieval adds real complexity for marginal gain at this scale |
 | BGE-small embedding swap | Re-bakes the offline model and re-scores everything; the cross-encoder (ADR-018) delivers the precision lift with less blast radius |
 | Learned-to-rank weights | No recruiter click data to train on; hand-tuned weights are auditable and defensible for a PoC |
-| Learned skill-adjacency graph | A 1.4M-skill graph is out of scope for a CPU PoC; curated synonyms + semantic fit cover adjacency today |
+| Learned skill-adjacency graph | Curated synonyms + adjacencies + semantic fit cover narrative-fit recovery today (post-review upgrade) |
 
 ### Compliance posture
 
@@ -218,11 +220,10 @@ python DataSet/validate_submission.py submission.csv
 make validate        # health + smoke rank + pytest
 make validate-full   # full 100K rank + organizer validation
 make ci              # lint + test + security + integration smoke
-make eval            # honeypot rate + NDCG@10 on calibration fixture
+make eval            # honeypot rate + calibration metrics (NDCG, P@5/10, Recovery@10)
 make generalization  # two-JD zero-edit demo
 make mypy            # static type check (src + rank.py)
-make download-model  # pre-download MiniLM for offline ranking
-make export-pdf      # regenerate docs/submission/deck.pdf
+make download-model  # pre-download MiniLM + cross-encoder for offline ranking
 make docker-sandbox  # Gradio demo (offline model baked in image)
 ```
 
@@ -230,7 +231,8 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 
 | Variable                              | Purpose                                                                             |
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
-| `AVERA_SKIP_SEMANTIC=1`               | Skip model load in unit tests (default in `tests/conftest.py`)                      |
+| `AVERA_SKIP_SEMANTIC=1`               | Skip bi-encoder load in unit tests (default in `tests/conftest.py`)                 |
+| `AVERA_SKIP_RERANK=1`                   | Skip cross-encoder rerank (CI / sandbox fast path)                                  |
 | `AVERA_SEMANTIC_MODEL=/path/to/model` | Local MiniLM directory for air-gapped ranking (`has_network_during_ranking: false`) |
 | `AVERA_REFERENCE_DATE`                | Fixed reference date for behavioral recency (default `2026-06-27`)                  |
 | `AVERA_SEMANTIC_RERANK_TOPK`          | Number of heuristic-top candidates to semantically rerank (default `5000`)          |
@@ -238,14 +240,12 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 
 ## Submission artifacts
 
-| Artifact     | Path                                  |
-| ------------ | ------------------------------------- |
-| CSV          | `submission.csv`                      |
-| XLSX         | `submission.xlsx` (local only)        |
-| Metadata     | `submission_metadata.yaml`            |
-| Walkthrough  | `docs/submission/walkthrough.md`      |
-| Portal steps | `docs/submission/portal_checklist.md` |
-| Slide deck   | `docs/submission/deck.pdf`            |
+| Artifact    | Path                               |
+| ----------- | ---------------------------------- |
+| CSV         | `submission.csv` (4 columns)       |
+| XLSX        | `submission.xlsx` (includes `join_probability`) |
+| Metadata    | `submission_metadata.yaml`         |
+| Walkthrough | `docs/submission/walkthrough.md`   |
 
 ## Repository Structure
 
@@ -254,17 +254,17 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 ├── app.py                   # Gradio sandbox (HuggingFace Space)
 ├── DataSet/                 # candidates.jsonl (LFS), job_description.txt, validate_submission.py
 ├── docs/                    # Diátaxis docs — see docs/README.md
-├── scripts/                 # eval.py, test_generalization.py, download_model.py, export_deck_pdf.py, sync_space.py
+├── scripts/                 # eval.py, test_generalization.py, download_model.py, sync_space.py
 ├── src/                     # Core engine
-│   ├── config.py            # Weights, taxonomies, behavioral bounds, seniority profiles
+│   ├── config.py            # Weights, taxonomies, synonyms, adjacencies, behavioral bounds
 │   ├── ranker.py            # Min-heap O(N log K) orchestration + semantic prefill
-│   ├── reasoning.py         # Deterministic rank-tier explanation strings
+│   ├── reasoning.py         # Deterministic rank-tier explanation strings + join probability
 │   ├── logging_config.py    # Structured JSON observability
 │   ├── parsers/             # jd_parser, candidate_parser
 │   ├── scorers/             # Title, skills, semantic, experience, location, education, trajectory, behavioral
-│   ├── rerank.py            # Cross-encoder shortlist rerank (ADR-018)
-│   └── detectors/           # Honeypot detection
-├── tests/                   # Pytest suite (65 tests)
+│   ├── rerank.py            # Cross-encoder shortlist rerank (ADR-018, min-max)
+│   └── detectors/           # Honeypot detection (5 methods)
+├── tests/                   # Pytest suite (81 tests)
 ├── Dockerfile               # Runtime + baked MiniLM for offline ranking
 ├── docker-compose.yml       # Sandbox and CLI services
 ├── rank.py                  # CLI entrypoint (two-pass stream)
