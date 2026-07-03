@@ -60,7 +60,7 @@ def write_submission(
         writer = csv.writer(f)
         writer.writerow(csv_headers)
 
-        for rank_idx, (score, join_prob, candidate, reasoning) in enumerate(results, start=1):
+        for rank_idx, (score, _join_prob, candidate, reasoning) in enumerate(results, start=1):
             writer.writerow(
                 [
                     sanitize_cell(candidate.candidate_id),
