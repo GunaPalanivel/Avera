@@ -9,6 +9,8 @@ from src.models import CandidateModel
 
 EXPECTED_SUBMISSION_ROWS = 100
 
+RankResult = tuple[float, float, CandidateModel, str]
+
 
 def sanitize_cell(value: Any) -> str:
     """Sanitizes a cell value to prevent CSV injection (OWASP A03)."""
@@ -19,7 +21,7 @@ def sanitize_cell(value: Any) -> str:
 
 
 def validate_output_canary(
-    results: list[tuple[float, CandidateModel, str]],
+    results: list[RankResult],
     input_ids: set[str] | None = None,
     expected_rows: int = EXPECTED_SUBMISSION_ROWS,
 ) -> None:
@@ -28,7 +30,7 @@ def validate_output_canary(
         raise OutputError(f"Output canary failed: expected {expected_rows} rows, got {len(results)}")
 
     seen_ids: set[str] = set()
-    for _, candidate, _ in results:
+    for _, _jp, candidate, _ in results:
         cid = candidate.candidate_id
         if cid in seen_ids:
             raise OutputError(f"Output canary failed: duplicate candidate_id {cid}")
@@ -39,7 +41,7 @@ def validate_output_canary(
 
 def write_submission(
     output_path: str | Path,
-    results: list[tuple[float, CandidateModel, str]],
+    results: list[RankResult],
     input_ids: set[str] | None = None,
     expected_rows: int | None = None,
 ) -> None:
@@ -51,13 +53,14 @@ def write_submission(
     csv_path = path.with_suffix(".csv")
     xlsx_path = path.with_suffix(".xlsx")
 
-    headers = ["candidate_id", "rank", "score", "reasoning"]
+    csv_headers = ["candidate_id", "rank", "score", "reasoning"]
+    xlsx_headers = ["candidate_id", "rank", "score", "join_probability", "reasoning"]
 
     with csv_path.open("w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(headers)
+        writer.writerow(csv_headers)
 
-        for rank_idx, (score, candidate, reasoning) in enumerate(results, start=1):
+        for rank_idx, (score, _join_prob, candidate, reasoning) in enumerate(results, start=1):
             writer.writerow(
                 [
                     sanitize_cell(candidate.candidate_id),
@@ -70,14 +73,15 @@ def write_submission(
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Ranking Results"
-    ws.append(headers)
+    ws.append(xlsx_headers)
 
-    for rank_idx, (score, candidate, reasoning) in enumerate(results, start=1):
+    for rank_idx, (score, join_prob, candidate, reasoning) in enumerate(results, start=1):
         ws.append(
             [
                 sanitize_cell(candidate.candidate_id),
                 sanitize_cell(rank_idx),
                 sanitize_cell(f"{score:.4f}"),
+                sanitize_cell(f"{join_prob:.4f}"),
                 sanitize_cell(reasoning),
             ]
         )

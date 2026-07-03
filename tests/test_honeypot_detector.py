@@ -30,6 +30,32 @@ def test_honeypot_expert_zero():
     assert is_honeypot(c) is True
 
 
+def test_honeypot_multi_domain_expert_trap():
+    c_dict = get_base_candidate()
+    c_dict["profile"]["years_of_experience"] = 3
+    c_dict["skills"] = [
+        {"name": "Computer Vision", "proficiency": "expert", "endorsements": 10, "duration_months": 6},
+        {"name": "Speech Recognition", "proficiency": "expert", "endorsements": 10, "duration_months": 6},
+        {"name": "Robotics SLAM", "proficiency": "expert", "endorsements": 10, "duration_months": 6},
+    ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {}
+    c = CandidateModel.model_validate(c_dict)
+    assert is_honeypot(c) is True
+
+
+def test_not_honeypot_senior_with_assessments():
+    c_dict = get_base_candidate()
+    c_dict["profile"]["years_of_experience"] = 8
+    c_dict["skills"] = [
+        {"name": "Computer Vision", "proficiency": "expert", "endorsements": 10, "duration_months": 48},
+        {"name": "NLP", "proficiency": "expert", "endorsements": 10, "duration_months": 48},
+        {"name": "Speech Recognition", "proficiency": "advanced", "endorsements": 10, "duration_months": 24},
+    ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {"NLP": 90.0, "Computer Vision": 85.0}
+    c = CandidateModel.model_validate(c_dict)
+    assert is_honeypot(c) is False
+
+
 def test_not_honeypot():
     c_dict = get_base_candidate()
     c = CandidateModel.model_validate(c_dict)

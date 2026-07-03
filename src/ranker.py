@@ -1,4 +1,5 @@
 import heapq
+import logging
 import time
 from collections.abc import Iterable
 
@@ -25,6 +26,8 @@ from src.scorers.semantic_scorer import SemanticScorer
 from src.scorers.skills_scorer import SkillsScorer
 from src.scorers.title_career_scorer import TitleCareerScorer
 from src.scorers.trajectory_scorer import TrajectoryScorer
+
+logger = logging.getLogger(__name__)
 
 
 class Ranker:
@@ -100,12 +103,12 @@ class Ranker:
                     break
         return matched
 
-    def score_candidate(self, candidate: CandidateModel) -> tuple[float, str]:
+    def score_candidate(self, candidate: CandidateModel) -> tuple[float, float, str]:
         if candidate.profile.current_company in FICTIONAL_COMPANIES:
-            return 0.0, ""
+            return 0.0, 0.0, ""
 
         if is_honeypot(candidate):
-            return 0.0, ""
+            return 0.0, 0.0, ""
 
         total_score = self._heuristic_score(candidate)
 
@@ -115,9 +118,10 @@ class Ranker:
 
         behavioral_modifier = self.behavioral_scorer.score(candidate)
         total_score *= behavioral_modifier
+        join_prob = self.behavioral_scorer.join_probability(candidate)
 
         matched_skills = self._matched_skill_names(candidate)
-        return round(total_score, 4), ",".join(matched_skills)
+        return round(total_score, 4), round(join_prob, 4), ",".join(matched_skills)
 
     def rank(
         self,
@@ -125,12 +129,12 @@ class Ranker:
         top_k: int = 100,
         *,
         require_exact_count: bool = True,
-    ) -> list[tuple[float, CandidateModel, str]]:
+    ) -> list[tuple[float, float, CandidateModel, str]]:
         t0 = time.perf_counter()
         # On full passes, keep a larger pool so the cross-encoder has room to rerank.
         rerank_enabled = require_exact_count
         heap_k = max(top_k, RERANK_POOL_SIZE) if rerank_enabled else top_k
-        heap: list[tuple[float, int, CandidateModel, str]] = []
+        heap: list[tuple[float, int, float, CandidateModel, str]] = []
         scored = 0
         filtered_zero = 0
         input_count = 0
@@ -138,7 +142,7 @@ class Ranker:
         for candidate in candidates:
             input_count += 1
             self.last_input_ids.add(candidate.candidate_id)
-            score, matched_skills_csv = self.score_candidate(candidate)
+            score, join_prob, matched_skills_csv = self.score_candidate(candidate)
             if score == 0.0:
                 filtered_zero += 1
                 continue
@@ -147,10 +151,11 @@ class Ranker:
             try:
                 id_num = int(candidate.candidate_id.split("_")[1])
                 tie_breaker = -id_num
-            except Exception:
+            except (ValueError, IndexError):
+                logger.warning("Malformed candidate_id for tie-break: %s", candidate.candidate_id)
                 tie_breaker = 0
 
-            item = (score, tie_breaker, candidate, matched_skills_csv)
+            item = (score, tie_breaker, join_prob, candidate, matched_skills_csv)
 
             if len(heap) < heap_k:
                 heapq.heappush(heap, item)
@@ -160,15 +165,18 @@ class Ranker:
         score_ms = int((time.perf_counter() - t0) * 1000)
         heap.sort(key=lambda x: (x[0], x[1]), reverse=True)
 
-        pool: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _t, c, m in heap]
+        pool: list[tuple[float, float, CandidateModel, str]] = [(s, jp, c, m) for s, _t, jp, c, m in heap]
         if rerank_enabled:
-            pool = CrossEncoderReranker(self.job_reqs.raw_text).rerank(pool, top_k)
+            reranked: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _jp, c, m in pool]
+            reranked = CrossEncoderReranker(self.job_reqs.raw_text).rerank(reranked, top_k)
+            join_by_id = {c.candidate_id: jp for _s, jp, c, _m in pool}
+            pool = [(s, join_by_id[c.candidate_id], c, m) for s, c, m in reranked]
         else:
             pool = pool[:top_k]
 
-        results: list[tuple[float, CandidateModel, str]] = []
+        results: list[tuple[float, float, CandidateModel, str]] = []
         must_have_count = len(self.job_reqs.must_have_skills)
-        for rank_idx, (score, candidate, matched_skills_csv) in enumerate(pool):
+        for rank_idx, (score, join_prob, candidate, matched_skills_csv) in enumerate(pool):
             matched_skills = [s for s in matched_skills_csv.split(",") if s]
             reasoning = generate_reasoning(
                 candidate,
@@ -176,8 +184,9 @@ class Ranker:
                 matched_skills,
                 must_have_count=must_have_count,
                 score=score,
+                join_probability=join_prob,
             )
-            results.append((score, candidate, reasoning))
+            results.append((score, join_prob, candidate, reasoning))
 
         total_ms = int((time.perf_counter() - t0) * 1000)
         self.last_pipeline_stats = {
@@ -190,7 +199,13 @@ class Ranker:
             "total_ms": total_ms,
         }
 
-        if require_exact_count and top_k >= EXPECTED_SUBMISSION_ROWS and len(results) < top_k:
-            raise RuntimeError(f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. Dataset is too small or filters are too strict.")
+        if require_exact_count and len(results) < top_k:
+            logger.warning(
+                "Expected %d candidates after filtering, got %d",
+                top_k,
+                len(results),
+            )
+            if top_k >= EXPECTED_SUBMISSION_ROWS:
+                raise RuntimeError(f"Expected exactly {top_k} candidates after filtering, but got {len(results)}. Dataset is too small or filters are too strict.")
 
         return results

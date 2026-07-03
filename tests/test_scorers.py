@@ -119,6 +119,7 @@ def test_title_career_anti_requirement_penalty():
         {"name": "OpenCV", "proficiency": "expert", "endorsements": 10, "duration_months": 40},
         {"name": "Object Detection", "proficiency": "advanced", "endorsements": 5, "duration_months": 30},
     ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {}
     c = CandidateModel.model_validate(c_dict)
 
     # A CV-only candidate is penalized when the JD says it does not want CV-without-NLP
@@ -199,6 +200,51 @@ def test_trajectory_scorer_rewards_progression_over_consulting():
     assert scorer(CandidateModel.model_validate(progressing)) > scorer(CandidateModel.model_validate(consulting))
 
 
+def test_skills_scorer_recency_weighting():
+    scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("python",), nice_to_have=())
+    fresh = get_base_candidate()
+    fresh["skills"] = [{"name": "Python", "proficiency": "advanced", "endorsements": 5, "duration_months": 24}]
+    fresh["redrob_signals"]["skill_assessment_scores"] = {}
+    stale = get_base_candidate()
+    stale["skills"] = [{"name": "Python", "proficiency": "advanced", "endorsements": 5, "duration_months": 0}]
+    stale["redrob_signals"]["skill_assessment_scores"] = {}
+    assert scorer(CandidateModel.model_validate(fresh)) > scorer(CandidateModel.model_validate(stale))
+
+
+def test_location_scorer_remote_hybrid():
+    scorer = LocationScorer(weight=SCORER_WEIGHTS["location"], target_cities=("pune",))
+    c_dict = get_base_candidate()
+    c_dict["profile"]["location"] = "Kochi"
+    c_dict["profile"]["country"] = "India"
+    c_dict["redrob_signals"]["willing_to_relocate"] = False
+    c_dict["redrob_signals"]["preferred_work_mode"] = "remote"
+    score = scorer(CandidateModel.model_validate(c_dict))
+    assert score >= 0.85 * SCORER_WEIGHTS["location"]
+
+
+def test_skills_scorer_synonym_embeddings():
+    scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("embeddings",), nice_to_have=())
+    c_dict = get_base_candidate()
+    c_dict["skills"] = [
+        {"name": "Vector Representations", "proficiency": "advanced", "endorsements": 5, "duration_months": 24},
+    ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {}
+    score = scorer(CandidateModel.model_validate(c_dict))
+    assert score > 0.0
+
+
+def test_skills_scorer_adjacency_partial_credit():
+    scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("pinecone",), nice_to_have=())
+    c_dict = get_base_candidate()
+    c_dict["skills"] = [
+        {"name": "Weaviate", "proficiency": "advanced", "endorsements": 5, "duration_months": 24},
+    ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {"Weaviate": 80.0}
+    direct = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("weaviate",), nice_to_have=())
+    assert scorer(CandidateModel.model_validate(c_dict)) < direct(CandidateModel.model_validate(c_dict))
+    assert scorer(CandidateModel.model_validate(c_dict)) > 0.0
+
+
 def test_skills_scorer():
     scorer = SkillsScorer(weight=SCORER_WEIGHTS["skills"], must_have=("python", "machine learning"), nice_to_have=("xgboost",))
     c_dict = get_base_candidate()
@@ -210,6 +256,14 @@ def test_skills_scorer():
     # Nice to have = 0
     # Expected raw = 0.4375
     assert score > 0.0  # Just ensure it computes correctly without crash
+
+
+def test_behavioral_join_probability():
+    scorer = BehavioralScorer(weight=1.0)
+    c_dict = get_base_candidate()
+    c = CandidateModel.model_validate(c_dict)
+    prob = scorer.join_probability(c)
+    assert 0.0 <= prob <= 1.0
 
 
 def test_behavioral_scorer():

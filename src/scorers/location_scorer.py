@@ -23,4 +23,9 @@ class LocationScorer(BaseScorer):
         if any(t in location for t in self.target_cities):
             score = max(score, 1.0)
 
+        # Remote/hybrid preference lowers location friction for tier-2 Bharat talent surfacing
+        mode = (candidate.redrob_signals.preferred_work_mode or "").lower()
+        if mode in ("remote", "hybrid"):
+            score = max(score, 0.85)
+
         return score

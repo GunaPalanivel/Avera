@@ -3,7 +3,7 @@
 ![CI Status](https://img.shields.io/badge/build-passing-brightgreen)
 ![Security](https://img.shields.io/badge/security-hardened-blue)
 
-Avera is a **JD-parameterized candidate ranking engine** that evaluates 100,000 profiles on CPU and outputs an explainable top-100 shortlist. It combines hybrid semantic job understanding with deterministic constraints: `sentence-transformers` for contextual relevance, honeypot filters for adversarial traps, and behavioral signals for hireability — all without LLM calls in the ranking path.
+Avera is a **JD-parameterized candidate ranking engine** built for [India Runs by Redrob AI](https://hack2skill.com/event/india_runs/) (Track 1: Intelligent Candidate Discovery). It evaluates 100,000 profiles on CPU and outputs an explainable top-100 shortlist. It combines hybrid semantic job understanding with deterministic constraints: `sentence-transformers` for contextual relevance, honeypot filters for adversarial traps, and behavioral signals for hireability — all without LLM calls in the ranking path.
 
 **Sandbox:** https://huggingface.co/spaces/gp5901/avera-ranker (click the bundled "curated strong candidates" example for a representative run)
 
@@ -69,7 +69,7 @@ candidates.jsonl ──► stream ───────────────�
 
 1. **Ingest & validate** — Pydantic boundary; malformed rows skipped, pipeline continues.
 2. **Adversarial filters** — ~60% fictional companies dropped; ~1,600 honeypots removed (title/skill mismatch, expert-with-zero-months, impossible seniority, unverified generalist).
-3. **Base score** — Weighted sum of semantic (25%), title/career, skills, career trajectory, education, experience, location. Weights adjust by JD seniority (`get_scorer_weights` in `src/config.py`); pure keyword scorers sit below the semantic and career signals.
+3. **Base score** — Weighted sum of semantic (27%), title/career (18%), career trajectory (16%), skills (14%), experience (11%), education (8%), location (6%). Weights adjust by JD seniority (`get_scorer_weights` in `src/config.py`); pure keyword scorers sit below the semantic and career signals.
 4. **Semantic funnel** — MiniLM encoding runs only for candidates above the heuristic gate (`0.11`), and only the strongest `SEMANTIC_RERANK_TOPK` (default 5000) of those are encoded. Everyone else receives semantic `0.0`; no on-demand encoding after prefill.
 5. **Behavioral multiplier** — Response rate, activity recency (`AVERA_REFERENCE_DATE`), notice period, interview/offer rates, GitHub score, verifications, profile completeness, recent applications — clamped to `[0.4, 1.3]`.
 6. **Explainable output** — Rank-tier reasoning in `src/reasoning.py`: top ranks highlight strengths; ranks 20–99 include verifiable concerns (skill gaps, low response rate, notice period). No LLM in the output path.

@@ -3,6 +3,12 @@ from src.reasoning import generate_reasoning
 from tests.test_scorers import get_base_candidate
 
 
+def test_reasoning_includes_join_probability_for_top_ranks():
+    c = CandidateModel.model_validate(get_base_candidate())
+    text = generate_reasoning(c, rank_index=0, matched_skills=["Python", "Pinecone"], score=0.95, join_probability=0.72)
+    assert "Join probability: 72%" in text
+
+
 def test_reasoning_top_five_tone():
     c = CandidateModel.model_validate(get_base_candidate())
     text = generate_reasoning(c, rank_index=0, matched_skills=["Python", "Pinecone"])

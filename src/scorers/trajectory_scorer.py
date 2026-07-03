@@ -28,9 +28,8 @@ class TrajectoryScorer(BaseScorer):
             return 0.35
 
         ordered = sorted(career, key=lambda c: c.start_date)
-        first_level = _title_level(ordered[0].title)
-        last_level = _title_level(ordered[-1].title)
-        progression = last_level - first_level
+        levels = [_title_level(c.title) for c in ordered]
+        progression = max(levels) - min(levels)
 
         score = 0.5
         if progression >= 2:

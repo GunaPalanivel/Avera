@@ -1,3 +1,4 @@
+from src.config import NLP_IR_TERMS
 from src.models import CandidateModel
 
 AI_KEYWORDS = {
@@ -24,6 +25,29 @@ NON_TECH_TITLES = {
     "graphic designer",
     "operations manager",
 }
+
+DOMAIN_BUCKETS: dict[str, frozenset[str]] = {
+    "cv": frozenset({"computer vision", "opencv", "object detection", "image classification", "yolo", "segmentation", "gans"}),
+    "nlp": frozenset({"nlp", "llm", "embeddings", "rag", "sentence transformers", "information retrieval", "bert"}),
+    "speech": frozenset({"speech recognition", "asr", "tts", "text to speech"}),
+    "robotics": frozenset({"robotics", "slam", "autonomous"}),
+}
+
+
+def _skill_domain_bucket(skill_name: str) -> str | None:
+    name = skill_name.lower()
+    for bucket, terms in DOMAIN_BUCKETS.items():
+        if any(term in name for term in terms):
+            return bucket
+    return None
+
+
+def _has_nlp_ir_exposure(skills: list) -> bool:
+    for s in skills:
+        name = s.name.lower()
+        if any(term in name for term in NLP_IR_TERMS):
+            return True
+    return False
 
 
 def is_honeypot(candidate: CandidateModel) -> bool:
@@ -52,8 +76,28 @@ def is_honeypot(candidate: CandidateModel) -> bool:
     if "junior" in title and yoe > 10:
         return True
 
-    # Method 5: Extremely high skill count with no assessments
+    # Method 4: Multi-domain expert trap (expert in 3+ disjoint domains with thin backing)
     assessment_scores = candidate.redrob_signals.skill_assessment_scores
+    expert_buckets: set[str] = set()
+    expert_duration = 0
+    for s in skills:
+        if s.proficiency not in ("expert", "advanced"):
+            continue
+        bucket = _skill_domain_bucket(s.name)
+        if bucket is None:
+            continue
+        expert_buckets.add(bucket)
+        expert_duration += s.duration_months or 0
+
+    if len(expert_buckets) >= 3:
+        has_assessments = len(assessment_scores) > 0
+        senior_backed = yoe >= 5 and has_assessments
+        thin_duration = expert_duration < 36
+        if not senior_backed and (thin_duration or not has_assessments):
+            if not _has_nlp_ir_exposure(skills):
+                return True
+
+    # Method 5: Unverified generalist (extremely high skill count with no assessments)
     if len(skills) > 15 and len(assessment_scores) == 0:
         senior_title = any(k in title for k in ("senior", "lead", "principal", "staff"))
         if not (senior_title and yoe >= 5):

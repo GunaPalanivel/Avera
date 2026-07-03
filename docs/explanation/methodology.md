@@ -15,7 +15,7 @@ The pipeline begins with **`jd_parser.py`**, which ingests raw job description t
 | **Title keywords**      | Dynamic tokens from JD headings and role lines                                        |
 | **Raw text**            | Preserved for semantic embedding (full JD block)                                      |
 
-Skill synonyms (e.g. `vector database` → `vector db`, `faiss`) expand matching without scoring on raw substring stuffing alone.
+Skill synonyms (e.g. `embeddings` → `vector representations`, `vector database` → `pgvector`) and curated **skill adjacencies** (e.g. `pinecone` ↔ `weaviate`, `milvus`) expand matching without scoring on raw substring stuffing alone. Adjacent skills earn partial credit (0.7× assessed, 0.35× self-reported).
 
 **Seniority-aware weights** — `get_scorer_weights(seniority_level)` in `src/config.py` shifts emphasis between title/career and skills for junior vs senior JDs. Behavioral scoring remains a separate multiplier in all profiles.
 
@@ -27,20 +27,20 @@ Default **senior/staff** profile (sums to **1.0**); behavioral is applied as a *
 
 | Scorer                   | Weight (senior JD)     | Core Rationale (JD Derived)                                                                                                                                                             |
 | ------------------------ | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Semantic Fit**         | 25%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
+| **Semantic Fit**         | 27%                    | `sentence-transformers` cosine similarity between JD text and candidate headline, summary, `career_history` descriptions, and skills. Raised to honor the JD's beyond-keywords mandate. |
 | **Title & Career**       | 18%                    | Domain-appropriate title tiers (AI/ML or DevOps); consulting-only careers penalized; bounded penalties for JD-named anti-requirements (title-chasers, CV/speech/robotics without NLP).  |
-| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym expansion; assessment scores weighted over self-reported proficiency.                                                                                  |
-| **Career Trajectory**    | 14%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                                                    |
-| **Education**            | 12%                    | Institution tier (tier_1..tier_4) and degree-field relevance.                                                                                                                           |
+| **Skills Credibility**   | 14%                    | Must-have JD skills with synonym and adjacency expansion; assessment scores weighted over self-reported proficiency with recency decay on duration.                                                                                  |
+| **Career Trajectory**    | 16%                    | Rewards IC-to-lead progression and product-company experience; down-weights consulting-only and research-only paths.                                                                    |
+| **Education**            | 8%                     | Weak prior: institution tier (tier_1..tier_4) and degree-field relevance; unknown tier neutral (ADR-019).                                                                                                                           |
 | **Experience Fit**       | 11%                    | ML/AI tenure in career history; step bands for total YOE aligned to the JD band.                                                                                                        |
-| **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities.                                                                                                                                            |
+| **Location & Logistics** | 6%                     | Favors candidates in JD-named Indian cities; remote/hybrid work mode earns a floor boost for flexible tier-2 talent.                                                                                                                                            |
 | **Behavioral Signals**   | Multiplier (0.4×–1.3×) | Applied to final base score — see §3.                                                                                                                                                   |
 
 Weights are the senior/staff profile in `get_scorer_weights`; junior and mid profiles shift emphasis but keep the same scorers. Pure keyword scorers (title + skills = 32%) now sit below the semantic, trajectory, and education signals combined.
 
 ### Cross-encoder rerank (ADR-018)
 
-On a full ranking pass, after the heap yields a shortlist pool (`RERANK_POOL_SIZE`, default 300), a cross-encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`) re-scores JD vs candidate and nudges the order with a bounded additive blend (`final = base + 0.15 * ce`). This preserves monotonicity and the reasoning floor, is baked for offline runs, and is skipped in the sandbox and CI.
+On a full ranking pass, after the heap yields a shortlist pool (`RERANK_POOL_SIZE`, default 300), a cross-encoder (`cross-encoder/ms-marco-MiniLM-L-6-v2`) re-scores JD vs candidate and nudges the order with a bounded additive blend (`final = base + 0.15 * ce_norm`). Logits are min-max normalized to `[0,1]` without sigmoid recompression (ADR-018). This preserves monotonicity and the reasoning floor, is baked for offline runs, and is skipped in the sandbox and CI.
 
 ### Semantic performance gate and funnel
 
@@ -72,11 +72,13 @@ The applications bound is `1 <= applications_submitted_30d <= 20`: below 1 is pa
 
 Clamped to `[0.4, 1.3]` via `BEHAVIORAL_MODIFIER_MIN/MAX` in `src/config.py`.
 
+**Join probability** (informational, does not change rank): a separate `[0, 1]` score from offer acceptance, interview completion, notice period, open-to-work, recruiter response rate, response time, preferred work mode (remote/hybrid), and willingness to relocate. Profile views, connection count, and endorsements are excluded. Reported in XLSX (5th column) and embedded in reasoning for top-20 ranks; CSV stays 4 columns for organizer validation.
+
 Recency calculations use `AVERA_REFERENCE_DATE` (default `2026-06-27`) for deterministic replay across environments.
 
 ### Score scale
 
-The base score sums to `[0, 1]` (semantic 0.25 + title/career 0.18 + skills 0.14 + trajectory 0.14 + education 0.12 + experience 0.11 + location 0.06, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
+The base score sums to `[0, 1]` (semantic 0.27 + title/career 0.18 + skills 0.14 + trajectory 0.16 + education 0.08 + experience 0.11 + location 0.06, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]`, so the final written `score` lies in `[0, 1.3]`. A value above 1.0 therefore means a strong base fit further lifted by strong availability signals; it is not an error. Scores are only meaningful as a ranking order, not as a percentage.
 
 ## 4. Honeypot Detection Engine
 
@@ -88,7 +90,8 @@ The dataset contains honeypots designed to trick keyword-based matching. The eng
 | **Method 1: Title/Skill Mismatch**  | Non-technical titles claiming many core AI skills.                       | Honeypot (dropped)            |
 | **Method 2: Expert Anomaly**        | Expert proficiency on 3+ skills with 0 months duration.                  | Honeypot (dropped)            |
 | **Method 3: Impossible Seniority**  | Senior title with &lt; 2 YOE, or junior title with &gt; 10 YOE.          | Honeypot (dropped)            |
-| **Method 4: Unverified Generalist** | &gt; 15 skills, zero assessment scores (senior YOE exempt).              | Honeypot (dropped)            |
+| **Method 4: Multi-Domain Expert**   | Expert/advanced in 3+ disjoint domains (CV, NLP, speech, robotics) with thin duration and no assessment backing; exempt senior YOE with NLP/IR exposure. | Honeypot (dropped)            |
+| **Method 5: Unverified Generalist** | &gt; 15 skills, zero assessment scores (senior YOE exempt).              | Honeypot (dropped)            |
 
 Honeypot keywords in `honeypot_detector.py` are **trap detection**, not positive scoring features.
 

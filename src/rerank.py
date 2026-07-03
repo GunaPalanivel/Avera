@@ -10,7 +10,6 @@ when the model is unavailable or reranking is skipped.
 from __future__ import annotations
 
 import logging
-import math
 import os
 from typing import Any
 
@@ -63,9 +62,12 @@ class CrossEncoderReranker:
             return pool[:top_k]
 
         blended: list[PoolItem] = []
+        raw_min = min(float(r) for r in raw_scores)
+        raw_max = max(float(r) for r in raw_scores)
+        span = raw_max - raw_min or 1.0
         for (base_score, cand, matched), raw in zip(pool, raw_scores, strict=False):
-            ce = 1.0 / (1.0 + math.exp(-float(raw)))
-            blended.append((round(base_score + self.alpha * ce, 4), cand, matched))
+            ce_norm = (float(raw) - raw_min) / span
+            blended.append((round(base_score + self.alpha * ce_norm, 4), cand, matched))
 
         blended.sort(key=lambda item: (-item[0], item[1].candidate_id))
         return blended[:top_k]

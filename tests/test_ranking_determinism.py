@@ -10,7 +10,7 @@ def _run_rank_hash(limit: int = 5) -> str:
     fixture = Path("tests/fixtures/sample.jsonl")
     ranker = Ranker(load_job_requirements())
     results = ranker.rank(stream_candidates(fixture, limit=limit), top_k=limit, require_exact_count=False)
-    payload = "|".join(f"{c.candidate_id}:{score:.4f}" for score, c, _ in results)
+    payload = "|".join(f"{c.candidate_id}:{score:.4f}" for score, _jp, c, _ in results)
     return hashlib.sha256(payload.encode()).hexdigest()
 
 

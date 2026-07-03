@@ -15,7 +15,7 @@ team_members:
 
 github_repo: "https://github.com/GunaPalanivel/Avera"
 sandbox_link: "https://huggingface.co/spaces/gp5901/avera-ranker"
-reproduce_command: "python rank.py --candidates DataSet/candidates.jsonl --out submission.csv"
+reproduce_command: "make download-model && python rank.py --candidates DataSet/candidates.jsonl --out submission.csv"
 
 compute:
   platform: "Local Machine"
@@ -36,15 +36,14 @@ ai_usage_summary: |
   Used Gemini and Claude/Cursor for architecture planning, review synthesis, scoring logic ideation, and code review. No candidate data was fed to any LLM.
 
 methodology_summary: |
-  Hybrid semantic & deterministic ranker using a dual-role approach (AI Engineer × DevOps).
-  Stage 1 drops ~60% fictional companies. Stage 1.5 drops honeypot traps on the remainder.
-  Stage 2 computes a base score across 5 features with seniority-aware weights (title/career, skills, experience, location, semantic).
-  JD domain is detected (ai_ml, devops, generic) and the title and skill taxonomies branch accordingly, so non-AI/ML JDs rank on domain-appropriate signals.
-  Semantic scoring is a two-stage funnel: heuristic candidate generation, then sentence-transformers (all-MiniLM-L6-v2) rerank on the heuristic top-K only (default 5000), which cut a full 100K CPU run from about 43 minutes to about 6 minutes.
-  Stage 3 applies a multiplicative behavioral modifier (0.4x-1.3x) over response rate, recency, notice, interview/offer rates, GitHub, verifications, profile completeness, and recent applications.
-  Full 100K run (CPU, semantic on): benchmark with `python scripts/eval.py --benchmark` after `make validate-full`.
-  Generalization: `python scripts/test_generalization.py` runs the same pipeline on AI/ML and DevOps JD files with zero code edits.
-  Outputs defusedcsv; sandbox via Docker and HuggingFace Spaces.
+  Hybrid semantic and deterministic ranker for Redrob Track 1 (Intelligent Candidate Discovery).
+  Stage 1 drops fictional companies; Stage 1.5 drops honeypots (including multi-domain expert traps).
+  Stage 2 computes a base score across 7 scorers with seniority-aware weights (semantic 27%, title/career 18%, trajectory 16%, skills 14%, experience 11%, education 8%, location 6%).
+  JD domain branches title and skill taxonomies (ai_ml, devops, generic).
+  Semantic funnel: heuristic gate then sentence-transformers (all-MiniLM-L6-v2) on top-K; cross-encoder min-max rerank on shortlist pool (ADR-018).
+  Stage 3 applies behavioral multiplier (0.4x-1.3x). Join probability (informational, XLSX column) uses India hireability signals without affecting rank.
+  Full 100K run: `make download-model && python rank.py --candidates DataSet/candidates.jsonl --out submission.csv`.
+  Eval: `python scripts/eval.py` (honeypot rate, NDCG@10, Precision@5/10, Recovery@10).
 
 declarations:
   read_submission_spec: true
