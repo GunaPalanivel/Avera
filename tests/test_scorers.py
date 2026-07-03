@@ -119,6 +119,7 @@ def test_title_career_anti_requirement_penalty():
         {"name": "OpenCV", "proficiency": "expert", "endorsements": 10, "duration_months": 40},
         {"name": "Object Detection", "proficiency": "advanced", "endorsements": 5, "duration_months": 30},
     ]
+    c_dict["redrob_signals"]["skill_assessment_scores"] = {}
     c = CandidateModel.model_validate(c_dict)
 
     # A CV-only candidate is penalized when the JD says it does not want CV-without-NLP
