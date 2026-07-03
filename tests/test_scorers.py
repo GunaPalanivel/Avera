@@ -257,6 +257,14 @@ def test_skills_scorer():
     assert score > 0.0  # Just ensure it computes correctly without crash
 
 
+def test_behavioral_join_probability():
+    scorer = BehavioralScorer(weight=1.0)
+    c_dict = get_base_candidate()
+    c = CandidateModel.model_validate(c_dict)
+    prob = scorer.join_probability(c)
+    assert 0.0 <= prob <= 1.0
+
+
 def test_behavioral_scorer():
     scorer = BehavioralScorer(weight=1.0)
     c_dict = get_base_candidate()

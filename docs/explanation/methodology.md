@@ -72,6 +72,8 @@ The applications bound is `1 <= applications_submitted_30d <= 20`: below 1 is pa
 
 Clamped to `[0.4, 1.3]` via `BEHAVIORAL_MODIFIER_MIN/MAX` in `src/config.py`.
 
+**Join probability** (informational, does not change rank): a separate `[0, 1]` score from offer acceptance, interview completion, notice period, open-to-work, recruiter response rate, response time, preferred work mode (remote/hybrid), and willingness to relocate. Profile views, connection count, and endorsements are excluded. Reported in XLSX (5th column) and embedded in reasoning for top-20 ranks; CSV stays 4 columns for organizer validation.
+
 Recency calculations use `AVERA_REFERENCE_DATE` (default `2026-06-27`) for deterministic replay across environments.
 
 ### Score scale

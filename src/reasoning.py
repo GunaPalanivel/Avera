@@ -69,6 +69,18 @@ def _top_rank_counterfactual(candidate: CandidateModel, matched_skills: list[str
     return "separation from the next ranks is narrow on secondary signals"
 
 
+def _join_prob_suffix(join_probability: float | None, candidate: CandidateModel) -> str:
+    if join_probability is None:
+        return ""
+    pct = int(round(join_probability * 100))
+    parts = [f"Join probability: {pct}%"]
+    if candidate.redrob_signals.notice_period_days > 90:
+        parts.append("long notice")
+    elif join_probability < 0.35:
+        parts.append("low engagement signals")
+    return f" {'; '.join(parts)}."
+
+
 def _strength_line(candidate: CandidateModel, matched_skills: list[str]) -> str:
     top_skills = sorted(candidate.skills, key=lambda s: s.duration_months or 0, reverse=True)
     skill_names = [s.name for s in top_skills]
@@ -92,6 +104,7 @@ def generate_reasoning(
     *,
     must_have_count: int = 0,
     score: float = 1.0,
+    join_probability: float | None = None,
 ) -> str:
     """
     Rank-aware reasoning with honest concerns for mid/low ranks.
@@ -100,22 +113,23 @@ def generate_reasoning(
     """
     strength = _strength_line(candidate, matched_skills)
     concerns = _concern_fragments(candidate, matched_skills, rank_index)
+    join_suffix = _join_prob_suffix(join_probability, candidate) if rank_index < 20 else ""
 
     # Weak absolute fit: stay measured regardless of rank position (avoids "Top-tier" on a poor pool)
     if score < STRONG_FIT_SCORE:
         gaps = concerns or ["weak overlap with JD must-have skills"]
-        return f"Best available in this pool but weak absolute fit: {strength}. Gaps: {'; '.join(gaps)}."
+        return f"Best available in this pool but weak absolute fit: {strength}. Gaps: {'; '.join(gaps)}.{join_suffix}"
 
     if rank_index < 5:
         extra = "Top-tier composite score across career, skills, and availability."
         if concerns:
-            return f"Rank {rank_index + 1}: {strength}. {extra} Minor note: {'; '.join(concerns)}."
+            return f"Rank {rank_index + 1}: {strength}. {extra} Minor note: {'; '.join(concerns)}.{join_suffix}"
         counterfactual = _top_rank_counterfactual(candidate, matched_skills, must_have_count)
-        return f"Rank {rank_index + 1}: {strength}. {extra} Counterfactual: {counterfactual}."
+        return f"Rank {rank_index + 1}: {strength}. {extra} Counterfactual: {counterfactual}.{join_suffix}"
 
     if rank_index < 20:
         concern_txt = f" Watch: {'; '.join(concerns)}." if concerns else ""
-        return f"Strong match — {strength}.{concern_txt}"
+        return f"Strong match — {strength}.{concern_txt}{join_suffix}"
 
     if rank_index < 50:
         tier = rank_index % 4

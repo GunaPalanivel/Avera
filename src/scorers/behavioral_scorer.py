@@ -72,3 +72,48 @@ class BehavioralScorer(BaseScorer):
             modifier *= 1.05
 
         return max(BEHAVIORAL_MODIFIER_MIN, min(BEHAVIORAL_MODIFIER_MAX, modifier))
+
+    def join_probability(self, candidate: CandidateModel) -> float:
+        """Informational hireability score in [0, 1]; does not affect rank."""
+        sigs = candidate.redrob_signals
+
+        offer = sigs.offer_acceptance_rate if sigs.offer_acceptance_rate is not None else 0.5
+        interview = sigs.interview_completion_rate if sigs.interview_completion_rate is not None else 0.5
+
+        notice = sigs.notice_period_days
+        if notice <= 30:
+            notice_factor = 1.0
+        elif notice <= 60:
+            notice_factor = 0.85
+        elif notice <= 90:
+            notice_factor = 0.7
+        else:
+            notice_factor = 0.5
+
+        otw = 1.05 if sigs.open_to_work_flag else 0.9
+
+        resp = sigs.recruiter_response_rate
+        if resp >= 0.5:
+            resp_factor = 1.0
+        elif resp >= 0.2:
+            resp_factor = 0.85
+        else:
+            resp_factor = 0.6
+
+        rt = sigs.avg_response_time_hours
+        if rt is None or rt <= 0:
+            time_factor = 0.9
+        elif rt <= 24:
+            time_factor = 1.0
+        elif rt <= 72:
+            time_factor = 0.9
+        else:
+            time_factor = 0.75
+
+        mode = (sigs.preferred_work_mode or "").lower()
+        mode_factor = 1.05 if mode in ("remote", "hybrid") else 1.0
+
+        relocate = 1.03 if sigs.willing_to_relocate else 1.0
+
+        prob = offer * interview * notice_factor * otw * resp_factor * time_factor * mode_factor * relocate
+        return max(0.0, min(1.0, prob))
