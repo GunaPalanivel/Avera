@@ -24,9 +24,10 @@ def test_semantic_scorer_uses_career_descriptions(monkeypatch):
     scorer._util = mock_util
     scorer._jd_embedding = "jd_emb"
 
-    score = scorer.score(candidate)
+    weighted = scorer(candidate)
 
-    assert score == pytest.approx(0.82 * 0.15, rel=1e-3)
+    assert weighted == pytest.approx(0.82 * 0.15, rel=1e-3)
+    assert scorer.score(candidate) == pytest.approx(0.82, rel=1e-3)
     encoded_text = mock_model.encode.call_args_list[-1][0][0]
     assert "RAG pipeline" in encoded_text
     assert "semantic search" in encoded_text
@@ -39,6 +40,13 @@ def test_semantic_scorer_empty_jd_returns_zero():
     scorer = SemanticScorer(weight=0.15, jd_text="")
     c = CandidateModel.model_validate(get_base_candidate())
     assert scorer.score(c) == 0.0
+
+
+def test_build_candidate_text_includes_title_and_company():
+    c = CandidateModel.model_validate(get_base_candidate())
+    text = SemanticScorer.build_candidate_text(c)
+    assert c.profile.current_title in text
+    assert c.profile.current_company in text
 
 
 def test_build_candidate_text_includes_skills():

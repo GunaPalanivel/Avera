@@ -1,4 +1,4 @@
-from src.config import AI_TITLE_TIERS, CONSULTING_FIRMS, CV_SPEECH_ROBOTICS_TERMS, NLP_IR_TERMS
+from src.config import AI_TITLE_TIERS, CONSULTING_FIRMS, CV_SPEECH_ROBOTICS_TERMS, NLP_IR_TERMS, expand_skill_keyword
 from src.models import CandidateModel
 from src.scorers.base import BaseScorer
 
@@ -27,13 +27,21 @@ class TitleCareerScorer(BaseScorer):
             if len(career) >= 3:
                 avg_months = sum(c.duration_months for c in career) / len(career)
                 escalates = any(any(t in c.title.lower() for t in _SENIOR_TITLE_TOKENS) for c in career)
-                if avg_months < 18 and escalates:
+                if avg_months < 15 and escalates:
                     penalty += 0.15
 
         if "cv_speech_robotics_without_nlp" in self.anti_requirements:
             skill_text = " ".join(s.name.lower() for s in candidate.skills)
             has_cv = any(term in skill_text for term in CV_SPEECH_ROBOTICS_TERMS)
-            has_nlp = any(term in skill_text for term in NLP_IR_TERMS)
+            has_nlp = any(
+                term in skill_text or any(v in skill_text for v in expand_skill_keyword(term))
+                for term in NLP_IR_TERMS
+            )
+            assessed = " ".join(k.lower() for k in candidate.redrob_signals.skill_assessment_scores)
+            has_nlp = has_nlp or any(
+                term in assessed or any(v in assessed for v in expand_skill_keyword(term))
+                for term in NLP_IR_TERMS
+            )
             if has_cv and not has_nlp:
                 penalty += 0.15
 
