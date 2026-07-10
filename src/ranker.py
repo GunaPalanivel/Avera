@@ -117,7 +117,7 @@ class Ranker:
             total_score += semantic_scorer(candidate)
 
         behavioral_modifier = self.behavioral_scorer.score(candidate)
-        total_score *= behavioral_modifier
+        total_score = min(1.0, total_score * behavioral_modifier)
         join_prob = self.behavioral_scorer.join_probability(candidate)
 
         matched_skills = self._matched_skill_names(candidate)
@@ -170,9 +170,9 @@ class Ranker:
             reranked: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _jp, c, m in pool]
             reranked = CrossEncoderReranker(self.job_reqs.raw_text).rerank(reranked, top_k)
             join_by_id = {c.candidate_id: jp for _s, jp, c, _m in pool}
-            pool = [(s, join_by_id[c.candidate_id], c, m) for s, c, m in reranked]
+            pool = [(min(1.0, s), join_by_id[c.candidate_id], c, m) for s, c, m in reranked]
         else:
-            pool = pool[:top_k]
+            pool = [(min(1.0, s), jp, c, m) for s, jp, c, m in pool[:top_k]]
 
         results: list[tuple[float, float, CandidateModel, str]] = []
         must_have_count = len(self.job_reqs.must_have_skills)
