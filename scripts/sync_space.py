@@ -6,7 +6,7 @@ runtime-only requirements. Run before pushing the Space:
 
     python scripts/sync_space.py
     hf auth login
-    hf upload gp5901/avera-ranker space_deploy . --repo-type=space --commit-message "sync current codebase"
+    hf upload gp5901/avera-ranker . --repo-type=space --local-dir space_deploy --commit-message "sync current codebase"
 """
 
 from __future__ import annotations
@@ -26,6 +26,7 @@ FILE_COPIES: tuple[tuple[str, str], ...] = (
     ("DataSet/job_description.txt", "DataSet/job_description.txt"),
     ("DataSet/job_description_devops.txt", "DataSet/job_description_devops.txt"),
     ("DataSet/sample_candidates_demo.jsonl", "DataSet/sample_candidates_demo.jsonl"),
+    ("DataSet/sample_candidates_50.jsonl", "DataSet/sample_candidates_50.jsonl"),
 )
 
 RUNTIME_REQUIREMENTS = "pydantic>=2.9,<3\ndefusedcsv>=2.0.0\ngradio>=5.0.0\nopenpyxl>=3.1.0\nsentence-transformers>=3.0.0\ntorch>=2.4.0\n"
@@ -79,7 +80,7 @@ def main() -> int:
     print(f"Synced space_deploy from {REPO}")
     print("Next steps:")
     print("  hf auth login")
-    print('  hf upload gp5901/avera-ranker space_deploy . --repo-type=space --commit-message "sync current codebase"')
+    print('  hf upload gp5901/avera-ranker . --repo-type=space --local-dir space_deploy --commit-message "sync current codebase"')
     return 0
 
 
