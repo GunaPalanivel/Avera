@@ -45,6 +45,8 @@ python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
 python DataSet/validate_submission.py submission.csv
 ```
 
+Heuristic-only fast path: `python rank.py --fast --candidates DataSet/candidates.jsonl --out submission_fast.csv`
+
 Or: `make validate-full`
 
 ### Evaluation
@@ -52,10 +54,13 @@ Or: `make validate-full`
 ```bash
 python scripts/eval.py
 # honeypot rate, NDCG@10, Precision@5/10, Recovery@10 (4 real calibration IDs)
+# July 2026: NDCG@10 0.3127, Recovery@10 3/4, honeypot rate 0.0
 
 python scripts/test_generalization.py   # AI/ML + DevOps JD, zero code edits
 make ci                                 # lint + test + security + smoke rank
 ```
+
+All written `score` values are clamped to `[0.0, 1.0]` after cross-encoder rerank.
 
 Calibration fixture: `tests/fixtures/calibration_batch.json` (4 real ideal candidates).
 
@@ -76,7 +81,7 @@ Join probability uses offer acceptance, interview completion, notice period, ope
 
 **HuggingFace:** https://huggingface.co/spaces/gp5901/avera-ranker
 
-Upload a `.jsonl` slice (1–100 rows). Shortlist size reflects your upload after filters — not the full 100K pool.
+Upload a `.jsonl` slice (1–100 rows). Bundled examples: 100-row curated demo or 50-row quick demo.
 
 **Local:**
 
@@ -111,6 +116,7 @@ See [`.env.example`](../../.env.example) and [runbook.md](../how-to/runbook.md).
 
 | Variable                                    | Purpose                                    |
 | ------------------------------------------- | ------------------------------------------ |
+| `--fast` (CLI flag)                         | Heuristic-only ranking; sets skip semantic + CE |
 | `AVERA_SKIP_SEMANTIC` / `AVERA_SKIP_RERANK` | Fast path for tests and sandbox slices     |
 | `AVERA_SEMANTIC_MODEL`                      | Local MiniLM directory for offline ranking |
 | `AVERA_SEMANTIC_RERANK_TOPK`                | Heuristic top-K to embed (default 5000)    |

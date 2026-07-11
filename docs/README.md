@@ -27,6 +27,7 @@ Diátaxis layout for the Track 1 ranking engine. Start with the **[README](../RE
 | Script / target | Purpose |
 | --------------- | ------- |
 | `scripts/eval.py` | Honeypot rate, NDCG@10, Precision@5/10, Recovery@10 |
+| `scripts/build_sample_50.py` | Build 50-row sandbox sample from curated demo JSONL |
 | `scripts/test_generalization.py` | Same pipeline on AI/ML + DevOps JD — zero code edits |
 | `make eval` / `make generalization` | Makefile shortcuts |
 

@@ -2,9 +2,7 @@
 
 Bi-encoder retrieval finds the shortlist pool; a cross-encoder then re-scores JD vs candidate
 text for that pool and nudges the final order. The blend is additive and bounded
-(final = base + alpha * ce, ce in [0,1]), so the output stays monotonic and above the
-reasoning floor. Runs only on full ranking passes and degrades gracefully to the base order
-when the model is unavailable or reranking is skipped.
+(final = min(1.0, base + alpha * ce), ce in [0,1]), so the output stays in IR convention
 """
 
 from __future__ import annotations
@@ -67,7 +65,8 @@ class CrossEncoderReranker:
         span = raw_max - raw_min or 1.0
         for (base_score, cand, matched), raw in zip(pool, raw_scores, strict=False):
             ce_norm = (float(raw) - raw_min) / span
-            blended.append((round(base_score + self.alpha * ce_norm, 4), cand, matched))
+            final_score = min(1.0, base_score + self.alpha * ce_norm)
+            blended.append((round(final_score, 4), cand, matched))
 
         blended.sort(key=lambda item: (-item[0], item[1].candidate_id))
         return blended[:top_k]

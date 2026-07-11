@@ -36,6 +36,12 @@ python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
 python DataSet/validate_submission.py submission.csv
 ```
 
+**Fast heuristic-only path** (no model download, ~5m44s on 100K):
+
+```bash
+python rank.py --fast --candidates DataSet/candidates.jsonl --out submission_fast.csv
+```
+
 Or:
 
 ```bash

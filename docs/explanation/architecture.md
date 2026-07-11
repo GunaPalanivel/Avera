@@ -42,7 +42,7 @@ graph TD
 
 | Module                               | Responsibility                                                                              |
 | ------------------------------------ | ------------------------------------------------------------------------------------------- |
-| `rank.py`                            | CLI orchestration: health check, path validation, prefill timing, structured completion log |
+| `rank.py`                            | CLI orchestration: health check, path validation, `--fast` flag, prefill timing, pipeline summary log |
 | `src/parsers/jd_parser.py`           | JD → `JobRequirements` (skills, cities, seniority, title keywords)                          |
 | `src/parsers/candidate_parser.py`    | Streaming JSONL ingest with size guards                                                     |
 | `src/ranker.py`                      | Filter → score → heap; `prefill_semantic_stream()` for Pass 1                               |
@@ -63,7 +63,7 @@ graph TD
 | **Hybrid Semantic + Deterministic Scoring** | Job constraints (YOE, skills) are evaluated deterministically, combined with an embedding-based Semantic Scorer (`all-MiniLM-L6-v2`) for deep JD contextual fit.               | **Generative LLMs/LambdaMART**: Unverifiable hallucinations, exceeds CPU budget, unpredictable latency.         |
 | **Two-stage funnel (gen then rerank)**      | Batch encode only the heuristic top-K (`SEMANTIC_RERANK_TOPK`, default 5000); rank pass stays O(N) streaming with O(K) heap memory. Cut a 100K CPU run from ~43 min to ~6 min. | **Encode every survivor**: ~7x slower with no material top-100 change.                                          |
 | **Domain-branching taxonomy (ADR-17)**      | `detect_domain` selects DevOps or AI/ML title and skill tables so non-AI/ML JDs rank on the right signals.                                                                     | **Single hardcoded AI/ML taxonomy**: 0 DevOps titles in a DevOps-JD top-100.                                    |
-| **Cross-encoder rerank (ADR-18)**           | Min-max normalized logits (no sigmoid); bounded additive blend on shortlist pool.                                                                                              | **Sigmoid on logits** or **rerank whole pool**: clustering bug or latency blow-up.                              |
+| **Cross-encoder rerank (ADR-18)**           | Min-max normalized logits (no sigmoid); bounded additive blend on shortlist pool; **final clamp to [0, 1]**. | **Sigmoid on logits** or **rerank whole pool**: clustering bug or latency blow-up.                              |
 | **Skill adjacencies + synonyms**            | Curated partial credit for vector-DB cousins and narrative skill names (e.g. embeddings).                                                                                      | **1.4M skill graph**: out of scope for CPU PoC.                                                                 |
 | **Join probability (informational)**        | India hireability signals in XLSX + reasoning; CSV stays 4 columns for organizer validation.                                                                                   | **Fifth CSV column**: breaks portal validator.                                                                  |
 | **Heuristic semantic gate (0.11)**          | Skip embeddings for weak heuristic matches; preserves CPU budget on 100K.                                                                                                      | **Encode all 100K**: violates hackathon time budget.                                                            |
@@ -79,17 +79,23 @@ graph TD
 
 ## Observability
 
-`rank.py` emits structured JSON on completion:
+`rank.py` emits structured JSON on completion and prints a one-line `Pipeline summary:` to stdout:
 
 ```json
 {
   "event": "ranking_done",
   "trace_id": "<uuid>",
-  "prefill_ms": 12000,
-  "semantic_encoded": 8420,
-  "latency_ms": 37000,
-  "seniority_level": "senior",
   "input_count": 100000,
+  "filtered_fictional": 59749,
+  "filtered_honeypot": 1603,
+  "semantic_gate_pass": 38641,
+  "scored_count": 38648,
+  "prefill_ms": 981294,
+  "score_ms": 468990,
+  "ce_rerank_ms": 134062,
+  "semantic_encoded": 5000,
+  "latency_ms": 603218,
+  "seniority_level": "senior",
   "output_count": 100
 }
 ```

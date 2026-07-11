@@ -117,7 +117,7 @@ class Ranker:
             total_score += semantic_scorer(candidate)
 
         behavioral_modifier = self.behavioral_scorer.score(candidate)
-        total_score *= behavioral_modifier
+        total_score = min(1.0, total_score * behavioral_modifier)
         join_prob = self.behavioral_scorer.join_probability(candidate)
 
         matched_skills = self._matched_skill_names(candidate)
@@ -137,11 +137,25 @@ class Ranker:
         heap: list[tuple[float, int, float, CandidateModel, str]] = []
         scored = 0
         filtered_zero = 0
+        filtered_fictional = 0
+        filtered_honeypot = 0
+        semantic_gate_pass = 0
         input_count = 0
+        ce_rerank_ms = 0
 
         for candidate in candidates:
             input_count += 1
             self.last_input_ids.add(candidate.candidate_id)
+            if candidate.profile.current_company in FICTIONAL_COMPANIES:
+                filtered_fictional += 1
+                filtered_zero += 1
+                continue
+            if is_honeypot(candidate):
+                filtered_honeypot += 1
+                filtered_zero += 1
+                continue
+            if self._heuristic_score(candidate) >= SEMANTIC_MIN_HEURISTIC_SCORE:
+                semantic_gate_pass += 1
             score, join_prob, matched_skills_csv = self.score_candidate(candidate)
             if score == 0.0:
                 filtered_zero += 1
@@ -168,11 +182,13 @@ class Ranker:
         pool: list[tuple[float, float, CandidateModel, str]] = [(s, jp, c, m) for s, _t, jp, c, m in heap]
         if rerank_enabled:
             reranked: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _jp, c, m in pool]
+            t_ce = time.perf_counter()
             reranked = CrossEncoderReranker(self.job_reqs.raw_text).rerank(reranked, top_k)
+            ce_rerank_ms = int((time.perf_counter() - t_ce) * 1000)
             join_by_id = {c.candidate_id: jp for _s, jp, c, _m in pool}
-            pool = [(s, join_by_id[c.candidate_id], c, m) for s, c, m in reranked]
+            pool = [(min(1.0, s), join_by_id[c.candidate_id], c, m) for s, c, m in reranked]
         else:
-            pool = pool[:top_k]
+            pool = [(min(1.0, s), jp, c, m) for s, jp, c, m in pool[:top_k]]
 
         results: list[tuple[float, float, CandidateModel, str]] = []
         must_have_count = len(self.job_reqs.must_have_skills)
@@ -193,9 +209,13 @@ class Ranker:
             "input_count": input_count,
             "scored_count": scored,
             "filtered_zero": filtered_zero,
+            "filtered_fictional": filtered_fictional,
+            "filtered_honeypot": filtered_honeypot,
+            "semantic_gate_pass": semantic_gate_pass,
             "output_count": len(results),
             "prefill_ms": 0,
             "score_ms": score_ms,
+            "ce_rerank_ms": ce_rerank_ms,
             "total_ms": total_ms,
         }
 
