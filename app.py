@@ -87,10 +87,7 @@ def build_demo() -> gr.Blocks:
         csv_out = gr.File(label="Download submission.csv")
 
         if DEMO_FILE.exists():
-            gr.Markdown(
-                "Tip: click a bundled example below for a representative run on real strong candidates. "
-                "An arbitrary slice scores low by design, so weak uploads are labelled honestly."
-            )
+            gr.Markdown("Tip: click a bundled example below for a representative run on real strong candidates. An arbitrary slice scores low by design, so weak uploads are labelled honestly.")
             examples = [[str(DEMO_FILE)]]
             if SAMPLE_50_FILE.exists():
                 examples.append([str(SAMPLE_50_FILE)])
