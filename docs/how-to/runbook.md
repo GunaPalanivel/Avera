@@ -41,6 +41,7 @@ make docker-sandbox  # Gradio on http://localhost:7860
 
 | Variable                     | Default            | Purpose                                                         |
 | ---------------------------- | ------------------ | --------------------------------------------------------------- |
+| `--fast` (CLI flag)          | off                | Heuristic-only ranking; sets `AVERA_SKIP_SEMANTIC` and `AVERA_SKIP_RERANK` |
 | `AVERA_SKIP_SEMANTIC`        | unset (load model) | Set to `1` in tests to skip `sentence-transformers` load        |
 | `AVERA_SKIP_RERANK`          | unset              | Set to `1` to skip cross-encoder rerank                         |
 | `AVERA_SEMANTIC_MODEL`       | `all-MiniLM-L6-v2` | HuggingFace model id or **local directory** for offline ranking |

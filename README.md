@@ -90,8 +90,8 @@ NDCG@10 = **0.3127**, computed against 4 verified real ideal candidates after St
 
 ## Top-10 results (full 100K pool, July 2026)
 
-| Rank | Candidate   | Score | Title                 | Company       |
-| ---- | ----------- | ----- | --------------------- | ------------- |
+| Rank | Candidate    | Score  | Title                 | Company       |
+| ---- | ------------ | ------ | --------------------- | ------------- |
 | 1    | CAND_0001819 | 1.0000 | ML Engineer           | Genpact AI    |
 | 2    | CAND_0002025 | 1.0000 | Senior AI Engineer    | Apple         |
 | 3    | CAND_0002793 | 1.0000 | AI Specialist         | Meesho        |
@@ -270,6 +270,7 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 | ------------------------------------- | ----------------------------------------------------------------------------------- |
 | `AVERA_SKIP_SEMANTIC=1`               | Skip bi-encoder load in unit tests (default in `tests/conftest.py`)                 |
 | `AVERA_SKIP_RERANK=1`                 | Skip cross-encoder rerank (CI / sandbox fast path)                                  |
+| `--fast` (CLI)                        | Sets both skip flags for heuristic-only ranking (~5m44s on 100K)                    |
 | `AVERA_SEMANTIC_MODEL=/path/to/model` | Local MiniLM directory for air-gapped ranking (`has_network_during_ranking: false`) |
 | `AVERA_REFERENCE_DATE`                | Fixed reference date for behavioral recency (default `2026-06-27`)                  |
 | `AVERA_SEMANTIC_RERANK_TOPK`          | Number of heuristic-top candidates to semantically rerank (default `5000`)          |
@@ -301,7 +302,8 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 │   ├── scorers/             # Title, skills, semantic, experience, location, education, trajectory, behavioral
 │   ├── rerank.py            # Cross-encoder shortlist rerank (ADR-018, min-max)
 │   └── detectors/           # Honeypot detection (5 methods)
-├── tests/                   # Pytest suite (81 tests)
+├── tests/                   # Pytest suite (85 tests)
+├── scripts/build_sample_50.py  # Build 50-row sandbox sample from demo JSONL
 ├── Dockerfile               # Runtime + baked MiniLM for offline ranking
 ├── docker-compose.yml       # Sandbox and CLI services
 ├── rank.py                  # CLI entrypoint (two-pass stream)

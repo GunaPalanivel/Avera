@@ -37,6 +37,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added (unreleased)
 
+- AI review remediation: final score clamp to `[0, 1]` after cross-encoder rerank; `--fast` CLI flag for heuristic-only reproduction; per-stage pipeline logging (`filtered_fictional`, `filtered_honeypot`, `ce_rerank_ms`, stdout `Pipeline summary`); 50-candidate sandbox sample (`DataSet/sample_candidates_50.jsonl`)
 - Skill adjacencies and expanded synonyms (`embeddings`, `nlp`, `pgvector`, `haystack`) for narrative-fit recovery without keyword stuffing
 - Honeypot Method 4: multi-domain expert trap; ranker tie-break handles malformed IDs and partial small-pool results
 - Recency-weighted self-reported skill credit and remote/hybrid location floor boost
@@ -54,6 +55,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed (unreleased)
 
+- Regenerated `submission.csv` with bounded scores (max 1.0); top-10 order may shift when multiple candidates clamp to 1.0000 (tie-break by `candidate_id`)
 - Rebalanced scorer weights toward semantic fit (senior profile semantic 15 to 25 percent, pure keyword title plus skills reduced from 42 to 32 percent) to honor the JD's beyond-keywords mandate; full 100K stays honeypot-free with the top-100 minimum above the reasoning floor
 
 ### Reviewer fixes (unreleased)
@@ -63,7 +65,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Generic (non-AI/ML, non-DevOps) JDs now inject no title or skill taxonomy instead of falling back to AI/ML
 - Top-rank reasoning frames thin must-have coverage as intentional career-trajectory ranking aligned with the JD anti-keyword-stuffing guidance
 - XLSX output cells now pass through `sanitize_cell` (ADR-16 parity with the CSV path)
-- Score scale `[0, 1.3]` documented in README and methodology; behavioral applications bound justified
+- Score scale **`[0, 1]`** documented in README and methodology; final clamp after CE rerank; behavioral multiplier applied before clamp
 - Real primary contact details in `submission_metadata.yaml`
 - Residual phase references removed from `.github/ISSUE_TEMPLATE/bug.md` and `CHANGELOG.md`
 
