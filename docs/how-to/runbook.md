@@ -16,6 +16,9 @@ python -m pytest tests/ -v
 # 3. Execute the Ranking Pipeline
 python rank.py --candidates DataSet/candidates.jsonl --out submission.csv
 
+# Fast heuristic-only path (~5m44s on 100K, no model download)
+python rank.py --fast --candidates DataSet/candidates.jsonl --out submission.csv
+
 # 4. Validate output format via the official contract
 python DataSet/validate_submission.py submission.csv
 ```
@@ -79,12 +82,21 @@ We employ a custom `JSONFormatter` in `src/logging_config.py` to output structur
   "run_id": "c70f9159-df76-4347-9b32-c70f91596b92",
   "trace_id": "c70f9159-df76-4347-9b32-c70f91596b92",
   "event": "ranking_done",
+  "input_count": 100000,
+  "filtered_fictional": 60421,
+  "filtered_honeypot": 127,
+  "semantic_gate_pass": 8420,
+  "scored_count": 39500,
   "prefill_ms": 12000,
-  "semantic_encoded": 8420,
-  "latency_ms": 37000,
+  "score_ms": 312000,
+  "ce_rerank_ms": 8000,
+  "semantic_encoded": 5000,
+  "latency_ms": 370000,
   "seniority_level": "senior"
 }
 ```
+
+After each run, `rank.py` also prints a one-line `Pipeline summary:` to stdout with the same stage counts and timings.
 
 ### Performance Tuning
 
