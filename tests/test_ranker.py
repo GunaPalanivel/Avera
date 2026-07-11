@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from src.models import CandidateModel
 from src.parsers.jd_parser import JobRequirements
-from src.ranker import Ranker
+from src.ranker import Ranker, _written_scores
 from src.rerank import CrossEncoderReranker
 from tests.test_scorers import get_base_candidate
 
@@ -47,7 +47,7 @@ def test_ranker_clamps_inflated_ce_rerank_scores(monkeypatch):
     monkeypatch.setenv("AVERA_SKIP_SEMANTIC", "1")
 
     def inflated_rerank(_self, pool, top_k):
-        return [(1.15, c, m) for _s, c, m in pool[:top_k]]
+        return [(1.0, c, m, 1.15) for _s, c, m in pool[:top_k]]
 
     ranker = Ranker(get_dummy_reqs())
     c = CandidateModel.model_validate(get_base_candidate())
@@ -55,6 +55,24 @@ def test_ranker_clamps_inflated_ce_rerank_scores(monkeypatch):
         results = ranker.rank([c], top_k=1, require_exact_count=True)
     assert len(results) == 1
     assert results[0][0] == 1.0
+
+
+def test_written_scores_spreads_ceiling_tier():
+    """Merit-ordered rows get strictly decreasing written scores."""
+    d1 = get_base_candidate()
+    d1["candidate_id"] = "CAND_0000009"
+    d2 = get_base_candidate()
+    d2["candidate_id"] = "CAND_0000001"
+    c1 = CandidateModel.model_validate(d1)
+    c2 = CandidateModel.model_validate(d2)
+    ordered = [
+        (1.0, 1.15, 0.5, c1, "Python"),
+        (1.0, 1.10, 0.5, c2, "Python"),
+    ]
+    out = _written_scores(ordered)
+    assert out[0][0] == 1.0
+    assert out[1][0] == 0.9999
+    assert out[0][0] > out[1][0]
 
 
 def test_ranker_rerank_on_limited_slice(monkeypatch):
@@ -65,7 +83,7 @@ def test_ranker_rerank_on_limited_slice(monkeypatch):
     def mock_rerank(_self, pool, top_k):
         nonlocal rerank_called
         rerank_called = True
-        return [(s, c, m) for s, c, m in pool[:top_k]]
+        return [(s, c, m, s) for s, c, m in pool[:top_k]]
 
     ranker = Ranker(get_dummy_reqs())
     c = CandidateModel.model_validate(get_base_candidate())

@@ -10,8 +10,8 @@ Add a cross-encoder rerank stage that runs only on full ranking passes, after th
 
 1. On a full pass the heap keeps a pool of `RERANK_POOL_SIZE` (default 300) instead of just the top 100.
 2. `CrossEncoderReranker` (`src/rerank.py`) scores each pool candidate against the JD with `cross-encoder/ms-marco-MiniLM-L-6-v2` and **min-max normalizes** logits to `[0,1]` (no sigmoid: sigmoid re-compresses already-clustered logits into a narrow band).
-3. The blend is additive and bounded: `final = min(1.0, base + RERANK_ALPHA * ce_norm)` (default alpha 0.15). Because the cross-encoder term is non-negative and capped, the output stays in IR convention `[0, 1]`, monotonic when re-sorted, tie-breaks by ascending `candidate_id`, and never drops a candidate below the reasoning floor.
-4. The final top 100 is taken from the reranked pool.
+3. The blend is additive and bounded: `final = min(1.0, base + RERANK_ALPHA * ce_norm)` (default alpha 0.15). Pre-clamp composite strength (`raw_blended`) orders candidates within the ceiling tier; written submission scores use strict rank-index micro-spread (`1.0 − rank×0.0001`) for organizer validator compliance.
+4. The final top 100 is taken from the reranked pool in merit order.
 
 ## Operational constraints
 

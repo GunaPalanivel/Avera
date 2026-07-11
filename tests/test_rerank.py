@@ -27,7 +27,7 @@ def test_rerank_falls_back_to_base_order_when_skipped(monkeypatch):
     monkeypatch.setenv("AVERA_SKIP_SEMANTIC", "1")
     pool = _pool(5)
     out = CrossEncoderReranker("Senior AI Engineer").rerank(pool, top_k=3)
-    assert [c.candidate_id for _s, c, _m in out] == [c.candidate_id for _s, c, _m in pool[:3]]
+    assert [c.candidate_id for _s, c, _m, _raw in out] == [c.candidate_id for _s, c, _m in pool[:3]]
 
 
 def test_rerank_empty_pool():
@@ -44,7 +44,7 @@ def test_rerank_minmax_spread_without_sigmoid(monkeypatch):
     reranker._model.predict.return_value = [3.2, 3.5, 3.8]
 
     out = reranker.rerank(pool, top_k=3)
-    scores = [s for s, _c, _m in out]
+    scores = [s for s, _c, _m, _raw in out]
     assert scores[0] > scores[1] > scores[2]
     assert max(scores) - min(scores) >= 0.03
     assert out[0][1].candidate_id == "CAND_0000001"
@@ -63,3 +63,25 @@ def test_rerank_clamps_blended_score_at_one(monkeypatch):
 
     out = reranker.rerank(pool, top_k=1)
     assert out[0][0] == 1.0
+
+
+def test_rerank_ceiling_tiebreak_by_raw_blended(monkeypatch):
+    """At display 1.0, order by pre-clamp raw_blended — not candidate_id."""
+    monkeypatch.delenv("AVERA_SKIP_SEMANTIC", raising=False)
+    monkeypatch.delenv("AVERA_SKIP_RERANK", raising=False)
+
+    ids = ["CAND_0000009", "CAND_0000001", "CAND_0000005"]
+    pool = []
+    for cid in ids:
+        d = get_base_candidate()
+        d["candidate_id"] = cid
+        pool.append((1.0, CandidateModel.model_validate(d), "Python"))
+
+    reranker = CrossEncoderReranker("Senior AI Engineer", alpha=0.15)
+    reranker._model = MagicMock()
+    reranker._model.predict.return_value = [3.0, 9.0, 5.0]
+
+    out = reranker.rerank(pool, top_k=3)
+    assert all(s == 1.0 for s, _c, _m, _raw in out)
+    assert out[0][1].candidate_id == "CAND_0000001"
+    assert out[0][3] > out[1][3] > out[2][3]

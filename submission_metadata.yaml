@@ -15,7 +15,7 @@ team_members:
 
 github_repo: "https://github.com/GunaPalanivel/Avera"
 sandbox_link: "https://huggingface.co/spaces/gp5901/avera-ranker"
-reproduce_command: "make download-model && python rank.py --candidates DataSet/candidates.jsonl --out submission.csv"
+reproduce_command: "make download-model && python rank.py --candidates DataSet/candidates.jsonl --out submission.csv  # full pool requires local LFS checkout; use DataSet/sample_candidates_demo.jsonl for smoke without LFS"
 
 compute:
   platform: "Local Machine"
@@ -45,7 +45,7 @@ methodology_summary: |
   Stage 3 applies behavioral multiplier (0.4x-1.3x). Join probability (informational, XLSX column) uses India hireability signals without affecting rank.
   Output: submission.csv (candidate_id, rank, score, reasoning); submission.xlsx adds join_probability. Scores are IR-bounded to [0, 1].
   Pre-download both models: `make download-model`. Full 100K run: `python rank.py --candidates DataSet/candidates.jsonl --out submission.csv`. Fast heuristic path: `python rank.py --fast ...`.
-  Quality gates: 85 pytest tests; honeypot rate 0 in top-100; eval NDCG@10 0.3127, Recovery@10 3/4 via `python scripts/eval.py`.
+  Quality gates: 88 pytest tests (80% coverage floor); honeypot rate 0 in top-100; eval NDCG@10 0.3718, Recovery@10 3/4 via `python scripts/eval.py`.
 
 declarations:
   read_submission_spec: true

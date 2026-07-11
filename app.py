@@ -71,7 +71,8 @@ def build_demo() -> gr.Blocks:
             "# Avera Ranking Engine Sandbox\n"
             "Upload a `.jsonl` candidate file. The engine scores deterministically and returns a ranked CSV (up to 100 rows). "
             "Fictional companies and honeypots are filtered, so output may be fewer than upload rows.\n\n"
-            "Note: this ranks only the rows you upload against the bundled JD. Shortlist quality reflects your slice. "
+            "**Note:** first run loads the ranking models (~45s on CPU). Subsequent runs on the same Space instance are faster (~8–15s).\n\n"
+            "This ranks only the rows you upload against the bundled JD. Shortlist quality reflects your slice. "
             "An arbitrary slice with few real matches yields low scores and measured reasoning by design; the production "
             "shortlist comes from the full 100K pool."
         )

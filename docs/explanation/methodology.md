@@ -126,6 +126,6 @@ python scripts/eval.py --benchmark  # optional wall-clock on full pool
 python scripts/test_generalization.py   # AI/ML + DevOps JD, zero code edits
 ```
 
-**Calibration context (July 2026 run):** NDCG@10 = **0.3127** against 4 verified real ideal candidates (10 fictional-company "ideals" correctly filtered in Stage 1). Recovery@10: **3/4** real ideal candidates in the top 10. Honeypot rate in top-100: **0.0**.
+**Calibration context (July 2026 run):** NDCG@10 = **0.3718** against 4 verified real ideal candidates (10 fictional-company "ideals" correctly filtered in Stage 1). Recovery@10: **3/4** real ideal candidates in the top 10. Honeypot rate in top-100: **0.0**. Vocabulary expansion recovered CAND_0005538 (Adobe; ex-Google) into the top-100 at rank 55. Pre-clamp CE merit tiebreak reorders the score ceiling tier by composite strength.
 
 **Fast reproduction:** `python rank.py --fast --candidates DataSet/candidates.jsonl --out submission.csv` skips semantic prefill and CE rerank (~5m44s heuristic-only on 100K).

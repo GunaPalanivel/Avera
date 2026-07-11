@@ -8,6 +8,17 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Pre-clamp CE merit tiebreak: order within the score ceiling by `raw_blended`, then assign strictly decreasing written scores for validator compliance
+- pytest-cov 80% coverage gate in CI (with parser/logging omit paths)
+- Gradio cold-start UX note on HF Space (~45s first run)
+- Gate 0 probe script (`.sandbox/probe_5538_raw.py`) for merit audit before tiebreak changes
+
+### Changed
+
+- Regenerated `submission.csv` / `submission.xlsx`: differentiated top-10 scores, NDCG@10 **0.3718**, Recovery@10 **3/4**
+- README Recovery narrative: vocabulary expansion → CAND_0005538 in top-100 (rank 55); test badge **88**
+- LFS Option B docs: bundled demos run without full pool download
+
 - Domain-branching taxonomy (ADR-17): `detect_domain`, `get_title_tiers`, `get_skill_taxonomy`, and DevOps title/skill tables so non-AI/ML JDs rank on domain-appropriate signals
 - Behavioral signal coverage: `profile_completeness_score` and `applications_submitted_30d` folded into the availability multiplier
 - Counterfactual notes on top-tier reasoning so rank 1-5 explanations are not uniformly positive
