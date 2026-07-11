@@ -15,7 +15,7 @@ Add a cross-encoder rerank stage that runs only on full ranking passes, after th
 
 ## Operational constraints
 
-- Runs only when `require_exact_count` is true (the full CLI pass), so the sandbox `--limit` path and CI stay fast and add no second model.
+- Runs when `enable_rerank` is true (default: same as `require_exact_count` on full passes; sandbox `--limit` uploads pass `enable_rerank=True` explicitly). Skipped in CI via `AVERA_SKIP_SEMANTIC` / `AVERA_SKIP_RERANK`, and via `--fast`.
 - Skipped when `AVERA_SKIP_SEMANTIC` or `AVERA_SKIP_RERANK` is set, and degrades gracefully to the base order if the model cannot load.
 - Baked for offline runs by `scripts/download_model.py` and the `Dockerfile` (`AVERA_CROSS_ENCODER_MODEL`), preserving `has_network_during_ranking: false`.
 

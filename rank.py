@@ -99,17 +99,24 @@ def main(argv: list[str] | None = None) -> int:
             input_ids.add(candidate.candidate_id)
             yield candidate
 
-    use_semantic_prefill = os.environ.get("AVERA_SKIP_SEMANTIC", "").lower() not in ("1", "true", "yes")
-    if use_semantic_prefill and args.limit is None:
+    skip_semantic = os.environ.get("AVERA_SKIP_SEMANTIC", "").lower() in ("1", "true", "yes")
+    skip_rerank = os.environ.get("AVERA_SKIP_RERANK", "").lower() in ("1", "true", "yes")
+    use_semantic_prefill = not skip_semantic
+    if use_semantic_prefill:
         t_prefill = time.perf_counter()
-        encoded = ranker.prefill_semantic_stream(stream_candidates(candidates_path))
+        encoded = ranker.prefill_semantic_stream(stream_candidates(candidates_path, limit=args.limit))
         prefill_ms = int((time.perf_counter() - t_prefill) * 1000)
     else:
         encoded = 0
         prefill_ms = 0
 
     t0 = time.perf_counter()
-    top_k = ranker.rank(track_stream(), top_k=requested_top_k, require_exact_count=(args.limit is None))
+    top_k = ranker.rank(
+        track_stream(),
+        top_k=requested_top_k,
+        require_exact_count=(args.limit is None),
+        enable_rerank=(not args.fast and not skip_rerank),
+    )
     wall_ms = int((time.perf_counter() - t0) * 1000)
     stats = ranker.last_pipeline_stats
 

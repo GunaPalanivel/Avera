@@ -55,3 +55,21 @@ def test_ranker_clamps_inflated_ce_rerank_scores(monkeypatch):
         results = ranker.rank([c], top_k=1, require_exact_count=True)
     assert len(results) == 1
     assert results[0][0] == 1.0
+
+
+def test_ranker_rerank_on_limited_slice(monkeypatch):
+    """Sandbox uploads use require_exact_count=False but still run CE rerank."""
+    monkeypatch.setenv("AVERA_SKIP_SEMANTIC", "1")
+    rerank_called = False
+
+    def mock_rerank(_self, pool, top_k):
+        nonlocal rerank_called
+        rerank_called = True
+        return [(s, c, m) for s, c, m in pool[:top_k]]
+
+    ranker = Ranker(get_dummy_reqs())
+    c = CandidateModel.model_validate(get_base_candidate())
+    with patch.object(CrossEncoderReranker, "rerank", mock_rerank):
+        results = ranker.rank([c], top_k=10, require_exact_count=False, enable_rerank=True)
+    assert rerank_called
+    assert len(results) == 1
