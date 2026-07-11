@@ -30,6 +30,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--jd", help="Path to job_description.txt")
     parser.add_argument("--out", help="Output submission.csv path")
     parser.add_argument("--limit", type=int, default=None, help="Max candidates to read (smoke tests)")
+    parser.add_argument(
+        "--fast",
+        action="store_true",
+        help="Heuristic-only ranking (skip semantic prefill and cross-encoder rerank)",
+    )
     return parser
 
 
@@ -67,6 +72,10 @@ def main(argv: list[str] | None = None) -> int:
         # User-facing errors stay generic; run_id in logs links to the full trace
         print(f"error: {exc}", file=sys.stderr)
         return 2
+
+    if args.fast:
+        os.environ["AVERA_SKIP_SEMANTIC"] = "1"
+        os.environ["AVERA_SKIP_RERANK"] = "1"
 
     logger.info(
         "ranking candidates",
@@ -116,13 +125,29 @@ def main(argv: list[str] | None = None) -> int:
                 "output_count": stats.get("output_count", len(top_k)),
                 "scored_count": stats.get("scored_count", 0),
                 "filtered_zero": stats.get("filtered_zero", 0),
+                "filtered_fictional": stats.get("filtered_fictional", 0),
+                "filtered_honeypot": stats.get("filtered_honeypot", 0),
+                "semantic_gate_pass": stats.get("semantic_gate_pass", 0),
                 "prefill_ms": prefill_ms,
                 "semantic_encoded": encoded,
                 "score_ms": stats.get("score_ms", wall_ms),
+                "ce_rerank_ms": stats.get("ce_rerank_ms", 0),
                 "latency_ms": stats.get("total_ms", wall_ms),
                 "seniority_level": job_reqs.seniority_level,
             }
         },
+    )
+
+    print(
+        "Pipeline summary: "
+        f"input={stats.get('input_count', len(input_ids))} "
+        f"fictional={stats.get('filtered_fictional', 0)} "
+        f"honeypot={stats.get('filtered_honeypot', 0)} "
+        f"scored={stats.get('scored_count', 0)} "
+        f"semantic_gate={stats.get('semantic_gate_pass', 0)} "
+        f"prefill_ms={prefill_ms} score_ms={stats.get('score_ms', wall_ms)} "
+        f"ce_rerank_ms={stats.get('ce_rerank_ms', 0)} "
+        f"total_ms={stats.get('total_ms', wall_ms)}"
     )
 
     if args.out:
