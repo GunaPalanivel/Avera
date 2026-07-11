@@ -129,10 +129,11 @@ class Ranker:
         top_k: int = 100,
         *,
         require_exact_count: bool = True,
+        enable_rerank: bool | None = None,
     ) -> list[tuple[float, float, CandidateModel, str]]:
         t0 = time.perf_counter()
-        # On full passes, keep a larger pool so the cross-encoder has room to rerank.
-        rerank_enabled = require_exact_count
+        # Keep a larger pool when CE rerank runs so the cross-encoder has room to reorder.
+        rerank_enabled = enable_rerank if enable_rerank is not None else require_exact_count
         heap_k = max(top_k, RERANK_POOL_SIZE) if rerank_enabled else top_k
         heap: list[tuple[float, int, float, CandidateModel, str]] = []
         scored = 0
