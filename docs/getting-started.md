@@ -3,7 +3,8 @@
 ## Prerequisites
 
 - Python 3.11+ (3.13 recommended; matches CI and Docker)
-- `DataSet/candidates.jsonl` for full ranking (Git LFS)
+- **Full 100K ranking:** `DataSet/candidates.jsonl` (~487 MB, Git LFS). Fresh clones may fail if the repo LFS budget is exceeded.
+- **Without LFS:** use bundled `DataSet/sample_candidates_demo.jsonl` or `DataSet/sample_candidates_50.jsonl` (no download required).
 - CPU only; ~16 GB RAM for 100K runs
 
 ## Install

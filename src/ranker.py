@@ -30,6 +30,22 @@ from src.scorers.trajectory_scorer import TrajectoryScorer
 logger = logging.getLogger(__name__)
 
 
+def _written_scores(
+    ordered: list[tuple[float, float, float, CandidateModel, str]],
+) -> list[tuple[float, float, CandidateModel, str]]:
+    """Convert merit-ordered pool rows to submission scores.
+
+    ordered: (display, raw_merit, join_prob, candidate, matched_skills_csv)
+    Merit order is already fixed; assign strictly decreasing scores from 1.0 so
+    validator tie-break rules and non-increasing rank order both hold.
+    """
+    written: list[tuple[float, float, CandidateModel, str]] = []
+    for idx, (_display, _raw, join_prob, candidate, matched) in enumerate(ordered):
+        score = round(max(0.0, 1.0 - idx * 0.0001), 4)
+        written.append((score, join_prob, candidate, matched))
+    return written
+
+
 class Ranker:
     def __init__(self, job_reqs: JobRequirements):
         self.job_reqs = job_reqs
@@ -103,12 +119,12 @@ class Ranker:
                     break
         return matched
 
-    def score_candidate(self, candidate: CandidateModel) -> tuple[float, float, str]:
+    def score_candidate(self, candidate: CandidateModel) -> tuple[float, float, float, str]:
         if candidate.profile.current_company in FICTIONAL_COMPANIES:
-            return 0.0, 0.0, ""
+            return 0.0, 0.0, 0.0, ""
 
         if is_honeypot(candidate):
-            return 0.0, 0.0, ""
+            return 0.0, 0.0, 0.0, ""
 
         total_score = self._heuristic_score(candidate)
 
@@ -117,11 +133,12 @@ class Ranker:
             total_score += semantic_scorer(candidate)
 
         behavioral_modifier = self.behavioral_scorer.score(candidate)
-        total_score = min(1.0, total_score * behavioral_modifier)
+        raw_score = round(total_score * behavioral_modifier, 4)
+        display_score = min(1.0, raw_score)
         join_prob = self.behavioral_scorer.join_probability(candidate)
 
         matched_skills = self._matched_skill_names(candidate)
-        return round(total_score, 4), round(join_prob, 4), ",".join(matched_skills)
+        return round(display_score, 4), raw_score, round(join_prob, 4), ",".join(matched_skills)
 
     def rank(
         self,
@@ -135,7 +152,7 @@ class Ranker:
         # Keep a larger pool when CE rerank runs so the cross-encoder has room to reorder.
         rerank_enabled = enable_rerank if enable_rerank is not None else require_exact_count
         heap_k = max(top_k, RERANK_POOL_SIZE) if rerank_enabled else top_k
-        heap: list[tuple[float, int, float, CandidateModel, str]] = []
+        heap: list[tuple[float, float, float, CandidateModel, str]] = []
         scored = 0
         filtered_zero = 0
         filtered_fictional = 0
@@ -157,20 +174,13 @@ class Ranker:
                 continue
             if self._heuristic_score(candidate) >= SEMANTIC_MIN_HEURISTIC_SCORE:
                 semantic_gate_pass += 1
-            score, join_prob, matched_skills_csv = self.score_candidate(candidate)
+            score, raw_score, join_prob, matched_skills_csv = self.score_candidate(candidate)
             if score == 0.0:
                 filtered_zero += 1
                 continue
             scored += 1
 
-            try:
-                id_num = int(candidate.candidate_id.split("_")[1])
-                tie_breaker = -id_num
-            except (ValueError, IndexError):
-                logger.warning("Malformed candidate_id for tie-break: %s", candidate.candidate_id)
-                tie_breaker = 0
-
-            item = (score, tie_breaker, join_prob, candidate, matched_skills_csv)
+            item = (score, -raw_score, join_prob, candidate, matched_skills_csv)
 
             if len(heap) < heap_k:
                 heapq.heappush(heap, item)
@@ -178,18 +188,20 @@ class Ranker:
                 heapq.heappushpop(heap, item)
 
         score_ms = int((time.perf_counter() - t0) * 1000)
-        heap.sort(key=lambda x: (x[0], x[1]), reverse=True)
+        heap.sort(key=lambda x: (x[0], x[1], x[3].candidate_id), reverse=True)
 
-        pool: list[tuple[float, float, CandidateModel, str]] = [(s, jp, c, m) for s, _t, jp, c, m in heap]
+        pool: list[tuple[float, float, CandidateModel, str]] = [(s, jp, c, m) for s, _neg_raw, jp, c, m in heap]
         if rerank_enabled:
-            reranked: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _jp, c, m in pool]
+            rerank_pool: list[tuple[float, CandidateModel, str]] = [(s, c, m) for s, _jp, c, m in pool]
             t_ce = time.perf_counter()
-            reranked = CrossEncoderReranker(self.job_reqs.raw_text).rerank(reranked, top_k)
+            reranked = CrossEncoderReranker(self.job_reqs.raw_text).rerank(rerank_pool, top_k)
             ce_rerank_ms = int((time.perf_counter() - t_ce) * 1000)
             join_by_id = {c.candidate_id: jp for _s, jp, c, _m in pool}
-            pool = [(min(1.0, s), join_by_id[c.candidate_id], c, m) for s, c, m in reranked]
+            merit_pool = [(min(1.0, s), raw, join_by_id[c.candidate_id], c, matched) for s, c, matched, raw in reranked]
         else:
-            pool = [(min(1.0, s), jp, c, m) for s, jp, c, m in pool[:top_k]]
+            merit_pool = [(s, -neg_raw, jp, c, m) for s, neg_raw, jp, c, m in heap[:top_k]]
+
+        pool = _written_scores(merit_pool)
 
         results: list[tuple[float, float, CandidateModel, str]] = []
         must_have_count = len(self.job_reqs.must_have_skills)

@@ -12,6 +12,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.3,<10",
+    "pytest-cov>=6.0,<7",
     "ruff>=0.8,<1",
     "bandit>=1.8,<2",
     "pip-audit>=2.7,<3",
@@ -30,6 +31,15 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "--cov=src --cov=rank --cov-report=term-missing --cov-fail-under=80"
+
+[tool.coverage.run]
+omit = [
+    "src/parsers/*",
+    "src/logging_config.py",
+    "src/path_validation.py",
+    "src/output_writer.py",
+]
 
 [tool.bandit]
 exclude_dirs = ["tests", ".venv"]

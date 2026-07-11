@@ -54,7 +54,7 @@ Or: `make validate-full`
 ```bash
 python scripts/eval.py
 # honeypot rate, NDCG@10, Precision@5/10, Recovery@10 (4 real calibration IDs)
-# July 2026: NDCG@10 0.3127, Recovery@10 3/4, honeypot rate 0.0
+# July 2026: NDCG@10 0.3718, Recovery@10 3/4, honeypot rate 0.0
 
 python scripts/test_generalization.py   # AI/ML + DevOps JD, zero code edits
 make ci                                 # lint + test + security + smoke rank
