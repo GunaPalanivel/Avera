@@ -31,7 +31,7 @@ def get_base_candidate() -> dict:
                 "start_date": "2022-01-01",
                 "duration_months": 24,
                 "is_current": True,
-                "industry": "Tech",
+                "industry": "Software",
                 "company_size": "100-500",
                 "description": "Test",
             },
@@ -41,7 +41,7 @@ def get_base_candidate() -> dict:
                 "start_date": "2020-01-01",
                 "duration_months": 24,
                 "is_current": False,
-                "industry": "Tech",
+                "industry": "Software",
                 "company_size": "100-500",
                 "description": "Test",
             },
@@ -169,7 +169,7 @@ def test_trajectory_scorer_rewards_progression_over_consulting():
             "start_date": "2023-01-01",
             "duration_months": 18,
             "is_current": True,
-            "industry": "Tech",
+            "industry": "Software",
             "company_size": "100-500",
             "description": "Lead",
         },
@@ -179,7 +179,7 @@ def test_trajectory_scorer_rewards_progression_over_consulting():
             "start_date": "2019-01-01",
             "duration_months": 48,
             "is_current": False,
-            "industry": "Tech",
+            "industry": "Software",
             "company_size": "100-500",
             "description": "IC",
         },
@@ -198,6 +198,47 @@ def test_trajectory_scorer_rewards_progression_over_consulting():
         }
     ]
     assert scorer(CandidateModel.model_validate(progressing)) > scorer(CandidateModel.model_validate(consulting))
+
+
+def test_trajectory_product_ratio_bonus():
+    scorer = TrajectoryScorer(weight=SCORER_WEIGHTS["trajectory"])
+    product_heavy = get_base_candidate()
+    product_heavy["career_history"] = [
+        {
+            "company": "Zomato",
+            "title": "Senior ML Engineer",
+            "start_date": "2019-01-01",
+            "duration_months": 60,
+            "is_current": True,
+            "industry": "Food Delivery",
+            "company_size": "1001-5000",
+            "description": "Retrieval",
+        },
+        {
+            "company": "Flipkart",
+            "title": "ML Engineer",
+            "start_date": "2016-01-01",
+            "duration_months": 36,
+            "is_current": False,
+            "industry": "E-commerce",
+            "company_size": "10001+",
+            "description": "Search",
+        },
+    ]
+    services_only = get_base_candidate()
+    services_only["career_history"] = [
+        {
+            "company": "TCS",
+            "title": "Senior ML Engineer",
+            "start_date": "2016-01-01",
+            "duration_months": 96,
+            "is_current": True,
+            "industry": "IT Services",
+            "company_size": "10001+",
+            "description": "Staff aug",
+        },
+    ]
+    assert scorer(CandidateModel.model_validate(product_heavy)) > scorer(CandidateModel.model_validate(services_only))
 
 
 def test_skills_scorer_recency_weighting():

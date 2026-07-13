@@ -59,6 +59,31 @@ FICTIONAL_COMPANIES: frozenset[str] = frozenset(
 
 CONSULTING_FIRMS: frozenset[str] = frozenset({"tcs", "infosys", "wipro", "accenture", "cognizant", "capgemini", "ibm"})
 
+# Career trajectory: duration-weighted product vs services ratio (uses career_history[].industry)
+PRODUCT_INDUSTRIES: frozenset[str] = frozenset(
+    {
+        "Software",
+        "Fintech",
+        "Food Delivery",
+        "E-commerce",
+        "AI/ML",
+        "SaaS",
+        "EdTech",
+        "Conversational AI",
+        "AdTech",
+        "Transportation",
+        "Insurance Tech",
+        "HealthTech",
+        "HealthTech AI",
+        "Gaming",
+        "Internet",
+        "Consumer Electronics",
+        "Voice AI",
+        "Media",
+    }
+)
+SERVICES_INDUSTRIES: frozenset[str] = frozenset({"IT Services", "Consulting"})
+
 # Anti-requirement detection: the JD's "Things we explicitly do NOT want" section names
 # candidates whose primary expertise is CV/speech/robotics without NLP/IR exposure.
 CV_SPEECH_ROBOTICS_TERMS: frozenset[str] = frozenset(

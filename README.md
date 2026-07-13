@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/GunaPalanivel/Avera/actions/workflows/ci.yml/badge.svg)](https://github.com/GunaPalanivel/Avera/actions/workflows/ci.yml)
 ![Security](https://img.shields.io/badge/security-hardened-blue)
-![Tests](https://img.shields.io/badge/tests-88%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/tests-89%20passed-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 
 Avera is a **JD-parameterized candidate ranking engine** built for [India Runs by Redrob AI](https://hack2skill.com/event/india_runs/) (Track 1: Intelligent Candidate Discovery). It evaluates 100,000 profiles on CPU and outputs an explainable top-100 shortlist. It combines hybrid semantic job understanding with deterministic constraints: `sentence-transformers` for contextual relevance, honeypot filters for adversarial traps, and behavioral signals for hireability — all without LLM calls in the ranking path.
@@ -86,20 +86,20 @@ python scripts/test_generalization.py   # AI/ML JD + DevOps alt JD, same pipelin
 ```
 
 **Evaluation context (read before interpreting NDCG):**
-NDCG@10 = **0.3718**, computed against 4 verified real ideal candidates after Stage 1 correctly removes 10 fictional-company employees from the calibration batch. Recovery@10: **3 of 4** real ideal candidates appear in the top 10 (Apple, Netflix, Meta). **Zero honeypots in top-100** (honeypot rate: 0.0).
+NDCG@10 = **0.3980**, computed against 4 verified real ideal candidates after Stage 1 correctly removes 10 fictional-company employees from the calibration batch. Recovery@10: **3 of 4** real ideal candidates appear in the top 10 (Apple, Netflix, Meta). **Zero honeypots in top-100** (honeypot rate: 0.0).
 
-**Recovery story:** vocabulary expansion (`pgvector` → vector DB, `Natural Language Processing` → `nlp`) recovered **CAND_0005538** (Adobe Senior AI Engineer; ex-Google ranking systems) into the **top-100** at rank 55 — previously lost to keyword mismatch. Pre-clamp CE merit tiebreak reorders the 1.0 ceiling tier by composite strength, not `candidate_id`; NDCG improved from 0.3127 → 0.3718 after this fix. The low absolute NDCG still reflects metric sensitivity to position gaps in a 4-candidate relevance set, not a ranking failure.
+**Recovery story:** vocabulary expansion (`pgvector` → vector DB, `Natural Language Processing` → `nlp`) recovered **CAND_0005538** (Adobe Senior AI Engineer; ex-Google ranking systems) into the **top-100** at rank 51 — previously lost to keyword mismatch. **Industry-aware trajectory scoring** (product vs services ratio from `career_history[].industry`) moved rank 1 from a services-weighted profile to **CAND_0018499** (Zomato Senior ML Engineer). Pre-clamp CE merit tiebreak reorders the ceiling tier by composite strength; NDCG improved from 0.3127 → 0.3980 across PR #30 and this fix.
 
 ## Top-10 results (full 100K pool, July 2026)
 
-| Rank | Candidate    | Score  | Title                           | Company     |
-| ---- | ------------ | ------ | ------------------------------- | ----------- |
-| 1    | CAND_0046525 | 1.0000 | Senior Machine Learning Engineer | Genpact AI  |
-| 2    | CAND_0018499 | 0.9999 | Senior Machine Learning Engineer | Zomato      |
-| 3    | CAND_0088025 | 0.9998 | Staff Machine Learning Engineer  | Yellow.ai   |
-| 4    | CAND_0002025 | 0.9997 | Senior AI Engineer               | Apple       |
-| 5    | CAND_0081846 | 0.9996 | Lead AI Engineer                 | Razorpay    |
-| 6    | CAND_0071974 | 0.9995 | Senior AI Engineer               | Netflix     |
+| Rank | Candidate    | Score  | Title                            | Company     |
+| ---- | ------------ | ------ | -------------------------------- | ----------- |
+| 1    | CAND_0018499 | 1.0000 | Senior Machine Learning Engineer | Zomato      |
+| 2    | CAND_0088025 | 0.9999 | Staff Machine Learning Engineer  | Yellow.ai   |
+| 3    | CAND_0002025 | 0.9998 | Senior AI Engineer               | Apple       |
+| 4    | CAND_0081846 | 0.9997 | Lead AI Engineer                 | Razorpay    |
+| 5    | CAND_0071974 | 0.9996 | Senior AI Engineer               | Netflix     |
+| 6    | CAND_0046525 | 0.9995 | Senior Machine Learning Engineer | Genpact AI  |
 | 7    | CAND_0055905 | 0.9994 | Senior Machine Learning Engineer | Flipkart    |
 | 8    | CAND_0077337 | 0.9993 | Staff Machine Learning Engineer  | Paytm       |
 | 9    | CAND_0050454 | 0.9992 | AI Engineer                      | Rephrase.ai |
@@ -114,6 +114,7 @@ Written scores are strictly decreasing by rank. CE-blended scores above 1.0 are 
 3. **Behavioral multiplier is multiplicative** — availability signals scale the fit score in `[0.4×, 1.3×]` so ghost profiles cannot additive-offset weak skills.
 4. **Heuristic gate at P10 (`0.11`)** — only the top ~90th percentile by heuristic score enters the semantic funnel; calibrated so known ideal candidates clear the gate.
 5. **Min-max CE normalization, not sigmoid** — raw ms-marco logits clustered after sigmoid; min-max across the pool spreads the +0.15 CE blend and enables meaningful rerank.
+6. **Industry-aware trajectory** — product vs services ratio from `career_history[].industry` (ADR-020); bonus for product-heavy careers, penalty for services-only paths.
 
 Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 
@@ -133,7 +134,7 @@ Deep dive: [Scoring Methodology](docs/explanation/methodology.md)
 | **Docker + baked model**            | `has_network_during_ranking: false` reproducibility                                                               | Runtime HuggingFace download — flaky in sandbox                          |
 | **mypy + determinism test**         | Type safety and SHA256 replay on fixture                                                                          | Hope-based correctness                                                   |
 
-ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md) · [018 cross-encoder rerank](docs/adr/018-cross-encoder-rerank.md) · [019 education weight](docs/adr/019-education-scorer-rationale.md)
+ADRs: [001 min-heap](docs/adr/001-deterministic-min-heap-ranking.md) · [002 honeypots](docs/adr/002-honeypot-threat-modeling.md) · [003 semantic layer](docs/adr/003-semantic-hybrid-layer.md) · [017 domain branching](docs/adr/017-domain-branching-taxonomy.md) · [018 cross-encoder rerank](docs/adr/018-cross-encoder-rerank.md) · [019 education weight](docs/adr/019-education-scorer-rationale.md) · [020 industry trajectory](docs/adr/020-industry-embed-aspiration.md)
 
 **Cross-encoder model note:** `ms-marco-MiniLM-L-6-v2` is trained for passage relevance (MS MARCO), not candidate-JD ranking. We use it as a **relative reranker** within the top-300 shortlist: min-max normalization extracts ordering, not calibrated hire probability. A domain-specific cross-encoder would improve precision; none exists publicly for candidate ranking.
 
@@ -306,7 +307,7 @@ make docker-sandbox  # Gradio demo (offline model baked in image)
 │   ├── scorers/             # Title, skills, semantic, experience, location, education, trajectory, behavioral
 │   ├── rerank.py            # Cross-encoder shortlist rerank (ADR-018, min-max)
 │   └── detectors/           # Honeypot detection (5 methods)
-├── tests/                   # Pytest suite (88 tests)
+├── tests/                   # Pytest suite (89 tests)
 ├── scripts/build_sample_50.py  # Build 50-row sandbox sample from demo JSONL
 ├── Dockerfile               # Runtime + baked MiniLM for offline ranking
 ├── docker-compose.yml       # Sandbox and CLI services

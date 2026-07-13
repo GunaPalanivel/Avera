@@ -78,7 +78,7 @@ Recency calculations use `AVERA_REFERENCE_DATE` (default `2026-06-27`) for deter
 
 ### Score scale
 
-The base score sums to `[0, 1]` (semantic 0.27 + title/career 0.18 + skills 0.14 + trajectory 0.16 + education 0.08 + experience 0.11 + location 0.06, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]` and applied before the cross-encoder blend. The final written `score` is clamped to **`[0.0, 1.0]`** after CE rerank (`min(1.0, base + 0.15 × ce_norm)` in `src/rerank.py`) so output follows standard IR convention. Many top ranks may tie at 1.0000; tie-break uses ascending `candidate_id`. Scores are a ranking signal, not a percentage.
+The base score sums to `[0, 1]` (semantic 0.27 + title/career 0.18 + skills 0.14 + trajectory 0.16 + education 0.08 + experience 0.11 + location 0.06, each scorer bounded to its weight). The behavioral multiplier is bounded to `[0.4, 1.3]` and applied before the cross-encoder blend. The final written `score` is clamped to **`[0.0, 1.0]`** after CE rerank (`min(1.0, base + 0.15 × ce_norm)` in `src/rerank.py`) so output follows standard IR convention. Merit order within the ceiling tier uses pre-clamp CE composite strength; written scores use strict rank-index micro-spread (`1.0 − rank×0.0001`) for validator compliance. Trajectory scoring uses duration-weighted **product vs services industry ratio** from `career_history[].industry` (ADR-020).
 
 ## 4. Honeypot Detection Engine
 
@@ -126,6 +126,6 @@ python scripts/eval.py --benchmark  # optional wall-clock on full pool
 python scripts/test_generalization.py   # AI/ML + DevOps JD, zero code edits
 ```
 
-**Calibration context (July 2026 run):** NDCG@10 = **0.3718** against 4 verified real ideal candidates (10 fictional-company "ideals" correctly filtered in Stage 1). Recovery@10: **3/4** real ideal candidates in the top 10. Honeypot rate in top-100: **0.0**. Vocabulary expansion recovered CAND_0005538 (Adobe; ex-Google) into the top-100 at rank 55. Pre-clamp CE merit tiebreak reorders the score ceiling tier by composite strength.
+**Calibration context (July 2026 run):** NDCG@10 = **0.3980** against 4 verified real ideal candidates (10 fictional-company "ideals" correctly filtered in Stage 1). Recovery@10: **3/4** real ideal candidates in the top 10. Honeypot rate in top-100: **0.0**. Vocabulary expansion recovered CAND_0005538 (Adobe; ex-Google) into the top-100 at rank 51. Industry-aware trajectory scoring (ADR-020) moved rank 1 to CAND_0018499 (Zomato).
 
 **Fast reproduction:** `python rank.py --fast --candidates DataSet/candidates.jsonl --out submission.csv` skips semantic prefill and CE rerank (~5m44s heuristic-only on 100K).
