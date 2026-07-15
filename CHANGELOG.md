@@ -9,12 +9,13 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ### Added
 
 - Industry-aware career trajectory scoring (ADR-020): `PRODUCT_INDUSTRIES` / `SERVICES_INDUSTRIES`, duration-weighted product ratio in `trajectory_scorer.py`
-- ADR-020 documents eval checkpoints; duration-weighted skill embedding and aspiration phrase penalty **evaluated and reverted** (NDCG regression on full 100K)
+- ADR-020 documents eval checkpoints; duration-weighted skill embedding, aspiration phrase penalty, and taxonomy expansion (ADR-021) **evaluated and reverted** (NDCG regression on full 100K)
 
 ### Changed
 
-- Regenerated `submission.csv` / `submission.xlsx`: rank 1 **CAND_0018499 (Zomato)**, NDCG@10 **0.3980**, Recovery@10 **3/4**
+- Regenerated `submission.csv` / `submission.xlsx` from full 100K Fix 1 run: rank 1 **CAND_0018499 (Zomato)**, NDCG@10 **0.3980**, Recovery@10 **3/4** (replaces a mismatched Sarvam-rank-1 CSV that had been checked in earlier)
 - README top-10, Recovery narrative, methodology tiebreak + industry sections synced
+- ADR-021 records taxonomy expansion attempt (NDCG 0.2503) and revert decision
 
 - Pre-clamp CE merit tiebreak: order within the score ceiling by `raw_blended`, then assign strictly decreasing written scores for validator compliance
 - pytest-cov 80% coverage gate in CI (with parser/logging omit paths)
