@@ -6,7 +6,7 @@ runtime-only requirements. Run before pushing the Space:
 
     python scripts/sync_space.py
     hf auth login
-    hf upload gp5901/avera-ranker . --repo-type=space --local-dir space_deploy --commit-message "sync current codebase"
+    python -c "from huggingface_hub import HfApi; HfApi().upload_folder(folder_path='space_deploy', repo_id='gp5901/avera-ranker', repo_type='space', commit_message='sync ranking engine')"
 """
 
 from __future__ import annotations
@@ -80,7 +80,7 @@ def main() -> int:
     print(f"Synced space_deploy from {REPO}")
     print("Next steps:")
     print("  hf auth login")
-    print('  hf upload gp5901/avera-ranker . --repo-type=space --local-dir space_deploy --commit-message "sync current codebase"')
+    print("  python -c \"from huggingface_hub import HfApi; HfApi().upload_folder(folder_path='space_deploy', repo_id='gp5901/avera-ranker', repo_type='space', commit_message='sync ranking engine')\"")
     return 0
 
 

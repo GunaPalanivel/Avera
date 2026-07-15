@@ -37,16 +37,28 @@ make docker-build    # build image with baked semantic model
 make docker-sandbox  # Gradio on http://localhost:7860
 ```
 
+## HuggingFace Space sandbox
+
+**URL:** https://huggingface.co/spaces/gp5901/avera-ranker
+
+- Use bundled **`sample_candidates_50.jsonl`** for smoke — do not upload the 100K `candidates.jsonl` pool.
+- First run on a cold Space instance loads models (~45s CPU); subsequent runs on the same instance are faster (~8–15s).
+
+```bash
+python scripts/sync_space.py
+python -c "from huggingface_hub import HfApi; HfApi().upload_folder(folder_path='space_deploy', repo_id='gp5901/avera-ranker', repo_type='space', commit_message='sync ranking engine')"
+```
+
 ### Environment variables
 
-| Variable                     | Default            | Purpose                                                         |
-| ---------------------------- | ------------------ | --------------------------------------------------------------- |
+| Variable                     | Default            | Purpose                                                                    |
+| ---------------------------- | ------------------ | -------------------------------------------------------------------------- |
 | `--fast` (CLI flag)          | off                | Heuristic-only ranking; sets `AVERA_SKIP_SEMANTIC` and `AVERA_SKIP_RERANK` |
-| `AVERA_SKIP_SEMANTIC`        | unset (load model) | Set to `1` in tests to skip `sentence-transformers` load        |
-| `AVERA_SKIP_RERANK`          | unset              | Set to `1` to skip cross-encoder rerank                         |
-| `AVERA_SEMANTIC_MODEL`       | `all-MiniLM-L6-v2` | HuggingFace model id or **local directory** for offline ranking |
-| `AVERA_SEMANTIC_RERANK_TOPK` | `5000`             | Heuristic top-K candidates to embed in pass 1                   |
-| `AVERA_REFERENCE_DATE`       | `2026-06-27`       | Fixed date for behavioral recency — deterministic replay        |
+| `AVERA_SKIP_SEMANTIC`        | unset (load model) | Set to `1` in tests to skip `sentence-transformers` load                   |
+| `AVERA_SKIP_RERANK`          | unset              | Set to `1` to skip cross-encoder rerank                                    |
+| `AVERA_SEMANTIC_MODEL`       | `all-MiniLM-L6-v2` | HuggingFace model id or **local directory** for offline ranking            |
+| `AVERA_SEMANTIC_RERANK_TOPK` | `5000`             | Heuristic top-K candidates to embed in pass 1                              |
+| `AVERA_REFERENCE_DATE`       | `2026-06-27`       | Fixed date for behavioral recency — deterministic replay                   |
 
 For sandbox/Docker with `has_network_during_ranking: false`, pre-download the model once:
 

@@ -54,7 +54,7 @@ Or: `make validate-full`
 ```bash
 python scripts/eval.py
 # honeypot rate, NDCG@10, Precision@5/10, Recovery@10 (4 real calibration IDs)
-# July 2026: NDCG@10 0.3718, Recovery@10 3/4, honeypot rate 0.0
+# July 2026: NDCG@10 0.3980, Recovery@10 3/4, honeypot rate 0.0; rank 1 CAND_0018499 (Zomato); CAND_0005538 at rank 52
 
 python scripts/test_generalization.py   # AI/ML + DevOps JD, zero code edits
 make ci                                 # lint + test + security + smoke rank
@@ -81,7 +81,7 @@ Join probability uses offer acceptance, interview completion, notice period, ope
 
 **HuggingFace:** https://huggingface.co/spaces/gp5901/avera-ranker
 
-Upload a `.jsonl` slice (1–100 rows). Bundled examples: 100-row curated demo or 50-row quick demo.
+Upload a `.jsonl` slice (1–100 rows). Bundled examples: 100-row curated demo or **50-row quick demo** (`DataSet/sample_candidates_50.jsonl`). First Space run loads models (~45s CPU); subsequent runs on the same instance are faster (~8–15s).
 
 **Local:**
 
@@ -114,13 +114,13 @@ Weights live in `src/config.py` (`get_scorer_weights`) and adjust by JD seniorit
 
 See [`.env.example`](../../.env.example) and [runbook.md](../how-to/runbook.md).
 
-| Variable                                    | Purpose                                    |
-| ------------------------------------------- | ------------------------------------------ |
+| Variable                                    | Purpose                                         |
+| ------------------------------------------- | ----------------------------------------------- |
 | `--fast` (CLI flag)                         | Heuristic-only ranking; sets skip semantic + CE |
-| `AVERA_SKIP_SEMANTIC` / `AVERA_SKIP_RERANK` | Fast path for tests and sandbox slices     |
-| `AVERA_SEMANTIC_MODEL`                      | Local MiniLM directory for offline ranking |
-| `AVERA_SEMANTIC_RERANK_TOPK`                | Heuristic top-K to embed (default 5000)    |
-| `AVERA_REFERENCE_DATE`                      | Deterministic behavioral recency anchor    |
+| `AVERA_SKIP_SEMANTIC` / `AVERA_SKIP_RERANK` | Fast path for tests and sandbox slices          |
+| `AVERA_SEMANTIC_MODEL`                      | Local MiniLM directory for offline ranking      |
+| `AVERA_SEMANTIC_RERANK_TOPK`                | Heuristic top-K to embed (default 5000)         |
+| `AVERA_REFERENCE_DATE`                      | Deterministic behavioral recency anchor         |
 
 ---
 

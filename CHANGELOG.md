@@ -8,6 +8,15 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Industry-aware career trajectory scoring (ADR-020): `PRODUCT_INDUSTRIES` / `SERVICES_INDUSTRIES`, duration-weighted product ratio in `trajectory_scorer.py`
+- ADR-020 documents eval checkpoints; duration-weighted skill embedding, aspiration phrase penalty, and taxonomy expansion (ADR-021) **evaluated and reverted** (NDCG regression on full 100K)
+
+### Changed
+
+- Regenerated `submission.csv` / `submission.xlsx` from full 100K Fix 1 run: rank 1 **CAND_0018499 (Zomato)**, NDCG@10 **0.3980**, Recovery@10 **3/4** (replaces a mismatched Sarvam-rank-1 CSV that had been checked in earlier)
+- README top-10, Recovery narrative, methodology tiebreak + industry sections synced
+- ADR-021 records taxonomy expansion attempt (NDCG 0.2503) and revert decision
+
 - Pre-clamp CE merit tiebreak: order within the score ceiling by `raw_blended`, then assign strictly decreasing written scores for validator compliance
 - pytest-cov 80% coverage gate in CI (with parser/logging omit paths)
 - Gradio cold-start UX note on HF Space (~45s first run)
@@ -66,7 +75,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed (unreleased)
 
-- Regenerated `submission.csv` with bounded scores (max 1.0); top-10 order may shift when multiple candidates clamp to 1.0000 (tie-break by `candidate_id`)
+- Regenerated `submission.csv` with bounded scores (max 1.0); merit tiebreak uses pre-clamp CE composite (ADR-018)
 - Rebalanced scorer weights toward semantic fit (senior profile semantic 15 to 25 percent, pure keyword title plus skills reduced from 42 to 32 percent) to honor the JD's beyond-keywords mandate; full 100K stays honeypot-free with the top-100 minimum above the reasoning floor
 
 ### Reviewer fixes (unreleased)

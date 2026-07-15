@@ -1,5 +1,5 @@
-from src.config import CONSULTING_FIRMS
-from src.models import CandidateModel
+from src.config import PRODUCT_INDUSTRIES, SERVICES_INDUSTRIES
+from src.models import CandidateModel, CareerEntryModel
 from src.scorers.base import BaseScorer
 
 
@@ -14,6 +14,15 @@ def _title_level(title: str) -> int:
     if any(k in t for k in ("junior", "intern", "trainee")):
         return 0
     return 1
+
+
+def product_company_ratio(career: list[CareerEntryModel]) -> float:
+    """Share of career months spent in product-industry companies."""
+    total = sum(c.duration_months for c in career)
+    if total <= 0:
+        return 0.5
+    product = sum(c.duration_months for c in career if c.industry in PRODUCT_INDUSTRIES)
+    return product / total
 
 
 class TrajectoryScorer(BaseScorer):
@@ -39,16 +48,20 @@ class TrajectoryScorer(BaseScorer):
         elif progression == 0:
             score += 0.1
 
-        companies = [c.company.lower() for c in career]
         industries = [c.industry.lower() for c in career]
-        all_consulting = bool(companies) and all(any(f in comp for f in CONSULTING_FIRMS) for comp in companies)
+        all_services = bool(career) and all(c.industry in SERVICES_INDUSTRIES for c in career)
         research_only = bool(industries) and all(("research" in ind or "academ" in ind) for ind in industries)
+        product_ratio = product_company_ratio(career)
 
-        if all_consulting:
+        if all_services:
             score -= 0.2
         if research_only:
             score -= 0.15
-        if not all_consulting and not research_only:
+        if product_ratio >= 0.7:
+            score += 0.12
+        elif product_ratio < 0.4:
+            score -= 0.12
+        elif not all_services and not research_only:
             score += 0.1
 
         return max(0.0, min(1.0, score))

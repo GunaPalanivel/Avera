@@ -45,7 +45,7 @@ methodology_summary: |
   Stage 3 applies behavioral multiplier (0.4x-1.3x). Join probability (informational, XLSX column) uses India hireability signals without affecting rank.
   Output: submission.csv (candidate_id, rank, score, reasoning); submission.xlsx adds join_probability. Scores are IR-bounded to [0, 1].
   Pre-download both models: `make download-model`. Full 100K run: `python rank.py --candidates DataSet/candidates.jsonl --out submission.csv`. Fast heuristic path: `python rank.py --fast ...`.
-  Quality gates: 88 pytest tests (80% coverage floor); honeypot rate 0 in top-100; eval NDCG@10 0.3718, Recovery@10 3/4 via `python scripts/eval.py`.
+  Quality gates: 89 pytest tests (80% coverage floor); honeypot rate 0 in top-100; eval NDCG@10 0.3980, Recovery@10 3/4 via `python scripts/eval.py`.
 
 declarations:
   read_submission_spec: true

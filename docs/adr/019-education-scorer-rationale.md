@@ -18,7 +18,7 @@ Unknown or missing education tier scores **neutral** (mid-band), not penalized t
 ## Consequences
 
 - Positive: aligns weights with JD silence on education and strengthens narrative-fit signals.
-- Positive: `CAND_0005538` (Adobe, ex-Google) and similar career-forward profiles recover rank without keyword stuffing.
+- Positive: `CAND_0005538` (Adobe, ex-Google) recovered into the top-100 at rank 52 via vocabulary expansion without keyword stuffing.
 - Negative: tier-1 pedigree provides slightly less lift; acceptable given weak JD prior on education.
 
 ## Related
